@@ -2,11 +2,11 @@ const pgp = require('pg-promise')()
 
 //language=PostgreSQL
 const createTables = `
-  CREATE TABLE IF NOT EXISTS track (
-    vessel_id TEXT,
+  CREATE TABLE IF NOT EXISTS trackpoint (
+    context TEXT,
     timestamp TIMESTAMP WITH TIME ZONE,
     point GEOGRAPHY(Point,4326) NOT NULL,
-    PRIMARY KEY (vessel_id, timestamp)
+    PRIMARY KEY (context, timestamp)
   )`
 
 
