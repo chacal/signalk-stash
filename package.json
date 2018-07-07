@@ -12,7 +12,8 @@
     "start": "node --require @std/esm api-server/index.js",
     "watch": "nodemon -r @std/esm api-server/index.js",
     "dev": "docker-compose up -d && npm run watch",
-    "lint": "eslint . --fix"
+    "lint": "eslint . --fix",
+    "test": "eslint ."
   },
   "dependencies": {
     "@std/esm": "^0.26.0",
