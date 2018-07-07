@@ -23,7 +23,7 @@ describe('SignalKDeltaWriter', () => {
 
 function getAllTrackPointsForVessel(context) {
   return db.db.any(
-    'SELECT context, timestamp, ST_AsGeoJSON(point)::json as geojson FROM trackpoint WHERE context = ${context}',
+    'SELECT context, timestamp, ST_AsGeoJSON(point)::json as geojson FROM trackpoint WHERE context = $[context]',
     { context }
   )
 }

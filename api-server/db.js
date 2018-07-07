@@ -40,11 +40,11 @@ class DB {
     return this.db.query(
       `
           INSERT INTO trackpoint (context, timestamp, point)
-          VALUES ($1, $2, st_point($3, $4))
+          VALUES ($[context], $[timestamp], st_point($[longitude], $[latitude]))
           ON CONFLICT (context, timestamp)
-          DO UPDATE SET point = st_point($3, $4)
+          DO UPDATE SET point = st_point($[longitude], $[latitude])
         `,
-      [context, timestamp, longitude, latitude]
+      { context, timestamp, longitude, latitude }
     )
   }
 }
