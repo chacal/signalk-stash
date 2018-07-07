@@ -30,7 +30,6 @@ module.exports = {
     "getter-return": "error",
     "guard-for-in": "error",
     "handle-callback-err": "error",
-    "object-curly-spacing": ["error", "never"],
     "no-extra-bind": "error",
     "no-console": "off",
     "prefer-const": "error",

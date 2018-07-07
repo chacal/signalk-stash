@@ -1,4 +1,5 @@
 import pgp from 'pg-promise'
+import config from './config'
 
 //language=PostgreSQL
 const createTables = `
@@ -18,12 +19,33 @@ const createTables = `
   )`
 
 class DB {
-  constructor(dbConfig) {
-    this.db = pgp()(dbConfig)
+  constructor() {
+    this.db = pgp()(config.db)
   }
 
   ensureTables() {
     return this.db.query(createTables)
+  }
+
+  _resetTables() {
+    if (process.env.ENVIRONMENT !== 'test') {
+      throw new Error('Can reset tables only in test environment!')
+    }
+    return this.db
+      .query('DROP TABLE IF EXISTS trackpoint, instrument_measurement')
+      .then(() => this.ensureTables())
+  }
+
+  insertTrackpoint({ context, timestamp, longitude, latitude }) {
+    return this.db.query(
+      `
+          INSERT INTO trackpoint (context, timestamp, point)
+          VALUES ($1, $2, st_point($3, $4))
+          ON CONFLICT (context, timestamp)
+          DO UPDATE SET point = st_point($3, $4)
+        `,
+      [context, timestamp, longitude, latitude]
+    )
   }
 }
 
