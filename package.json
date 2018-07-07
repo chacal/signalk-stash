@@ -10,6 +10,8 @@
   },
   "scripts": {
     "start": "node --require @std/esm api-server/index.js",
+    "watch": "nodemon -r @std/esm api-server/index.js",
+    "dev": "docker-compose up -d && npm run watch",
     "lint": "eslint . --fix"
   },
   "dependencies": {
@@ -24,6 +26,7 @@
     "eslint": "^5.0.1",
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-prettier": "^2.6.2",
+    "nodemon": "^1.17.5",
     "prettier": "1.13.7"
   },
   "@std/esm": "cjs",
