@@ -47,6 +47,16 @@ class DB {
       { context, timestamp, longitude, latitude }
     )
   }
+
+  insertMeasurement({ context, timestamp, path, sourceId, value }) {
+    return this.db.query(
+      `
+          INSERT INTO instrument_measurement (context, timestamp, path, sourceId, value)
+          VALUES ($[context], $[timestamp], $[path], $[sourceId], $[value])
+        `,
+      { context, timestamp, path, sourceId, value: JSON.stringify(value) }
+    )
+  }
 }
 
 export default DB

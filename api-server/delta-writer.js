@@ -8,7 +8,7 @@ class SignalKDeltaWriter {
   writeDelta(delta) {
     const { context, updates } = delta
     const inserts = updates.map(update => {
-      const { timestamp } = update
+      const { timestamp, $source } = update
       return update.values.map(value => {
         if (value.path === 'navigation.position') {
           const {
@@ -21,8 +21,14 @@ class SignalKDeltaWriter {
             longitude
           })
         } else {
-          console.log(`Measurement ${value.path}`)
-          return Promise.resolve(undefined)
+          const { path, value: valueData } = value
+          return this.db.insertMeasurement({
+            context: stripVesselsPrefix(context),
+            timestamp,
+            path,
+            sourceId: $source,
+            value: valueData
+          })
         }
       })
     })
