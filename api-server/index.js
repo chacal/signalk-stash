@@ -12,3 +12,7 @@ function startApi(config, db) {
   const api = new API(config, db)
   api.start()
 }
+
+process.on('unhandledRejection', error => {
+  console.error('Unhandled promise exception:', error)
+})
