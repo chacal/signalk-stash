@@ -1,4 +1,4 @@
-const express = require('express')
+import express from 'express'
 
 class API {
   constructor(config, db) {
@@ -14,4 +14,4 @@ class API {
   }
 }
 
-module.exports = API
+export default API

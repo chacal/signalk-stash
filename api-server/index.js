@@ -1,6 +1,6 @@
-const config = require('./config.json')
-const DB = require('./db')
-const API = require('./api')
+import config from './config.json'
+import DB from './db'
+import API from './api'
 
 console.log('Starting SignalK Stash..')
 

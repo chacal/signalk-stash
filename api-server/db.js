@@ -1,4 +1,4 @@
-const pgp = require('pg-promise')()
+import pgp from 'pg-promise'
 
 //language=PostgreSQL
 const createTables = `
@@ -19,7 +19,7 @@ const createTables = `
 
 class DB {
   constructor(dbConfig) {
-    this.db = pgp(dbConfig)
+    this.db = pgp()(dbConfig)
   }
 
   ensureTables() {
@@ -27,4 +27,4 @@ class DB {
   }
 }
 
-module.exports = DB
+export default DB
