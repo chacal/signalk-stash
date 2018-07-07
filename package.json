@@ -5,10 +5,30 @@
   "main": "api-server/index.js",
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=9.10.0"
+  },
+  "scripts": {
+    "start": "node --require @std/esm api-server/index.js",
+    "lint": "eslint . --fix"
+  },
   "dependencies": {
+    "@std/esm": "^0.26.0",
     "bluebird": "^3.5.1",
     "debug": "^3.1.0",
+    "eslint-restricted-globals": "^0.1.1",
     "express": "^4.16.3",
     "pg-promise": "^8.4.5"
+  },
+  "devDependencies": {
+    "eslint": "^5.0.1",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-prettier": "^2.6.2",
+    "prettier": "1.13.7"
+  },
+  "@std/esm": "cjs",
+  "prettier": {
+    "semi": false,
+    "singleQuote": true
   }
 }

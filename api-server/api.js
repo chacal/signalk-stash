@@ -8,7 +8,9 @@ class API {
   }
 
   start() {
-    this.app.listen(this.config.port, () => console.log(`Listening on port ${this.config.port}!`))
+    this.app.listen(this.config.port, () =>
+      console.log(`Listening on port ${this.config.port}!`)
+    )
   }
 }
 

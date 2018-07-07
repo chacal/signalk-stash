@@ -17,7 +17,6 @@ const createTables = `
     PRIMARY KEY (context, timestamp, path, sourceId)
   )`
 
-
 class DB {
   constructor(dbConfig) {
     this.db = pgp(dbConfig)
@@ -27,6 +26,5 @@ class DB {
     return this.db.query(createTables)
   }
 }
-
 
 module.exports = DB
