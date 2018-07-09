@@ -4,14 +4,9 @@ import { expect } from 'chai'
 import DB from '../api-server/db'
 import testdb from './testdb'
 import SignalKDeltaWriter from '../api-server/delta-writer'
-import {
-  positionFixtures,
-  measurementFixtures,
-  vesselUuid
-} from './test-util'
+import { positionFixtures, measurementFixtures, vesselUuid } from './test-util'
 
 const writer = new SignalKDeltaWriter(DB)
-
 
 describe('SignalKDeltaWriter', () => {
   beforeEach(() => testdb.resetTables())
