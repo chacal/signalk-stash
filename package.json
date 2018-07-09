@@ -13,7 +13,8 @@
     "watch": "nodemon -r @std/esm api-server/index.js",
     "dev": "docker-compose up -d && npm run watch",
     "lint": "eslint . --fix",
-    "test": "ENVIRONMENT=test mocha --require @std/esm --exit test/**/*test.js && eslint ."
+    "test": "ENVIRONMENT=test mocha --require @std/esm --exit test/**/*test.js && eslint .",
+    "mqtt-input": "node --require @std/esm delta-inputs/mqtt-runner.js"
   },
   "dependencies": {
     "@std/esm": "^0.26.0",
