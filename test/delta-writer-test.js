@@ -4,13 +4,14 @@ import { expect } from 'chai'
 import DB from '../api-server/db'
 import testdb from './testdb'
 import SignalKDeltaWriter from '../api-server/delta-writer'
-
-const positionFixtures = require('./data/position-fixtures.json')
-const measurementFixtures = require('./data/measurement-fixtures.json')
+import {
+  positionFixtures,
+  measurementFixtures,
+  vesselUuid
+} from './test-util'
 
 const writer = new SignalKDeltaWriter(DB)
 
-const vesselUuid = 'urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e'
 
 describe('SignalKDeltaWriter', () => {
   beforeEach(() => testdb.resetTables())
