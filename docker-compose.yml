@@ -21,6 +21,14 @@ services:
       POSTGRES_USER: signalk
       POSTGRES_PASSWORD: signalk
       POSTGRES_DB: signalk
+  mqtt:
+    image: eclipse-mosquitto
+    ports:
+     - 11883:1883
+    volumes:
+      - mosquitto:/mosquitto/data
+    restart: always
 
 volumes:
   pgdata:
+  mosquitto:

@@ -22,6 +22,7 @@
     "debug": "^3.1.0",
     "eslint-restricted-globals": "^0.1.1",
     "express": "^4.16.3",
+    "mqtt": "^2.18.2",
     "pg-promise": "^8.4.5",
     "ramda": "^0.25.0"
   },
