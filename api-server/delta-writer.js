@@ -9,6 +9,7 @@ class SignalKDeltaWriter {
     const { context, updates } = delta
     const inserts = updates.map(update => {
       const { timestamp, $source } = update
+      const sourceId = $source || 'n/a'
       return update.values.map(value => {
         if (value.path === 'navigation.position') {
           const {
@@ -26,7 +27,7 @@ class SignalKDeltaWriter {
             context: stripVesselsPrefix(context),
             timestamp,
             path,
-            sourceId: $source,
+            sourceId,
             value: valueData
           })
         }

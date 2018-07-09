@@ -44,6 +44,8 @@ class DB {
       `
           INSERT INTO instrument_measurement (context, timestamp, path, sourceId, value)
           VALUES ($[context], $[timestamp], $[path], $[sourceId], $[value])
+          ON CONFLICT (context, timestamp, path, sourceId)
+          DO UPDATE SET value = $[value]
         `,
       { context, timestamp, path, sourceId, value: JSON.stringify(value) }
     )
