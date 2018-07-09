@@ -4,9 +4,7 @@ import API from './api'
 
 console.log('Starting SignalK Stash..')
 
-const db = new DB()
-
-db.ensureTables().then(() => startApi(config, db))
+DB.ensureTables().then(() => startApi(config, DB))
 
 function startApi(config, db) {
   const api = new API(config, db)

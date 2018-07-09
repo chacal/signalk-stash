@@ -27,15 +27,6 @@ class DB {
     return this.db.query(createTables)
   }
 
-  _resetTables() {
-    if (process.env.ENVIRONMENT !== 'test') {
-      throw new Error('Can reset tables only in test environment!')
-    }
-    return this.db
-      .query('DROP TABLE IF EXISTS trackpoint, instrument_measurement')
-      .then(() => this.ensureTables())
-  }
-
   insertTrackpoint({ context, timestamp, longitude, latitude }) {
     return this.db.query(
       `
@@ -59,4 +50,4 @@ class DB {
   }
 }
 
-export default DB
+export default new DB()

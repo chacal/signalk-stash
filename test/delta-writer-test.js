@@ -2,21 +2,21 @@
 import * as R from 'ramda'
 import { expect } from 'chai'
 import DB from '../api-server/db'
+import testdb from './testdb'
 import SignalKDeltaWriter from '../api-server/delta-writer'
 
 const positionFixtures = require('./data/position-fixtures.json')
 const measurementFixtures = require('./data/measurement-fixtures.json')
 
-const db = new DB()
-const writer = new SignalKDeltaWriter(db)
+const writer = new SignalKDeltaWriter(DB)
 
 const vesselUuid = 'urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e'
 
 describe('SignalKDeltaWriter', () => {
-  beforeEach(() => db._resetTables())
+  beforeEach(() => testdb.resetTables())
   it('writes positions', () => {
     return Promise.all(positionFixtures.map(delta => writer.writeDelta(delta)))
-      .then(() => getAllTrackPointsForVessel(vesselUuid))
+      .then(() => testdb.getAllTrackPointsForVessel(vesselUuid))
       .then(result => {
         expect(result).to.have.lengthOf(positionFixtures.length)
         expect(result[0].timestamp).to.exist
@@ -33,7 +33,7 @@ describe('SignalKDeltaWriter', () => {
     return Promise.all(
       measurementFixtures.map(delta => writer.writeDelta(delta))
     )
-      .then(() => getAllMeasurementsForVessel(vesselUuid))
+      .then(() => testdb.getAllMeasurementsForVessel(vesselUuid))
       .then(result => {
         const expectedMeasurementsCount = R.compose(
           R.length,
@@ -52,22 +52,3 @@ describe('SignalKDeltaWriter', () => {
       })
   })
 })
-
-function getAllTrackPointsForVessel(context) {
-  return db.db.any(
-    `SELECT context, timestamp, ST_AsGeoJSON(point)::json as geojson
-    FROM trackpoint WHERE context = $[context]
-    ORDER BY timestamp`,
-    { context }
-  )
-}
-
-function getAllMeasurementsForVessel(context) {
-  return db.db.any(
-    `SELECT context, timestamp, sourceId, path, value::json
-    FROM instrument_measurement
-    WHERE context = $[context]
-    ORDER BY timestamp`,
-    { context }
-  )
-}
