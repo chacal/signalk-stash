@@ -1,0 +1,12 @@
+FROM node:alpine
+ENV NODE_ENV=production
+WORKDIR /opt/app
+
+COPY package.json package-lock.json ./
+RUN npm install
+
+COPY ./api-server/* ./
+
+CMD ["node", "--require", "@std/esm", "./index.js"]
+
+USER node
