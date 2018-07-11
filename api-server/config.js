@@ -30,5 +30,5 @@ const environments = {
 
 const environment = process.env.ENVIRONMENT || 'development'
 const config = R.mergeDeepRight(baseConfig, environments[environment])
-console.log(`Using ${environment} config`)
+console.log(`Using ${environment} config:\n${JSON.stringify(config, null, 2)}`)
 export default config
