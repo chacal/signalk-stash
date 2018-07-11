@@ -13,7 +13,12 @@ const baseConfig = {
 
 const environments = {
   development: {},
-  production: {},
+  production: {
+    db: {
+      host: 'postgis',
+      port: 5432
+    }
+  },
   test: {
     db: {
       host: 'localhost',
