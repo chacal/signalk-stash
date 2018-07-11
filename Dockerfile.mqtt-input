@@ -1,0 +1,13 @@
+FROM node:alpine
+ENV NODE_ENV=production
+WORKDIR /opt/app
+
+COPY package.json package-lock.json ./
+RUN npm install
+
+COPY ./api-server ./api-server
+COPY ./delta-inputs ./delta-inputs
+
+CMD ["node", "--require", "@std/esm", "./delta-inputs/mqtt-runner.js"]
+
+USER node
