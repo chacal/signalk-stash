@@ -13,4 +13,5 @@ function startApi(config, db) {
 
 process.on('unhandledRejection', error => {
   console.error('Unhandled promise exception:', error)
+  process.exit(1)
 })
