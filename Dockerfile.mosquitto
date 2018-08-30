@@ -2,5 +2,8 @@ FROM jllopis/mosquitto
 
 COPY mosquitto.conf /etc/mosquitto/mosquitto.conf
 
+RUN mkdir -p /var/log/mosquitto
+RUN chown mosquitto:mosquitto -R /var/log/mosquitto
+
 ENTRYPOINT ["/run.sh"]
 CMD ["mosquitto"]
