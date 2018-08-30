@@ -9,17 +9,22 @@ import {
   waitFor,
   positionFixtures,
   measurementFixtures,
-  vesselUuid
+  vesselUuid,
+  testAccount
 } from './test-util'
+import { AclLevel } from '../api-server/acl'
 import SignalKDeltaWriter from '../api-server/delta-writer'
 import MqttDeltaInput from '../delta-inputs/mqtt'
 
 const writer = new SignalKDeltaWriter(db)
-const mqttBrokerUrl = 'mqtt://localhost:11883'
+const mqttBrokerUrl = 'mqtt://localhost:21883'
 
 describe('MQTT input', () => {
-  beforeEach(() => testdb.resetTables())
-  before(() => new MqttDeltaInput(mqttBrokerUrl, writer).start())
+  before(() => initializeTestDb()
+    .then(getMqttClient)
+    .then(mqttClient => new MqttDeltaInput(mqttClient, writer).start())
+  )
+  beforeEach(initializeTestDb)
 
   it('writes position published to signalk/delta', () => {
     return getMqttClient()
@@ -63,8 +68,14 @@ describe('MQTT input', () => {
   })
 })
 
+function initializeTestDb() {
+  return testdb.resetTables()
+    .then(() => db.upsertAccount(testAccount))
+    .then(() => db.upsertAcl(testAccount.username, 'signalk/delta', AclLevel.ALL))
+}
+
 function getMqttClient() {
-  const client = mqtt.connect(mqttBrokerUrl)
+  const client = mqtt.connect(mqttBrokerUrl, {username: testAccount.username, password: testAccount.password})
   return BPromise.fromCallback(cb => client.once('connect', () => cb())).then(
     () => client
   )
