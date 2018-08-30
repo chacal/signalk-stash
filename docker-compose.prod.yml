@@ -11,6 +11,8 @@ services:
   mqtt-input:
     image: jihartik/signalk-stash-mqtt-input
     restart: always
+    env_file:
+      - docker-prod.env
     environment:
       ENVIRONMENT: production
       MQTT_BROKER: mqtt://mqtt
