@@ -30,7 +30,7 @@ const createTables = `
     topic TEXT NOT NULL,
     rw INT NOT NULL,
     PRIMARY KEY (account_id, topic)
-  )`
+  );`
 
 class DB {
   constructor() {
