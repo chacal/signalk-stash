@@ -25,13 +25,15 @@ services:
       POSTGRES_PASSWORD: signalk
       POSTGRES_DB: signalk
   mqtt:
-    image: eclipse-mosquitto
+    image: jihartik/signalk-stash-mosquitto
     ports:
      - 1883:1883
     volumes:
-      - mosquitto:/mosquitto/data
+      - mosquitto-data:/var/lib/mosquitto
+      - mosquitto-log:/var/log/mosquitto
     restart: always
 
 volumes:
   pgdata:
-  mosquitto:
+  mosquitto-data:
+  mosquitto-log:

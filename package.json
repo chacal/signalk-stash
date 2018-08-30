@@ -11,7 +11,7 @@
   "scripts": {
     "start": "node --require @std/esm api-server/index.js",
     "watch": "nodemon -r @std/esm api-server/index.js",
-    "dev": "docker-compose up -d && npm run watch",
+    "dev": "docker-compose -f docker-compose.dev.yml up -d && npm run watch",
     "lint": "eslint . --fix",
     "test": "ENVIRONMENT=test mocha --require @std/esm --exit test/**/*test.js && eslint .",
     "mqtt-input": "node --require @std/esm delta-inputs/mqtt-runner.js",
