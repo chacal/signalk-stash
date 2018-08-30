@@ -6,7 +6,7 @@ class TestDB {
       throw new Error('Can reset tables only in test environment!')
     }
     return DB.db
-      .query('DROP TABLE IF EXISTS trackpoint, instrument_measurement')
+      .query('DROP TABLE IF EXISTS trackpoint, instrument_measurement, account, mqtt_acl')
       .then(() => DB.ensureTables())
   }
 
