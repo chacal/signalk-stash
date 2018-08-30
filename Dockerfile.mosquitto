@@ -1,0 +1,6 @@
+FROM jllopis/mosquitto
+
+COPY mosquitto.conf /etc/mosquitto/mosquitto.conf
+
+ENTRYPOINT ["/run.sh"]
+CMD ["mosquitto"]
