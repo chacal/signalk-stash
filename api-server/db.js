@@ -3,6 +3,7 @@ import config from './config'
 
 //language=PostgreSQL
 const createTables = `
+  CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
   CREATE TABLE IF NOT EXISTS trackpoint (
     context TEXT,
     timestamp TIMESTAMP WITH TIME ZONE,
@@ -16,6 +17,20 @@ const createTables = `
     sourceId TEXT NOT NULL,
     value jsonb NOT NULL,
     PRIMARY KEY (context, timestamp, path, sourceId)
+  );
+  CREATE TABLE IF NOT EXISTS account (
+    id UUID DEFAULT uuid_generate_v4() NOT NULL,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    mosquitto_super BOOLEAN NOT NULL,
+    PRIMARY KEY (id)
+  );
+  CREATE TABLE IF NOT EXISTS mqtt_acl (
+    id SERIAL,
+    account_id UUID NOT NULL REFERENCES account (id) ON DELETE CASCADE,
+    topic TEXT NOT NULL,
+    rw INT NOT NULL,
+    PRIMARY KEY (id)
   )`
 
 class DB {
