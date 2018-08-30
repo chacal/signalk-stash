@@ -20,9 +20,10 @@ const writer = new SignalKDeltaWriter(db)
 const mqttBrokerUrl = 'mqtt://localhost:21883'
 
 describe('MQTT input', () => {
-  before(() => initializeTestDb()
-    .then(getMqttClient)
-    .then(mqttClient => new MqttDeltaInput(mqttClient, writer).start())
+  before(() =>
+    initializeTestDb()
+      .then(getMqttClient)
+      .then(mqttClient => new MqttDeltaInput(mqttClient, writer).start())
   )
   beforeEach(initializeTestDb)
 
@@ -69,13 +70,19 @@ describe('MQTT input', () => {
 })
 
 function initializeTestDb() {
-  return testdb.resetTables()
+  return testdb
+    .resetTables()
     .then(() => db.upsertAccount(testAccount))
-    .then(() => db.upsertAcl(testAccount.username, 'signalk/delta', AclLevel.ALL))
+    .then(() =>
+      db.upsertAcl(testAccount.username, 'signalk/delta', AclLevel.ALL)
+    )
 }
 
 function getMqttClient() {
-  const client = mqtt.connect(mqttBrokerUrl, {username: testAccount.username, password: testAccount.password})
+  const client = mqtt.connect(
+    mqttBrokerUrl,
+    { username: testAccount.username, password: testAccount.password }
+  )
   return BPromise.fromCallback(cb => client.once('connect', () => cb())).then(
     () => client
   )

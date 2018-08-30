@@ -5,7 +5,8 @@ export const vesselUuid =
 export const testAccount = {
   username: 'signalk',
   password: 'signalk',
-  passwordHash: 'PBKDF2$sha256$901$SsBHerbO7k6HXr3V$FK1Dcra1YV+kvqeV/LYaFZN4DslbgL6y',  // "signalk"
+  passwordHash:
+    'PBKDF2$sha256$901$SsBHerbO7k6HXr3V$FK1Dcra1YV+kvqeV/LYaFZN4DslbgL6y', // "signalk"
   isMosquittoSuper: false
 }
 

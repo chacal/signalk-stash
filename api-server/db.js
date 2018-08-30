@@ -65,7 +65,7 @@ class DB {
     )
   }
 
-  upsertAccount({username, passwordHash, isMosquittoSuper}) {
+  upsertAccount({ username, passwordHash, isMosquittoSuper }) {
     return this.db.query(
       `
           INSERT INTO account (username, password, mosquitto_super)
