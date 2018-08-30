@@ -26,11 +26,10 @@ const createTables = `
     PRIMARY KEY (id)
   );
   CREATE TABLE IF NOT EXISTS mqtt_acl (
-    id SERIAL,
     account_id UUID NOT NULL REFERENCES account (id) ON DELETE CASCADE,
     topic TEXT NOT NULL,
     rw INT NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (account_id, topic)
   )`
 
 class DB {
