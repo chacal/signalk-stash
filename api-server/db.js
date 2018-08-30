@@ -64,6 +64,30 @@ class DB {
       { context, timestamp, path, sourceId, value: JSON.stringify(value) }
     )
   }
+
+  upsertAccount({username, passwordHash, isMosquittoSuper}) {
+    return this.db.query(
+      `
+          INSERT INTO account (username, password, mosquitto_super)
+          VALUES ($[username], $[passwordHash], $[isMosquittoSuper])
+          ON CONFLICT (username)
+          DO UPDATE SET password = $[passwordHash], mosquitto_super = $[isMosquittoSuper]
+      `,
+      { username, passwordHash, isMosquittoSuper }
+    )
+  }
+
+  upsertAcl(username, topic, rw) {
+    return this.db.query(
+      `
+          INSERT INTO mqtt_acl (account_id, topic, rw)
+          VALUES ((SELECT id FROM account WHERE username = $[username]), $[topic], $[rw])
+          ON CONFLICT (account_id, topic)
+          DO UPDATE SET rw = $[rw]
+      `,
+      { username, topic, rw }
+    )
+  }
 }
 
 export default new DB()
