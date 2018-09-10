@@ -7,7 +7,17 @@ class TestDB {
     }
     return DB.db
       .query(
-        'DROP TABLE IF EXISTS trackpoint, instrument_measurement; DELETE FROM account; DELETE FROM mqtt_acl;'
+        `DROP TABLE IF EXISTS trackpoint, instrument_measurement;
+          DO $$
+          BEGIN
+            DELETE FROM account;
+            DELETE FROM mqtt_acl;
+            EXCEPTION
+            WHEN OTHERS
+              THEN
+                RETURN;
+          END $$;
+        `
       )
       .then(() => DB.ensureTables())
   }
