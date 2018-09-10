@@ -14,19 +14,20 @@ class TestDB {
 
   getAllTrackPointsForVessel(context) {
     return DB.db.any(
-      `SELECT context, timestamp, ST_AsGeoJSON(point)::json as geojson
-    FROM trackpoint WHERE context = $[context]
-    ORDER BY timestamp`,
+      `SELECT context, timestamp, ST_AsGeoJSON(point) :: json AS geojson
+         FROM trackpoint
+         WHERE context = $[context]
+            ORDER BY TIMESTAMP`,
       { context }
     )
   }
 
   getAllMeasurementsForVessel(context) {
     return DB.db.any(
-      `SELECT context, timestamp, sourceId, path, value::json
-    FROM instrument_measurement
-    WHERE context = $[context]
-    ORDER BY timestamp`,
+      `SELECT context, timestamp, sourceId, path, value :: json
+         FROM instrument_measurement
+         WHERE context = $[context]
+            ORDER BY TIMESTAMP`,
       { context }
     )
   }
