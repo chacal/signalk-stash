@@ -18,7 +18,7 @@ services:
       MQTT_BROKER: mqtt://mqtt
 
   postgis:
-    image: mdillon/postgis:10-alpine
+    image: timescale/timescaledb-postgis:1.2.1-pg11
     volumes:
      - pgdata:/var/lib/postgresql/data
     restart: always

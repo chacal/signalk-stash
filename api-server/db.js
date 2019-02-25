@@ -3,6 +3,7 @@ import config from './config'
 
 //language=PostgreSQL
 const createTables = `
+  CREATE EXTENSION IF NOT EXISTS "postgis";
   CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
   CREATE TABLE IF NOT EXISTS trackpoint (
     context TEXT,
