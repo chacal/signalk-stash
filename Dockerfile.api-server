@@ -5,8 +5,11 @@ WORKDIR /opt/app
 COPY package.json package-lock.json ./
 RUN npm install
 
-COPY ./api-server/* ./
+COPY tsconfig.json ./
 
-CMD ["node", "--require", "@std/esm", "./index.js"]
+COPY ./api-server ./api-server
+RUN ./node_modules/.bin/tsc
+
+CMD ["node", "./built/index.js"]
 
 USER node

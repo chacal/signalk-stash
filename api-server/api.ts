@@ -1,6 +1,10 @@
-import express from 'express'
+import * as express from "express"
 
 class API {
+  private readonly config
+  private readonly db
+  private readonly app
+
   constructor(config, db) {
     this.config = config
     this.db = db

@@ -19,15 +19,18 @@
   },
   "dependencies": {
     "@std/esm": "^0.26.0",
+    "@types/express": "^4.16.1",
+    "@types/node": "^11.9.5",
     "baconjs": "^2.0.7",
     "bluebird": "^3.5.1",
     "byline": "^5.0.0",
     "debug": "^3.1.0",
     "eslint-restricted-globals": "^0.1.1",
-    "express": "^4.16.3",
+    "express": "^4.16.4",
     "mqtt": "^2.18.2",
-    "pg-promise": "^8.4.5",
-    "ramda": "^0.25.0"
+    "pg-promise": "^8.5.6",
+    "ramda": "^0.25.0",
+    "typescript": "^3.3.3333"
   },
   "devDependencies": {
     "chai": "^4.1.2",

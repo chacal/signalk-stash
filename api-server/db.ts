@@ -1,4 +1,4 @@
-import pgp from 'pg-promise'
+import * as pgPromise from 'pg-promise'
 import config from './config'
 
 //language=PostgreSQL
@@ -33,8 +33,9 @@ const createTables = `
   );`
 
 class DB {
+  private readonly db
   constructor() {
-    this.db = pgp()(config.db)
+    this.db = pgPromise()(config.db)
   }
 
   ensureTables() {
