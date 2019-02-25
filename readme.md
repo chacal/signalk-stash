@@ -50,7 +50,7 @@ Start mqtt delta input:
 
 Publish a new SignalK delta message that is written to the Stash by mqtt delta input:
 
-    mosquitto_pub -t signalk/delta -u <username> -P <password> -m '
+    mosquitto_pub -t signalk/delta -p 11883 -u <username> -P <password> -m '
     {  
       "context":"vessels.urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e",
       "updates": [{  
