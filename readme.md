@@ -1,6 +1,6 @@
-# SignalK Stash
+# Signal K Stash
 
-SignalK Stash is a cloud deployed set of services that enable ingesting and storing SignalK data in the form of SignalK delta messages. Stored data can be accessed via a REST API.
+Signal K Stash is a cloud deployed set of services that enable ingesting and storing Signal K data in the form of Signal K delta messages. Stored data can be accessed via a REST API.
 
 # Developing
 
