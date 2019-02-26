@@ -5,6 +5,7 @@ import config from './config'
 const createTables = `
   CREATE EXTENSION IF NOT EXISTS "postgis";
   CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
   CREATE TABLE IF NOT EXISTS trackpoint (
     context TEXT,
     timestamp TIMESTAMP WITH TIME ZONE,
@@ -19,6 +20,61 @@ const createTables = `
     value jsonb NOT NULL,
     PRIMARY KEY (context, timestamp, path, sourceId)
   );
+
+  CREATE TABLE IF NOT EXISTS paths (
+    id SERIAL PRIMARY KEY,
+    path TEXT NOT NULL,
+    UNIQUE(path)
+  );
+  CREATE TABLE IF NOT EXISTS contexts (
+    id SERIAL PRIMARY KEY,
+    context TEXT NOT NULL,
+    UNIQUE(context)
+  );
+  CREATE TABLE IF NOT EXISTS sources (
+    id SERIAL PRIMARY KEY,
+    dollarSource TEXT NOT NULL,
+    UNIQUE(dollarSource)
+  );
+  CREATE TABLE IF NOT EXISTS values (
+    timestamp TIMESTAMPTZ NOT NULL,
+    value FLOAT8,
+    position geometry(POINT,4326),
+    paths_id INTEGER,
+    contexts_id INTEGER,
+    sources_id INTEGER
+  );
+  CREATE INDEX IF NOT EXISTS
+    signalk_values_paths_timestamp
+  ON
+    values
+  USING
+    BTREE (paths_id, timestamp);
+
+  SELECT
+    CASE
+      WHEN ishypertable > 0 THEN 2
+      ELSE (SELECT count(*) FROM create_hypertable('values', 'timestamp'))
+    END
+  FROM (
+    SELECT count(*) AS ishypertable
+    FROM _timescaledb_catalog.hypertable
+    WHERE table_name = 'values'
+  ) AS data;
+
+  CREATE OR REPLACE VIEW skdata AS
+    SELECT path, value, position, context, dollarSource, timestamp
+    FROM
+      values
+    JOIN paths
+      ON values.paths_id = paths.id
+    JOIN contexts
+      ON values.contexts_id = contexts.id
+    JOIN sources
+      ON values.sources_id = sources.id;
+
+
+
   CREATE TABLE IF NOT EXISTS account (
     id UUID DEFAULT uuid_generate_v4() NOT NULL,
     username TEXT UNIQUE NOT NULL,
@@ -26,6 +82,7 @@ const createTables = `
     mosquitto_super BOOLEAN NOT NULL,
     PRIMARY KEY (id)
   );
+
   CREATE TABLE IF NOT EXISTS mqtt_acl (
     account_id UUID NOT NULL REFERENCES account (id) ON DELETE CASCADE,
     topic TEXT NOT NULL,
