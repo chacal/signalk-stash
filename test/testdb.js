@@ -8,7 +8,9 @@ class TestDB {
     return DB.db
       .query(
         `DROP TABLE IF EXISTS trackpoint, instrument_measurement;
-          DO $$
+         DROP TABLE IF EXISTS values CASCADE;
+         DROP TABLE IF EXISTS paths, contexts, sources;
+        DO $$
           BEGIN
             DELETE FROM account;
             DELETE FROM mqtt_acl;
@@ -19,13 +21,14 @@ class TestDB {
           END $$;
         `
       )
+      .then(() => DB.createNormalizers())
       .then(() => DB.ensureTables())
   }
 
   getAllTrackPointsForVessel(context) {
     return DB.db.any(
-      `SELECT context, timestamp, ST_AsGeoJSON(point) :: json AS geojson
-         FROM trackpoint
+      `SELECT context, timestamp, ST_AsGeoJSON(position) :: json AS geojson
+         FROM skdata
          WHERE context = $[context]
             ORDER BY TIMESTAMP`,
       { context }
@@ -34,8 +37,8 @@ class TestDB {
 
   getAllMeasurementsForVessel(context) {
     return DB.db.any(
-      `SELECT context, timestamp, sourceId, path, value :: json
-         FROM instrument_measurement
+      `SELECT context, timestamp, dollarsource, path, value
+         FROM skdata
          WHERE context = $[context]
             ORDER BY TIMESTAMP`,
       { context }

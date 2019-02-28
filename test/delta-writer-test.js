@@ -25,7 +25,7 @@ describe('SignalKDeltaWriter', () => {
       })
   })
 
-  it('writes measurements', () => {
+  it('writes measurementss', () => {
     return Promise.all(
       measurementFixtures.map(delta => writer.writeDelta(delta))
     )

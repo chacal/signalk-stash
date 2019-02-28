@@ -1,7 +1,10 @@
 import pgp from 'pg-promise'
 import config from './config'
 
-//language=PostgreSQL
+import { dbIdLookup } from './dbutils'
+import { getDollarSource } from './skutils'
+
+// language=PostgreSQL
 const createTables = `
   CREATE EXTENSION IF NOT EXISTS "postgis";
   CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -93,6 +96,37 @@ const createTables = `
 class DB {
   constructor() {
     this.db = pgp()(config.db)
+
+    this.createNormalizers()
+    this.valuesCS = new pgp().helpers.ColumnSet(
+      [
+        'value',
+        {
+          name: 'position',
+          mod: ':raw',
+          init: col => {
+            const p = col.value
+            return p
+              ? pgp.as.format(
+                  'ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)',
+                  p
+                )
+              : 'NULL'
+          }
+        },
+        'timestamp',
+        'paths_id',
+        'contexts_id',
+        'sources_id'
+      ],
+      { table: 'values' }
+    )
+  }
+
+  createNormalizers() {
+    this.getContextId = dbIdLookup(this.db, 'contexts', 'context')
+    this.getSourceId = dbIdLookup(this.db, 'sources', 'dollarsource')
+    this.getPathId = dbIdLookup(this.db, 'paths', 'path')
   }
 
   ensureTables() {
@@ -146,6 +180,71 @@ class DB {
       { username, topic, rw }
     )
   }
+
+  deltaToInsertsData(delta, inserts = []) {
+    const contextIdP = this.getContextId(delta.context || 'vessels.self')
+    delta.updates &&
+      delta.updates.forEach(update => {
+        update.values &&
+          update.values.forEach(pathValue => {
+            //TODO non-numeric values
+            if (
+              typeof pathValue.value === 'number' ||
+              pathValue.path === 'navigation.position'
+            ) {
+              inserts.push([
+                Promise.resolve(
+                  typeof pathValue.value === 'number' ? pathValue.value : null
+                ),
+                Promise.resolve(
+                  pathValue.path === 'navigation.position'
+                    ? pathValue.value
+                    : null
+                ),
+                Promise.resolve(new Date(update.timestamp)),
+                this.getPathId(pathValue.path),
+                contextIdP,
+                this.getSourceId(getDollarSource(update))
+              ])
+            }
+          })
+      })
+    return inserts
+  }
+
+  insertDeltaData(insertsDataP) {
+    return insertsDataP.then(insertsData => {
+      if (insertsData.length > 0) {
+        const inserts = pgp().helpers.insert(insertsData, this.valuesCS)
+        return this.db.none(inserts)
+      } else {
+        return Promise.resolve(undefined)
+      }
+    })
+  }
+
+  writeDelta(delta) {
+    return this.insertDeltaData(
+      insertsDataToObjects(this.deltaToInsertsData(delta))
+    )
+  }
 }
 
 export default new DB()
+
+function insertsDataToObjects(insertsData) {
+  return Promise.all(insertsData.map(promisesA => Promise.all(promisesA))).then(
+    data =>
+      // 'value', 'position', 'timestamp', 'paths_id', 'contexts_id', 'sources_id'
+      data.map(
+        ([value, position, timestamp, paths_id, contexts_id, sources_id]) => ({
+          value,
+          position,
+          timestamp,
+          paths_id,
+          contexts_id,
+          sources_id
+        })
+      )
+  )
+}
