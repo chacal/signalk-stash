@@ -8,8 +8,9 @@ class TestDB {
     return DB.db
       .query(
         `DROP TABLE IF EXISTS trackpoint, instrument_measurement;
-         DROP TABLE IF EXISTS values CASCADE;
-         DROP TABLE IF EXISTS paths, contexts, sources;
+        DROP TABLE IF EXISTS values CASCADE;
+        DROP TABLE IF EXISTS positions CASCADE;
+        DROP TABLE IF EXISTS paths, contexts, sources;
         DO $$
           BEGIN
             DELETE FROM account;

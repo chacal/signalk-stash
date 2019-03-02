@@ -24,6 +24,7 @@ const createTables = `
     dollarSource TEXT NOT NULL,
     UNIQUE(dollarSource)
   );
+
   CREATE TABLE IF NOT EXISTS values (
     timestamp TIMESTAMPTZ NOT NULL,
     value FLOAT8,
@@ -38,7 +39,6 @@ const createTables = `
     values
   USING
     BTREE (paths_id, timestamp);
-
   SELECT
     CASE
       WHEN ishypertable > 0 THEN 2
@@ -50,8 +50,25 @@ const createTables = `
     WHERE table_name = 'values'
   ) AS data;
 
-  CREATE OR REPLACE VIEW skdata AS
-    SELECT path, value, position, context, dollarSource, timestamp
+  CREATE TABLE IF NOT EXISTS positions (
+    timestamp TIMESTAMPTZ NOT NULL,
+    position geometry(POINT,4326),
+    contexts_id INTEGER,
+    sources_id INTEGER
+  );
+  SELECT
+    CASE
+      WHEN ishypertable > 0 THEN 2
+      ELSE (SELECT count(*) FROM create_hypertable('positions', 'timestamp'))
+    END
+  FROM (
+    SELECT count(*) AS ishypertable
+    FROM _timescaledb_catalog.hypertable
+    WHERE table_name = 'positions'
+  ) AS data;
+
+  CREATE OR REPLACE VIEW skdata AS (
+    SELECT path, value, null as position, context, dollarSource, timestamp
     FROM
       values
     JOIN paths
@@ -59,8 +76,15 @@ const createTables = `
     JOIN contexts
       ON values.contexts_id = contexts.id
     JOIN sources
-      ON values.sources_id = sources.id;
-
+      ON values.sources_id = sources.id
+    UNION ALL
+    SELECT 'navigation.position', null, position, context, dollarSource, timestamp
+    FROM
+      positions
+    JOIN contexts
+      ON positions.contexts_id = contexts.id
+    JOIN sources
+      ON positions.sources_id = sources.id);
 
 
   CREATE TABLE IF NOT EXISTS account (
@@ -83,29 +107,33 @@ class DB {
     this.db = pgp()(config.db)
 
     this.createNormalizers()
-    this.valuesCS = new pgp().helpers.ColumnSet(
-      [
-        'value',
-        {
-          name: 'position',
-          mod: ':raw',
-          init: col => {
-            const p = col.value
-            return p
-              ? pgp.as.format(
-                  'ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)',
-                  p
-                )
-              : 'NULL'
-          }
-        },
-        'timestamp',
-        'paths_id',
-        'contexts_id',
-        'sources_id'
-      ],
-      { table: 'values' }
-    )
+    this.tableColumnSets = {
+      values: new pgp().helpers.ColumnSet(
+        ['value', 'timestamp', 'paths_id', 'contexts_id', 'sources_id'],
+        { table: 'values' }
+      ),
+      positions: new pgp().helpers.ColumnSet(
+        [
+          {
+            name: 'position',
+            mod: ':raw',
+            init: col => {
+              const p = col.value
+              return p
+                ? pgp.as.format(
+                    'ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)',
+                    p
+                  )
+                : 'NULL'
+            }
+          },
+          'timestamp',
+          'contexts_id',
+          'sources_id'
+        ],
+        { table: 'positions' }
+      )
+    }
   }
 
   createNormalizers() {
@@ -142,28 +170,25 @@ class DB {
     )
   }
 
-  deltaToInsertsData(delta, inserts = []) {
+  deltaToInsertsData(delta, inserts = { positions: [], values: [] }) {
     const contextIdP = this.getContextId(delta.context || 'vessels.self')
     delta.updates &&
       delta.updates.forEach(update => {
         update.values &&
           update.values.forEach(pathValue => {
             //TODO non-numeric values
-            if (
-              typeof pathValue.value === 'number' ||
-              pathValue.path === 'navigation.position'
-            ) {
-              inserts.push([
-                Promise.resolve(
-                  typeof pathValue.value === 'number' ? pathValue.value : null
-                ),
-                Promise.resolve(
-                  pathValue.path === 'navigation.position'
-                    ? pathValue.value
-                    : null
-                ),
+            if (typeof pathValue.value === 'number') {
+              inserts.values.push([
+                Promise.resolve(pathValue.value),
                 Promise.resolve(new Date(update.timestamp)),
                 this.getPathId(pathValue.path),
+                contextIdP,
+                this.getSourceId(getDollarSource(update))
+              ])
+            } else if (pathValue.path === 'navigation.position') {
+              inserts.positions.push([
+                Promise.resolve(pathValue.value),
+                Promise.resolve(new Date(update.timestamp)),
                 contextIdP,
                 this.getSourceId(getDollarSource(update))
               ])
@@ -173,15 +198,26 @@ class DB {
     return inserts
   }
 
-  insertDeltaData(insertsDataP) {
-    return insertsDataP.then(insertsData => {
-      if (insertsData.length > 0) {
-        const inserts = pgp().helpers.insert(insertsData, this.valuesCS)
-        return this.db.none(inserts)
-      } else {
-        return Promise.resolve(undefined)
-      }
-    })
+  insertDeltaData({ values, positions }) {
+    return Promise.all([
+      this.insert(values, this.tableColumnSets.values),
+      this.insert(positions, this.tableColumnSets.positions)
+    ])
+  }
+
+  insert(dataP, colSet) {
+    return dataP
+      .then(insertsData => {
+        if (insertsData.length > 0) {
+          const inserts = pgp().helpers.insert(insertsData, colSet)
+          return this.db.none(inserts)
+        } else {
+          return Promise.resolve(undefined)
+        }
+      })
+      .catch(e => {
+        console.log(e)
+      })
   }
 
   writeDelta(delta) {
@@ -194,18 +230,35 @@ class DB {
 export default new DB()
 
 function insertsDataToObjects(insertsData) {
-  return Promise.all(insertsData.map(promisesA => Promise.all(promisesA))).then(
+  return {
+    values: valuesToObjects(insertsData.values),
+    positions: positionsToObjects(insertsData.positions)
+  }
+}
+
+function valuesToObjects(valuesData) {
+  return Promise.all(valuesData.map(promisesA => Promise.all(promisesA))).then(
     data =>
-      // 'value', 'position', 'timestamp', 'paths_id', 'contexts_id', 'sources_id'
-      data.map(
-        ([value, position, timestamp, paths_id, contexts_id, sources_id]) => ({
-          value,
-          position,
-          timestamp,
-          paths_id,
-          contexts_id,
-          sources_id
-        })
-      )
+      // 'value', timestamp', 'paths_id', 'contexts_id', 'sources_id'
+      data.map(([value, timestamp, paths_id, contexts_id, sources_id]) => ({
+        value,
+        timestamp,
+        paths_id,
+        contexts_id,
+        sources_id
+      }))
+  )
+}
+
+function positionsToObjects(valuesData) {
+  return Promise.all(valuesData.map(promisesA => Promise.all(promisesA))).then(
+    data =>
+      // 'value', timestamp', 'contexts_id', 'sources_id'
+      data.map(([position, timestamp, contexts_id, sources_id]) => ({
+        position,
+        timestamp,
+        contexts_id,
+        sources_id
+      }))
   )
 }
