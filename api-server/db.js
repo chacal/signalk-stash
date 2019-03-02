@@ -67,8 +67,26 @@ const createTables = `
     WHERE table_name = 'positions'
   ) AS data;
 
+  CREATE TABLE IF NOT EXISTS objectvalues (
+    timestamp TIMESTAMPTZ NOT NULL,
+    objectvalue jsonb,
+    paths_id INTEGER,
+    contexts_id INTEGER,
+    sources_id INTEGER
+  );
+  SELECT
+    CASE
+      WHEN ishypertable > 0 THEN 2
+      ELSE (SELECT count(*) FROM create_hypertable('objectvalues', 'timestamp'))
+    END
+  FROM (
+    SELECT count(*) AS ishypertable
+    FROM _timescaledb_catalog.hypertable
+    WHERE table_name = 'objectvalues'
+  ) AS data;
+
   CREATE OR REPLACE VIEW skdata AS (
-    SELECT path, value, null as position, context, dollarSource, timestamp
+    SELECT path, value, null as position, null::jsonb as objectvalue, context, dollarSource, timestamp
     FROM
       values
     JOIN paths
@@ -77,14 +95,25 @@ const createTables = `
       ON values.contexts_id = contexts.id
     JOIN sources
       ON values.sources_id = sources.id
-    UNION ALL
-    SELECT 'navigation.position', null, position, context, dollarSource, timestamp
+  UNION ALL    
+    SELECT 'navigation.position', null, position, null, context, dollarSource, timestamp
     FROM
       positions
     JOIN contexts
       ON positions.contexts_id = contexts.id
     JOIN sources
-      ON positions.sources_id = sources.id);
+      ON positions.sources_id = sources.id
+  UNION ALL
+    SELECT path, null, null, objectvalue, context, dollarSource, timestamp
+    FROM
+      objectvalues
+    JOIN paths
+      ON objectvalues.paths_id = paths.id
+    JOIN contexts
+      ON objectvalues.contexts_id = contexts.id
+    JOIN sources
+      ON objectvalues.sources_id = sources.id
+    );
 
 
   CREATE TABLE IF NOT EXISTS account (
@@ -132,6 +161,20 @@ class DB {
           'sources_id'
         ],
         { table: 'positions' }
+      ),
+      jsons: new pgp().helpers.ColumnSet(
+        [
+          {
+            name: 'objectvalue',
+            prop: 'objectvalue',
+            mod: ':json'
+          },
+          'timestamp',
+          'paths_id',
+          'contexts_id',
+          'sources_id'
+        ],
+        { table: 'objectvalues' }
       )
     }
   }
@@ -170,7 +213,10 @@ class DB {
     )
   }
 
-  deltaToInsertsData(delta, inserts = { positions: [], values: [] }) {
+  deltaToInsertsData(
+    delta,
+    inserts = { positions: [], values: [], objectvalues: [] }
+  ) {
     const contextIdP = this.getContextId(delta.context || 'vessels.self')
     delta.updates &&
       delta.updates.forEach(update => {
@@ -192,16 +238,25 @@ class DB {
                 contextIdP,
                 this.getSourceId(getDollarSource(update))
               ])
+            } else {
+              inserts.objectvalues.push([
+                Promise.resolve(pathValue.value),
+                Promise.resolve(new Date(update.timestamp)),
+                this.getPathId(pathValue.path),
+                contextIdP,
+                this.getSourceId(getDollarSource(update))
+              ])
             }
           })
       })
     return inserts
   }
 
-  insertDeltaData({ values, positions }) {
+  insertDeltaData({ values, positions, objectvalues }) {
     return Promise.all([
       this.insert(values, this.tableColumnSets.values),
-      this.insert(positions, this.tableColumnSets.positions)
+      this.insert(positions, this.tableColumnSets.positions),
+      this.insert(objectvalues, this.tableColumnSets.jsons)
     ])
   }
 
@@ -229,17 +284,17 @@ class DB {
 
 export default new DB()
 
-function insertsDataToObjects(insertsData) {
+function insertsDataToObjects({ values, positions, objectvalues }) {
   return {
-    values: valuesToObjects(insertsData.values),
-    positions: positionsToObjects(insertsData.positions)
+    values: valuesToObjects(values),
+    positions: positionsToObjects(positions),
+    objectvalues: objectvaluesToObjects(objectvalues)
   }
 }
 
 function valuesToObjects(valuesData) {
   return Promise.all(valuesData.map(promisesA => Promise.all(promisesA))).then(
     data =>
-      // 'value', timestamp', 'paths_id', 'contexts_id', 'sources_id'
       data.map(([value, timestamp, paths_id, contexts_id, sources_id]) => ({
         value,
         timestamp,
@@ -253,12 +308,26 @@ function valuesToObjects(valuesData) {
 function positionsToObjects(valuesData) {
   return Promise.all(valuesData.map(promisesA => Promise.all(promisesA))).then(
     data =>
-      // 'value', timestamp', 'contexts_id', 'sources_id'
       data.map(([position, timestamp, contexts_id, sources_id]) => ({
         position,
         timestamp,
         contexts_id,
         sources_id
       }))
+  )
+}
+
+function objectvaluesToObjects(valuesData) {
+  return Promise.all(valuesData.map(promisesA => Promise.all(promisesA))).then(
+    data =>
+      data.map(
+        ([objectvalue, timestamp, paths_id, contexts_id, sources_id]) => ({
+          objectvalue,
+          timestamp,
+          paths_id,
+          contexts_id,
+          sources_id
+        })
+      )
   )
 }
