@@ -10,8 +10,8 @@ export const testAccount = {
   isMosquittoSuper: false
 }
 
-export const positionFixtures = require('./data/position-fixtures.json')
-export const measurementFixtures = require('./data/measurement-fixtures.json')
+export const positionFixtures = require('../../test/data/position-fixtures.json')
+export const measurementFixtures = require('../../test/data/measurement-fixtures.json')
 
 export function waitFor(action, predicate) {
   return action().then(res => {
