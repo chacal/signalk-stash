@@ -4,6 +4,8 @@ import config from './config'
 import { dbIdLookup } from './dbutils'
 import { getDollarSource } from './skutils'
 
+import BatchWriter from './batch-writer'
+
 // language=PostgreSQL
 const createTables = `
   CREATE EXTENSION IF NOT EXISTS "postgis";
@@ -215,14 +217,13 @@ class DB {
 
   deltaToInsertsData(
     delta,
-    inserts = { positions: [], values: [], objectvalues: [] }
+    inserts = { positions: [], values: [], objectvalues: [], count: 0 }
   ) {
     const contextIdP = this.getContextId(delta.context || 'vessels.self')
     delta.updates &&
       delta.updates.forEach(update => {
         update.values &&
           update.values.forEach(pathValue => {
-            //TODO non-numeric values
             if (typeof pathValue.value === 'number') {
               inserts.values.push([
                 Promise.resolve(pathValue.value),
@@ -247,6 +248,7 @@ class DB {
                 this.getSourceId(getDollarSource(update))
               ])
             }
+            inserts.count++
           })
       })
     return inserts
@@ -275,10 +277,18 @@ class DB {
       })
   }
 
+  writeInsertsData(insertsData) {
+    return this.insertDeltaData(insertsDataToObjects(insertsData))
+  }
+
   writeDelta(delta) {
     return this.insertDeltaData(
       insertsDataToObjects(this.deltaToInsertsData(delta))
     )
+  }
+
+  batchWriter(batchSize) {
+    return new BatchWriter(this, batchSize)
   }
 }
 

@@ -1,0 +1,39 @@
+#!/usr/bin/env node --require @std/esm
+
+process.stdin.resume()
+process.stdin.setEncoding('utf8')
+
+import program from 'commander'
+
+program
+  .usage('s3-to-timescaledb --bucket=<bucket> [options]')
+  .option('-b, --bucket <required>', 'S3 Bucket')
+  .option('--prefix <required>', 'S3 file prefix', '')
+program.parse(process.argv)
+
+if (!program.bucket) {
+  program.outputHelp()
+  process.exit(-1)
+}
+
+import Liner from '@signalk/streams/liner'
+const liner = new Liner({})
+
+import AutoDetect from '@signalk/streams/autodetect'
+const autodetect = new AutoDetect({ noThrottle: true, app: { signalk: {} } })
+
+import S3Stream from '@signalk/streams/s3'
+
+import db from '../api-server/db'
+const batchWriter = db.batchWriter(1000)
+
+db.ensureTables().then(() => {
+  const s3Stream = new S3Stream(program)
+  s3Stream
+    .pipe(liner)
+    .pipe(autodetect)
+    .pipe(batchWriter)
+    .on('finish', () => {
+      process.exit(0)
+    })
+})
