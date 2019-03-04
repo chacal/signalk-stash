@@ -24,3 +24,13 @@ docker-stop:
 	@docker-compose -f docker-compose.dev.yml stop
 
 dev: docker-up watch
+
+mqtt-input: compile docker-up
+	@node built/delta-inputs/mqtt-runner.js
+
+psql-dev:
+	@psql 'postgresql://signalk:signalk@localhost:50400/signalk'
+
+psql-test:
+	@psql 'postgresql://signalk:signalk@localhost:50500/signalk'
+
