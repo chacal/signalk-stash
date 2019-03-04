@@ -16,7 +16,6 @@
     "bluebird": "^3.5.1",
     "byline": "^5.0.0",
     "debug": "^3.1.0",
-    "eslint-restricted-globals": "^0.1.1",
     "express": "^4.16.4",
     "mqtt": "^2.18.2",
     "pg-promise": "^8.5.6",
@@ -25,15 +24,7 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "eslint": "^5.0.1",
-    "eslint-plugin-node": "^6.0.1",
-    "eslint-plugin-prettier": "^2.6.2",
     "mocha": "^5.2.0",
-    "nodemon": "^1.17.5",
-    "prettier": "1.13.7"
-  },
-  "prettier": {
-    "semi": false,
-    "singleQuote": true
+    "nodemon": "^1.17.5"
   }
 }
