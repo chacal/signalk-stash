@@ -3,8 +3,13 @@
     "outDir": "./built",
     "allowJs": true,
     "target": "es6",
-    "module": "commonjs"
+    "module": "commonjs",
+    "sourceMap": true
   },
+  "exclude": [
+    "node_modules",
+    "built"
+  ],
   "include": [
     "./**/*"
   ]
