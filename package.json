@@ -8,15 +8,6 @@
   "engines": {
     "node": ">=9.10.0"
   },
-  "scripts": {
-    "start": "node built/api-server/index.js",
-    "watch": "nodemon built/api-server/index.js",
-    "dev": "docker-compose -f docker-compose.dev.yml up -d && npm run watch",
-    "lint": "eslint . --fix",
-    "test": "ENVIRONMENT=test mocha --exit built/test/**/*test.js && eslint .",
-    "mqtt-input": "node built/delta-inputs/mqtt-runner.js",
-    "import-log-file": "node built/utils/import-log-file.js"
-  },
   "dependencies": {
     "@std/esm": "^0.26.0",
     "@types/bluebird": "^3.5.26",
