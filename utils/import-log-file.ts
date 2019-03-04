@@ -8,7 +8,7 @@
 */
 
 import * as R from 'ramda'
-import path from 'path'
+import * as path from 'path'
 import { Writable } from 'stream'
 import { createReadStream, fstatSync, openSync } from 'fs'
 import db from '../api-server/db'

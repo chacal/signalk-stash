@@ -83,7 +83,7 @@ function getMqttClient() {
     mqttBrokerUrl,
     { username: testAccount.username, password: testAccount.password }
   )
-  return BPromise.fromCallback(cb => client.once('connect', () => cb())).then(
+  return BPromise.fromCallback(cb => client.once('connect', () => cb(null))).then(
     () => client
   )
 }

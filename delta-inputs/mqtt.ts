@@ -1,4 +1,7 @@
 export default class MqttDeltaInput {
+  private readonly mqttClient
+  private readonly deltaWriter
+
   constructor(mqttClient, deltaWriter) {
     this.mqttClient = mqttClient
     this.deltaWriter = deltaWriter

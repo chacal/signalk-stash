@@ -1,6 +1,8 @@
 import * as R from 'ramda'
 
 class SignalKDeltaWriter {
+  private readonly db
+
   constructor(db) {
     this.db = db
   }

@@ -5,7 +5,7 @@ import * as path from 'path'
 const TABLES_FILE = new pgp.QueryFile(path.join(__dirname, '../../api-server/tables.sql'))  // Needs to be relative from "built/api-server" directory
 
 class DB {
-  private readonly db
+  readonly db
 
   constructor() {
     this.db = pgp()(config.db)
