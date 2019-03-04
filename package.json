@@ -2,7 +2,7 @@
   "name": "signalk-stash",
   "version": "1.0.0",
   "description": "",
-  "main": "api-server/index.js",
+  "main": "built/api-server/index.js",
   "author": "",
   "license": "ISC",
   "engines": {
