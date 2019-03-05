@@ -9,8 +9,8 @@
 
 import byline from 'byline'
 import { createReadStream, fstatSync, openSync } from 'fs'
+import _ from 'lodash'
 import * as path from 'path'
-import * as R from 'ramda'
 import { Writable } from 'stream'
 import db from '../api-server/db'
 import SignalKDeltaWriter from '../api-server/delta-writer'
@@ -20,7 +20,7 @@ const writer = new SignalKDeltaWriter(db)
 function importOneLine(line, context) {
   try {
     const delta = JSON.parse(line)
-    return writer.writeDelta(R.assoc('context', context, delta))
+    return writer.writeDelta(_.assignIn({}, delta, {context}))
   } catch (e) {
     return Promise.reject(e)
   }
@@ -58,6 +58,6 @@ if (process.argv.length < 4) {
   console.log('Usage npm run import-log-file <file> <context>')
   process.exit(1)
 } else {
-  const [file, context] = R.drop(2, process.argv)
+  const [file, context] = _.drop(process.argv, 2)
   runImport(path.resolve(file), context.trim())
 }

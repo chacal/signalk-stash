@@ -1,4 +1,4 @@
-import * as R from 'ramda'
+import _ from 'lodash'
 
 class SignalKDeltaWriter {
   private readonly db
@@ -35,7 +35,7 @@ class SignalKDeltaWriter {
         }
       })
     })
-    return Promise.all(R.flatten(inserts))
+    return Promise.all(_.flatten(inserts))
   }
 }
 

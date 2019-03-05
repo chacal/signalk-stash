@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 import { expect } from 'chai'
-import * as R from 'ramda'
+import _ from 'lodash'
 import DB from '../api-server/db'
 import SignalKDeltaWriter from '../api-server/delta-writer'
 import { measurementFixtures, positionFixtures, vesselUuid } from './test-util'
@@ -31,13 +31,14 @@ describe('SignalKDeltaWriter', () => {
     )
       .then(() => testdb.getAllMeasurementsForVessel(vesselUuid))
       .then(result => {
-        const expectedMeasurementsCount = R.compose(
-          R.length,
-          R.flatten,
-          R.map(R.prop('values')),
-          R.flatten,
-          R.map(R.prop('updates'))
-        )(measurementFixtures)
+        const expectedMeasurementsCount = _(measurementFixtures as any[])
+          .map(delta => delta.updates)
+          .flatten()
+          .map(update => update.values)
+          .flatten()
+          .map(v => v.value)
+          .value()
+          .length
         expect(result).to.have.lengthOf(expectedMeasurementsCount)
         expect(result[0].timestamp.toISOString()).to.have.string(
           measurementFixtures[0].updates[0].timestamp
