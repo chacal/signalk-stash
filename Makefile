@@ -13,7 +13,7 @@ start: compile
 	@node $(API_SERVER_MAIN)
 
 lint:
-	@node $(TSLINT) "./**/*.ts"
+	@node $(TSLINT) --project tsconfig.json "./**/*.ts"
 
 test: compile docker-up lint
 	@ENVIRONMENT=test $(MOCHA) --exit built/test/**/*test.js
