@@ -1,4 +1,4 @@
-import * as BPromise from 'bluebird'
+import BPromise from 'bluebird'
 
 export const vesselUuid =
   'urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e'
@@ -10,8 +10,10 @@ export const testAccount = {
   isMosquittoSuper: false
 }
 
-export {default as positionFixtures} from '../../test/data/position-fixtures.json'
-export {default as measurementFixtures} from '../../test/data/measurement-fixtures.json'
+import measurementFixtures from './data/measurement-fixtures.json'
+import positionFixtures from './data/position-fixtures.json'
+
+export {measurementFixtures, positionFixtures}
 
 export function waitFor(action, predicate) {
   return action().then(res => {

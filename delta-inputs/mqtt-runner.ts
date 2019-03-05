@@ -1,4 +1,4 @@
-import * as BPromise from 'bluebird'
+import BPromise from 'bluebird'
 import * as mqtt from 'mqtt'
 import db from '../api-server/db'
 import SignalKDeltaWriter from '../api-server/delta-writer'

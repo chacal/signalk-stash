@@ -1,5 +1,5 @@
-import * as path from 'path'
-import * as pgp from 'pg-promise'
+import path from 'path'
+import pgp from 'pg-promise'
 import config from './config'
 
 // Needs to be relative from "built/api-server" directory

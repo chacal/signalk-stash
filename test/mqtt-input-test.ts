@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-import * as BPromise from 'bluebird'
+import BPromise from 'bluebird'
 import {expect} from 'chai'
 import * as mqtt from 'mqtt'
 
