@@ -1,10 +1,10 @@
 /* eslint-env mocha */
-import * as R from 'ramda'
 import { expect } from 'chai'
+import * as R from 'ramda'
 import DB from '../api-server/db'
-import testdb from './testdb'
 import SignalKDeltaWriter from '../api-server/delta-writer'
-import { positionFixtures, measurementFixtures, vesselUuid } from './test-util'
+import { measurementFixtures, positionFixtures, vesselUuid } from './test-util'
+import testdb from './testdb'
 
 const writer = new SignalKDeltaWriter(DB)
 
@@ -15,7 +15,7 @@ describe('SignalKDeltaWriter', () => {
       .then(() => testdb.getAllTrackPointsForVessel(vesselUuid))
       .then(result => {
         expect(result).to.have.lengthOf(positionFixtures.length)
-        expect(result[0].timestamp).to.exist
+        expect(result[0].timestamp).to.exist()
         expect(result[0].timestamp.toISOString()).to.have.string(
           positionFixtures[0].updates[0].timestamp
         )

@@ -2,6 +2,7 @@ NODE_BIN=./node_modules/.bin
 TSC=$(NODE_BIN)/tsc
 MOCHA=$(NODE_BIN)/mocha
 NODEMON=$(NODE_BIN)/nodemon
+TSLINT=$(NODE_BIN)/tslint
 
 API_SERVER_MAIN=built/api-server/index.js
 
@@ -11,7 +12,10 @@ compile:
 start: compile
 	@node $(API_SERVER_MAIN)
 
-test: compile docker-up
+lint:
+	@node $(TSLINT) "./**/*.ts"
+
+test: compile docker-up lint
 	@ENVIRONMENT=test $(MOCHA) --exit built/test/**/*test.js
 
 watch:

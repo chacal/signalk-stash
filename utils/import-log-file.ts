@@ -7,13 +7,13 @@
 *    npm run import-log-file sk-deltas.log urn:mrn:imo:mmsi:230099999
 */
 
-import * as R from 'ramda'
-import * as path from 'path'
-import { Writable } from 'stream'
+import byline from 'byline'
 import { createReadStream, fstatSync, openSync } from 'fs'
+import * as path from 'path'
+import * as R from 'ramda'
+import { Writable } from 'stream'
 import db from '../api-server/db'
 import SignalKDeltaWriter from '../api-server/delta-writer'
-import byline from 'byline'
 
 const writer = new SignalKDeltaWriter(db)
 

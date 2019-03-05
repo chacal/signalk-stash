@@ -1,8 +1,9 @@
+import * as path from 'path'
 import * as pgp from 'pg-promise'
 import config from './config'
-import * as path from 'path'
 
-const TABLES_FILE = new pgp.QueryFile(path.join(__dirname, '../../api-server/tables.sql'))  // Needs to be relative from "built/api-server" directory
+// Needs to be relative from "built/api-server" directory
+const TABLES_FILE = new pgp.QueryFile(path.join(__dirname, '../../api-server/tables.sql'))
 
 class DB {
   readonly db

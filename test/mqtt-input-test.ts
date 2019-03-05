@@ -1,20 +1,20 @@
 /* eslint-env mocha */
 import * as BPromise from 'bluebird'
+import {expect} from 'chai'
 import * as mqtt from 'mqtt'
-import { expect } from 'chai'
 
+import {AclLevel} from '../api-server/acl'
 import db from '../api-server/db'
-import testdb from './testdb'
-import {
-  waitFor,
-  positionFixtures,
-  measurementFixtures,
-  vesselUuid,
-  testAccount
-} from './test-util'
-import { AclLevel } from '../api-server/acl'
 import SignalKDeltaWriter from '../api-server/delta-writer'
 import MqttDeltaInput from '../delta-inputs/mqtt'
+import {
+  measurementFixtures,
+  positionFixtures,
+  testAccount,
+  vesselUuid,
+  waitFor
+} from './test-util'
+import testdb from './testdb'
 
 const writer = new SignalKDeltaWriter(db)
 const mqttBrokerUrl = 'mqtt://localhost:21883'
