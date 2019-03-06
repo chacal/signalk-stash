@@ -31,16 +31,6 @@ class TestDB {
       { context }
     )
   }
-
-  getAllMeasurementsForVessel(context) {
-    return DB.db.any(
-      `SELECT context, timestamp, sourceId, path, value :: json
-         FROM instrument_measurement
-         WHERE context = $[context]
-            ORDER BY TIMESTAMP`,
-      { context }
-    )
-  }
 }
 
 export default new TestDB()

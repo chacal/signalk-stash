@@ -24,15 +24,6 @@ class SignalKDeltaWriter {
             longitude,
             latitude
           ))
-        } else {
-          const { path, value: valueData } = value
-          return this.db.insertMeasurement({
-            context: stripVesselsPrefix(context),
-            timestamp,
-            path,
-            sourceId,
-            value: valueData
-          })
         }
       })
     })
