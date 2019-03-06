@@ -1,8 +1,8 @@
 /* eslint-env mocha */
-import { expect } from 'chai'
+import {expect} from 'chai'
 import DB from '../api-server/db'
 import SignalKDeltaWriter from '../api-server/delta-writer'
-import { positionFixtures, vesselUuid } from './test-util'
+import {assertTrackpoint, positionFixtures, vesselUuid} from './test-util'
 import testdb from './testdb'
 
 const writer = new SignalKDeltaWriter(DB)
@@ -14,14 +14,7 @@ describe('SignalKDeltaWriter', () => {
       .then(() => testdb.getAllTrackPointsForVessel(vesselUuid))
       .then(result => {
         expect(result).to.have.lengthOf(positionFixtures.length)
-        expect(result[0].timestamp).to.exist
-        expect(result[0].source).to.equal('aava.160')
-        expect(result[0].timestamp.toISOString()).to.have.string(
-          positionFixtures[0].updates[0].timestamp
-        )
-        expect(result[0].longitude).to.equal(
-          positionFixtures[0].updates[0].values[0].value.longitude
-        )
+        assertTrackpoint(result[0], positionFixtures[0])
       })
   })
 })
