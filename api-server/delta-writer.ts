@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Trackpoint from './Trackpoint'
 
 class SignalKDeltaWriter {
   private readonly db
@@ -17,12 +18,12 @@ class SignalKDeltaWriter {
           const {
             value: { latitude, longitude }
           } = value
-          return this.db.insertTrackpoint({
-            context: stripVesselsPrefix(context),
+          return this.db.insertTrackpoint(new Trackpoint(
+            stripVesselsPrefix(context),
             timestamp,
-            latitude,
-            longitude
-          })
+            longitude,
+            latitude
+          ))
         } else {
           const { path, value: valueData } = value
           return this.db.insertMeasurement({

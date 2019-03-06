@@ -4,6 +4,7 @@ import pgp from 'pg-promise'
 import Account from './Account'
 import config from './config'
 import MqttACL from './MqttACL'
+import Trackpoint from './Trackpoint'
 
 // Needs to be relative from "built/api-server" directory
 const TABLES_FILE = new pgp.QueryFile(
@@ -21,7 +22,7 @@ class DB {
     return this.db.query(TABLES_FILE)
   }
 
-  insertTrackpoint({ context, timestamp, longitude, latitude }) {
+  insertTrackpoint(trackpoint: Trackpoint): Promise<void> {
     return this.db.query(
       `
           INSERT INTO trackpoint (context, timestamp, point)
@@ -29,7 +30,7 @@ class DB {
           ON CONFLICT (context, timestamp)
           DO UPDATE SET point = st_point($[longitude], $[latitude])
         `,
-      { context, timestamp, longitude, latitude }
+      { ...trackpoint }
     )
   }
 
