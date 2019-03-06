@@ -1,12 +1,5 @@
 export default class MqttACL {
-  readonly username: string
-  readonly topic: string
-  readonly level: MqttACLLevel
-
-  constructor(username: string, topic: string, level: MqttACLLevel) {
-    this.username = username
-    this.topic = topic
-    this.level = level
+  constructor(readonly username: string, readonly topic: string, readonly level: MqttACLLevel) {
   }
 }
 
