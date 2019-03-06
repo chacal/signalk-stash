@@ -3,6 +3,7 @@ import pgp from 'pg-promise'
 
 import Account from './Account'
 import config from './config'
+import MqttACL from './MqttACL'
 
 // Needs to be relative from "built/api-server" directory
 const TABLES_FILE = new pgp.QueryFile(
@@ -56,15 +57,15 @@ class DB {
     )
   }
 
-  upsertAcl(username, topic, rw) {
+  upsertAcl(acl: MqttACL): Promise<void> {
     return this.db.query(
       `
           INSERT INTO mqtt_acl (account_id, topic, rw)
-          VALUES ((SELECT id FROM account WHERE username = $[username]), $[topic], $[rw])
+          VALUES ((SELECT id FROM account WHERE username = $[username]), $[topic], $[level])
           ON CONFLICT (account_id, topic)
-          DO UPDATE SET rw = $[rw]
+          DO UPDATE SET rw = $[level]
       `,
-      { username, topic, rw }
+      { ...acl }
     )
   }
 }

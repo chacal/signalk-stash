@@ -3,9 +3,9 @@ import BPromise from 'bluebird'
 import { expect } from 'chai'
 import * as mqtt from 'mqtt'
 
-import { AclLevel } from '../api-server/acl'
 import db from '../api-server/db'
 import SignalKDeltaWriter from '../api-server/delta-writer'
+import MqttACL, {MqttACLLevel} from '../api-server/MqttACL'
 import MqttDeltaInput from '../delta-inputs/mqtt'
 import {
   measurementFixtures,
@@ -74,7 +74,7 @@ function initializeTestDb() {
     .resetTables()
     .then(() => db.upsertAccount(testAccount))
     .then(() =>
-      db.upsertAcl(testAccount.username, 'signalk/delta', AclLevel.ALL)
+      db.upsertAcl(new MqttACL(testAccount.username, 'signalk/delta', MqttACLLevel.ALL))
     )
 }
 
