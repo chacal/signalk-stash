@@ -9,6 +9,9 @@ API_SERVER_MAIN=built/api-server/index.js
 compile:
 	@$(TSC)
 
+compile-watch:
+	@$(TSC) --watch
+
 start: compile
 	@node $(API_SERVER_MAIN)
 
