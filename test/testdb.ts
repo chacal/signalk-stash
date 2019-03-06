@@ -24,7 +24,7 @@ class TestDB {
 
   getAllTrackPointsForVessel(context) {
     return DB.db.any(
-      `SELECT context, timestamp, ST_AsGeoJSON(point) :: json AS geojson
+      `SELECT context, timestamp, source, ST_AsGeoJSON(point) :: json AS geojson
          FROM trackpoint
          WHERE context = $[context]
             ORDER BY TIMESTAMP`,

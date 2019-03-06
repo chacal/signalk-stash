@@ -21,6 +21,7 @@ class SignalKDeltaWriter {
           return this.db.insertTrackpoint(new Trackpoint(
             stripVesselsPrefix(context),
             timestamp,
+            sourceId,
             longitude,
             latitude
           ))

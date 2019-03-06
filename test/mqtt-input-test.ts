@@ -39,8 +39,13 @@ describe('MQTT input', () => {
       )
       .then(trackpoints => {
         expect(trackpoints).to.have.lengthOf(1)
+        expect(trackpoints[0].timestamp).to.exist
+        expect(trackpoints[0].source).to.equal('aava.160')
         expect(trackpoints[0].timestamp.toISOString()).to.have.string(
           positionFixtures[0].updates[0].timestamp
+        )
+        expect(trackpoints[0].geojson.coordinates[0]).to.equal(
+          positionFixtures[0].updates[0].values[0].value.longitude
         )
       })
   })

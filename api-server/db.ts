@@ -25,10 +25,10 @@ class DB {
   insertTrackpoint(trackpoint: Trackpoint): Promise<void> {
     return this.db.query(
       `
-          INSERT INTO trackpoint (context, timestamp, point)
-          VALUES ($[context], $[timestamp], st_point($[longitude], $[latitude]))
+          INSERT INTO trackpoint (context, timestamp, source, point)
+          VALUES ($[context], $[timestamp], $[source], st_point($[longitude], $[latitude]))
           ON CONFLICT (context, timestamp)
-          DO UPDATE SET point = st_point($[longitude], $[latitude])
+          DO UPDATE SET source = $[source], point = st_point($[longitude], $[latitude])
         `,
       { ...trackpoint }
     )

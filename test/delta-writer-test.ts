@@ -15,6 +15,7 @@ describe('SignalKDeltaWriter', () => {
       .then(result => {
         expect(result).to.have.lengthOf(positionFixtures.length)
         expect(result[0].timestamp).to.exist
+        expect(result[0].source).to.equal('aava.160')
         expect(result[0].timestamp.toISOString()).to.have.string(
           positionFixtures[0].updates[0].timestamp
         )
