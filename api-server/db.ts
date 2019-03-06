@@ -1,5 +1,7 @@
 import path from 'path'
 import pgp from 'pg-promise'
+
+import Account from './Account'
 import config from './config'
 
 // Needs to be relative from "built/api-server" directory
@@ -8,7 +10,7 @@ const TABLES_FILE = new pgp.QueryFile(
 )
 
 class DB {
-  readonly db
+  readonly db: pgp.IDatabase<any>
 
   constructor() {
     this.db = pgp()(config.db)
@@ -42,15 +44,15 @@ class DB {
     )
   }
 
-  upsertAccount({ username, passwordHash, isMosquittoSuper }) {
+  upsertAccount(account: Account): Promise<void> {
     return this.db.query(
       `
           INSERT INTO account (username, password, mosquitto_super)
-          VALUES ($[username], $[passwordHash], $[isMosquittoSuper])
+          VALUES ($[username], $[passwordHash], $[isMqttSuperUser])
           ON CONFLICT (username)
-          DO UPDATE SET password = $[passwordHash], mosquitto_super = $[isMosquittoSuper]
+          DO UPDATE SET password = $[passwordHash], mosquitto_super = $[isMqttSuperUser]
       `,
-      { username, passwordHash, isMosquittoSuper }
+      { ...account }
     )
   }
 
