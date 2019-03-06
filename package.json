@@ -9,6 +9,7 @@
     "node": ">=9.10.0"
   },
   "dependencies": {
+    "@apla/clickhouse": "^1.5.5",
     "@types/bluebird": "^3.5.26",
     "@types/byline": "^4.2.31",
     "@types/chai": "^4.1.7",
