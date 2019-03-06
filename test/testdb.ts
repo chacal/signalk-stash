@@ -1,4 +1,5 @@
 import DB from '../api-server/db'
+import Trackpoint from '../api-server/Trackpoint'
 
 class TestDB {
   resetTables() {
@@ -22,14 +23,18 @@ class TestDB {
       .then(() => DB.ensureTables())
   }
 
-  getAllTrackPointsForVessel(context) {
-    return DB.db.any(
-      `SELECT context, timestamp, source, ST_AsGeoJSON(point) :: json AS geojson
+  getAllTrackPointsForVessel(context): Promise<Trackpoint[]> {
+    return DB.db
+      .any(
+        `SELECT context, timestamp, source, ST_AsGeoJSON(point) :: json AS geojson
          FROM trackpoint
          WHERE context = $[context]
             ORDER BY TIMESTAMP`,
-      { context }
-    )
+        { context }
+      )
+      .then(rows => rows.map(({ context, timestamp, source, geojson }) =>
+        new Trackpoint(context, new Date(timestamp), source, geojson.coordinates[0], geojson.coordinates[1]))
+      )
   }
 }
 

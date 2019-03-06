@@ -44,7 +44,7 @@ describe('MQTT input', () => {
         expect(trackpoints[0].timestamp.toISOString()).to.have.string(
           positionFixtures[0].updates[0].timestamp
         )
-        expect(trackpoints[0].geojson.coordinates[0]).to.equal(
+        expect(trackpoints[0].longitude).to.equal(
           positionFixtures[0].updates[0].values[0].value.longitude
         )
       })

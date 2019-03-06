@@ -19,7 +19,7 @@ describe('SignalKDeltaWriter', () => {
         expect(result[0].timestamp.toISOString()).to.have.string(
           positionFixtures[0].updates[0].timestamp
         )
-        expect(result[0].geojson.coordinates[0]).to.equal(
+        expect(result[0].longitude).to.equal(
           positionFixtures[0].updates[0].values[0].value.longitude
         )
       })
