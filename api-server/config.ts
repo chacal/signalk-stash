@@ -23,6 +23,10 @@ const baseConfig = {
     user: 'signalk',
     password: 'signalk'
   },
+  clickhouse: {
+    host: 'localhost',
+    port: 58123
+  },
   port: 3000
 }
 

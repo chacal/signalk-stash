@@ -11,7 +11,7 @@ interface IAuthDB extends IDB {
   upsertAcl(acl: MqttACL): Promise<void>
 }
 
-interface ITrackDB extends IDB {
+export interface ITrackDB extends IDB {
   insertTrackpoint(trackpoint: Trackpoint): Promise<void>
 }
 

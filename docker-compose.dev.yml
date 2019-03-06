@@ -1,6 +1,11 @@
 version: '3'
 
 services:
+  clickhouse-dev:
+    image: yandex/clickhouse-server
+    ports:
+     - 58123:8123
+     - 59000:9000
   postgis:
     image: mdillon/postgis:10-alpine
     ports:

@@ -1,10 +1,10 @@
 import { SKContext, SKDelta, SKPosition } from '@chartedsails/strongly-signalk'
 import _ from 'lodash'
-import IStashDB from './StashDB'
+import { ITrackDB } from './StashDB'
 import Trackpoint from './Trackpoint'
 
 export default class SignalKDeltaWriter {
-  constructor(private readonly db: IStashDB) {}
+  constructor(private readonly db: ITrackDB) {}
 
   writeDelta(delta: SKDelta) {
     const { context, updates } = delta
