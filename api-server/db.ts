@@ -18,7 +18,7 @@ class DB {
     this.db = pgp()(config.db)
   }
 
-  ensureTables() {
+  ensureTables(): Promise<void> {
     return this.db.query(TABLES_FILE)
   }
 
