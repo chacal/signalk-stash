@@ -1,6 +1,6 @@
+import API from './api'
 import config from './config'
 import DB from './db'
-import API from './api'
 
 console.log('Starting SignalK Stash..')
 

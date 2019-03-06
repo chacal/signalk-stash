@@ -1,8 +1,8 @@
+import BPromise from 'bluebird'
+import * as mqtt from 'mqtt'
 import db from '../api-server/db'
 import SignalKDeltaWriter from '../api-server/delta-writer'
 import MqttDeltaInput from './mqtt'
-import BPromise from 'bluebird'
-import mqtt from 'mqtt'
 
 const MQTT_BROKER = process.env.MQTT_BROKER || 'mqtt://localhost:11883'
 const MQTT_USERNAME = process.env.MQTT_USERNAME
@@ -28,7 +28,7 @@ function startMqttClient(brokerUrl, brokerUser, brokerPw) {
   client.on('offline', () => console.log('Disconnected from MQTT server'))
   client.on('error', e => console.log('MQTT client error', e))
 
-  return BPromise.fromCallback(cb => client.once('connect', () => cb())).then(
+  return BPromise.fromCallback(cb => client.once('connect', () => cb(null))).then(
     () => client
   )
 }

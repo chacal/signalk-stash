@@ -1,18 +1,15 @@
-# SignalK Stash
+# Signal K Stash
 
-SignalK Stash is a cloud deployed set of services that enable ingesting and storing SignalK data in the form of SignalK delta messages. Stored data can be accessed via a REST API.
+Signal K Stash is a cloud deployed set of services that enable ingesting and storing Signal K data in the form of Signal K delta messages. Stored data can be accessed via a REST API.
 
-# Developing
+## Developing
 
-## Setting up development environment
+`make` is used to run Typescript compiling, setup development dependencies using `docker-compose` and for running test.
+Most important make targets are documented below. See all targets in [Makefile](Makefile).
 
 ### Dependencies
 
-Use `docker-compose` to start local development and test environment dependencies:
-
-    docker-compose -f docker-compose.dev.yml up
-    
-This starts 4 containers:
+`docker-compose` is used to start local development and test environment dependencies. Dependencies consist of 4 containers:
 
 - `postgis` (Postgis development DB)
 - `postgis-test` (Postgis test DB)
@@ -21,13 +18,44 @@ This starts 4 containers:
 
 `mqtt` container is configured to authenticate against `postgis` DB and `mqtt-test` against `postgis-test` DB.
 
-### API server
+To start all development dependencies run:
 
-    npm run start  # or "npm run watch" to start with nodemon watch
+    make docker-up 
 
-By default the development API server listens on port 3000.
+### Starting development server
+
+    make dev
+
+This starts development dependencies with `docker-compose` and runs development API server
+using Nodemon watch for hot-reloading code changes. 
+
+By default the development server listens on port 3000.
+
+### Running tests
+
+    make test
+
+Starts development dependencies with `docker-compose` and runs tests using Mocha.
+
+### Connecting to DB
+
+Connect to local development DB:
+
+    make psql-dev
+
+Connect to local test DB:
+
+    make psql-test
+
+Connect to remote (e.g. prod) DB:
+
+    ssh signalk-stash.chacal.fi  # SSH into the remote server
+    docker exec -it signalk-stash_postgis_1 psql -U postgres signalk
 
 ### Mqtt Delta Input
+
+Mqtt delta input can be used to subscribe to an MQTT topic for Signal K deltas and
+storing them into Stash DB.
 
 Generate new PBKDF2 password hash for a new Mqtt user:
 
@@ -46,7 +74,7 @@ Create a new Mqtt user and add ACL:
 
 Start mqtt delta input:
 
-    MQTT_USERNAME=<username> MQTT_PASSWORD=<password> npm run mqtt-input
+    MQTT_USERNAME=<username> MQTT_PASSWORD=<password> make mqtt-input
 
 Publish a new SignalK delta message that is written to the Stash by mqtt delta input:
 
@@ -72,26 +100,12 @@ Publish a new SignalK delta message that is written to the Stash by mqtt delta i
       }]
     }'
 
-## Running test
+### Stopping dependencies
 
-    docker-compose -f docker-compose.dev.yml up.  # Start dev dependencies
-    npm run test                                  # Run tests
+    make docker-stop
 
+Stops development docker containers using `docker-compose stop`.
 
-## Connecting to DB
-
-Connect to local development DB:
-
-    psql 'postgresql://signalk:signalk@localhost:50400/signalk'
-
-Connect to local test DB:
-
-    psql 'postgresql://signalk:signalk@localhost:50500/signalk'
-
-Connect to remote (e.g. prod) DB:
-
-    ssh signalk-stash.chacal.fi  # SSH into the remote server
-    docker exec -it signalk-stash_postgis_1 psql -U postgres signalk
 
 # Production deployment
 

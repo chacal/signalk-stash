@@ -1,0 +1,12 @@
+{
+  "ignore": ["node_modules", "built", "test"],
+  "watch": ["api-server"],
+  "exec": "make start",
+  "ext": "ts,js,json",
+  "events": {
+    "restart": "command -v osascript && osascript -e 'display notification \"SignalK Stash restarted\" with title \"nodemon\"'"
+  },
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

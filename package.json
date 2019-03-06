@@ -2,45 +2,35 @@
   "name": "signalk-stash",
   "version": "1.0.0",
   "description": "",
-  "main": "api-server/index.js",
+  "main": "built/api-server/index.js",
   "author": "",
   "license": "ISC",
   "engines": {
     "node": ">=9.10.0"
   },
-  "scripts": {
-    "start": "node --require @std/esm api-server/index.js",
-    "watch": "nodemon -r @std/esm api-server/index.js",
-    "dev": "docker-compose -f docker-compose.dev.yml up -d && npm run watch",
-    "lint": "eslint . --fix",
-    "test": "ENVIRONMENT=test mocha --require @std/esm --exit test/**/*test.js && eslint .",
-    "mqtt-input": "node --require @std/esm delta-inputs/mqtt-runner.js",
-    "import-log-file": "node --require @std/esm utils/import-log-file.js"
-  },
   "dependencies": {
-    "@std/esm": "^0.26.0",
-    "baconjs": "^2.0.7",
-    "bluebird": "^3.5.1",
+    "@types/bluebird": "^3.5.26",
+    "@types/byline": "^4.2.31",
+    "@types/chai": "^4.1.7",
+    "@types/express": "^4.16.1",
+    "@types/lodash": "^4.14.122",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^11.10.4",
+    "bluebird": "^3.5.3",
     "byline": "^5.0.0",
-    "debug": "^3.1.0",
-    "eslint-restricted-globals": "^0.1.1",
-    "express": "^4.16.3",
-    "mqtt": "^2.18.2",
-    "pg-promise": "^8.4.5",
-    "ramda": "^0.25.0"
+    "debug": "^4.1.1",
+    "express": "^4.16.4",
+    "lodash": "^4.17.11",
+    "mqtt": "^2.18.8",
+    "pg-promise": "^8.6.0",
+    "typescript": "^3.3.3333"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
-    "eslint": "^5.0.1",
-    "eslint-plugin-node": "^6.0.1",
-    "eslint-plugin-prettier": "^2.6.2",
-    "mocha": "^5.2.0",
-    "nodemon": "^1.17.5",
-    "prettier": "1.13.7"
-  },
-  "@std/esm": "cjs",
-  "prettier": {
-    "semi": false,
-    "singleQuote": true
+    "chai": "^4.2.0",
+    "mocha": "^6.0.2",
+    "nodemon": "^1.18.10",
+    "source-map-support": "^0.5.10",
+    "tslint": "^5.13.1",
+    "tslint-no-unused-expression-chai": "^0.1.4"
   }
 }

@@ -1,44 +1,19 @@
+import path from 'path'
 import pgp from 'pg-promise'
 import config from './config'
 
-//language=PostgreSQL
-const createTables = `
-  CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-  CREATE TABLE IF NOT EXISTS trackpoint (
-    context TEXT,
-    timestamp TIMESTAMP WITH TIME ZONE,
-    point GEOGRAPHY(Point,4326) NOT NULL,
-    PRIMARY KEY (context, timestamp)
-  );
-  CREATE TABLE IF NOT EXISTS instrument_measurement (
-    context TEXT,
-    timestamp TIMESTAMP WITH TIME ZONE,
-    path TEXT NOT NULL,
-    sourceId TEXT NOT NULL,
-    value jsonb NOT NULL,
-    PRIMARY KEY (context, timestamp, path, sourceId)
-  );
-  CREATE TABLE IF NOT EXISTS account (
-    id UUID DEFAULT uuid_generate_v4() NOT NULL,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    mosquitto_super BOOLEAN NOT NULL,
-    PRIMARY KEY (id)
-  );
-  CREATE TABLE IF NOT EXISTS mqtt_acl (
-    account_id UUID NOT NULL REFERENCES account (id) ON DELETE CASCADE,
-    topic TEXT NOT NULL,
-    rw INT NOT NULL,
-    PRIMARY KEY (account_id, topic)
-  );`
+// Needs to be relative from "built/api-server" directory
+const TABLES_FILE = new pgp.QueryFile(path.join(__dirname, '../../api-server/tables.sql'))
 
 class DB {
+  readonly db
+
   constructor() {
     this.db = pgp()(config.db)
   }
 
   ensureTables() {
-    return this.db.query(createTables)
+    return this.db.query(TABLES_FILE)
   }
 
   insertTrackpoint({ context, timestamp, longitude, latitude }) {
