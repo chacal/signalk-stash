@@ -18,6 +18,9 @@ lint:
 test: compile docker-up lint
 	@ENVIRONMENT=test $(MOCHA) --require source-map-support/register --exit built/test/**/*test.js
 
+test-watch: compile docker-up lint
+	@ENVIRONMENT=test $(MOCHA) --require source-map-support/register --watch --reporter min built/test/**/*test.js
+
 watch:
 	@$(NODEMON) $(API_SERVER_MAIN)
 
