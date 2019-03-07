@@ -1,12 +1,9 @@
 import _ from 'lodash'
+import IStashDB from './StashDB'
 import Trackpoint from './Trackpoint'
 
 class SignalKDeltaWriter {
-  private readonly db
-
-  constructor(db) {
-    this.db = db
-  }
+  constructor(private readonly db: IStashDB) {}
 
   writeDelta(delta) {
     const { context, updates } = delta

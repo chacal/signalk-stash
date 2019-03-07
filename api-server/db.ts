@@ -4,6 +4,7 @@ import pgp from 'pg-promise'
 import Account from './Account'
 import config from './config'
 import MqttACL from './MqttACL'
+import IStashDB from './StashDB'
 import Trackpoint from './Trackpoint'
 
 // Needs to be relative from "built/api-server" directory
@@ -11,7 +12,7 @@ const TABLES_FILE = new pgp.QueryFile(
   path.join(__dirname, '../../api-server/tables.sql')
 )
 
-class DB {
+class DB implements IStashDB {
   readonly db: pgp.IDatabase<any>
 
   constructor() {
