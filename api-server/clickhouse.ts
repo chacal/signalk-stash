@@ -1,7 +1,7 @@
 import ClickHouse from '@apla/clickhouse'
 import BinaryQuadkey from 'binaryquadkey'
 import QK from 'quadkeytools'
-import {Transform} from 'stream'
+import { Transform } from 'stream'
 import config from './config'
 
 const DAY_AS_MILLISECONDS = 24 * 60 * 60 * 1000
@@ -43,15 +43,26 @@ class SKClickHouse {
         }
       )
       const ts = new Date(timestamp)
-      const qk = QK.locationToQuadkey({ lat: Number.parseFloat(latitude), lng: Number.parseFloat(longitude) }, 22)
+      const qk = QK.locationToQuadkey(
+        { lat: Number.parseFloat(latitude), lng: Number.parseFloat(longitude) },
+        22
+      )
       const bqk = BinaryQuadkey.fromQuadkey(qk)
-      chInsert.write([ts, ts.getMilliseconds(), '', latitude, longitude, bqk.toString()])
+      chInsert.write([
+        ts,
+        ts.getMilliseconds(),
+        '',
+        latitude,
+        longitude,
+        bqk.toString()
+      ])
       chInsert.end()
     })
   }
   getTrackPointsForVessel() {
     return this.ch
-      .querying(`
+      .querying(
+        `
       SELECT toUnixTimestamp(ts), millis, source, lat, lng
       FROM position
       ORDER BY (ts, millis)`
@@ -66,14 +77,18 @@ class SKClickHouse {
         }))
       )
   }
-  getVesselTracks({bbox}) {
+  getVesselTracks({ bbox }) {
     let query = `
     SELECT toUnixTimestamp(ts), millis, lat, lng
     FROM position
     ORDER BY (ts, millis)`
     if (bbox && bbox.nw && bbox.se) {
-      const NWQuadKey = BinaryQuadkey.fromQuadkey(QK.locationToQuadkey(bbox.nw, 22))
-      const SEQuadKey = BinaryQuadkey.fromQuadkey(QK.locationToQuadkey(bbox.se, 22))
+      const NWQuadKey = BinaryQuadkey.fromQuadkey(
+        QK.locationToQuadkey(bbox.nw, 22)
+      )
+      const SEQuadKey = BinaryQuadkey.fromQuadkey(
+        QK.locationToQuadkey(bbox.se, 22)
+      )
       const timeResolutionSeconds = 2
       query = `
         SELECT
@@ -89,42 +104,51 @@ class SKClickHouse {
         GROUP BY t
         ORDER BY t`
     }
-    return this.ch
-      .querying(query)
-      // .then(x => {
-      //   console.log(x.data)
-      //   return x
-      // })
-      .then(x =>
-        x.data.map(([timestamp, millis, lat, lng]) => ({
-          millis: timestamp * 1000 + millis,
-          coordinate: [lng, lat]
-        }))
-      ).then(pointsData => {
-        let previousTrackDayMillis = 0
-        let currentTrackPoints = []
-        const tracks = []
-        pointsData.forEach(pointData => {
-          if (pointData.millis - previousTrackDayMillis > DAY_AS_MILLISECONDS) {
-           currentTrackPoints = []
-           previousTrackDayMillis = getDayMillis(pointData.millis)
-           tracks.push(currentTrackPoints)
-          }
-          currentTrackPoints.push(pointData.coordinate)
+    return (
+      this.ch
+        .querying(query)
+        // .then(x => {
+        //   console.log(x.data)
+        //   return x
+        // })
+        .then(x =>
+          x.data.map(([timestamp, millis, lat, lng]) => ({
+            millis: timestamp * 1000 + millis,
+            coordinate: [lng, lat]
+          }))
+        )
+        .then(pointsData => {
+          let previousTrackDayMillis = 0
+          let currentTrackPoints = []
+          const tracks = []
+          pointsData.forEach(pointData => {
+            if (
+              pointData.millis - previousTrackDayMillis >
+              DAY_AS_MILLISECONDS
+            ) {
+              currentTrackPoints = []
+              previousTrackDayMillis = getDayMillis(pointData.millis)
+              tracks.push(currentTrackPoints)
+            }
+            currentTrackPoints.push(pointData.coordinate)
+          })
+          return tracks
         })
-        return tracks
-      }).then(tracksData => ({
-        type: 'MultiLineString',
-        coordinates: tracksData
-     }))
+        .then(tracksData => ({
+          type: 'MultiLineString',
+          coordinates: tracksData
+        }))
+    )
   }
 
   deltaWriteStream(cb) {
     const deltaToPositionStream = new DeltaToPositionStream()
     const posToTsv = new PositionsToClickHouseTSV()
-    const chWriteStream  = this.ch.query(
+    const chWriteStream = this.ch.query(
       `INSERT INTO position`,
-      { format: 'TSV' }, cb)
+      { format: 'TSV' },
+      cb
+    )
     deltaToPositionStream.pipe(posToTsv).pipe(chWriteStream)
     return deltaToPositionStream
   }
@@ -132,33 +156,50 @@ class SKClickHouse {
 
 class DeltaToPositionStream extends Transform {
   constructor() {
-    super({objectMode: true})
+    super({ objectMode: true })
   }
 
   _transform(delta, encoding, done) {
-    delta.updates && delta.updates.forEach(update => {
-      update.values && update.values.forEach(pathValue => {
-        if (pathValue.path === 'navigation.position') {
-          this.push({
-            timestamp: new Date(update.timestamp),
-            position: pathValue.value
+    // tslint:disable-next-line: no-unused-expression-chai
+    delta.updates &&
+      delta.updates.forEach(update => {
+        // tslint:disable-next-line: no-unused-expression-chai
+        update.values &&
+          update.values.forEach(pathValue => {
+            if (pathValue.path === 'navigation.position') {
+              this.push({
+                timestamp: new Date(update.timestamp),
+                position: pathValue.value
+              })
+            }
           })
-        }
       })
-    })
     done()
   }
 }
 
 class PositionsToClickHouseTSV extends Transform {
   constructor() {
-    super({objectMode: true})
+    super({ objectMode: true })
   }
 
-  _transform({timestamp, position}, encoding, callback) {
-    const qk = QK.locationToQuadkey({ lat: Number.parseFloat(position.latitude), lng: Number.parseFloat(position.longitude) }, 22)
+  _transform({ timestamp, position }, encoding, callback) {
+    const qk = QK.locationToQuadkey(
+      {
+        lat: Number.parseFloat(position.latitude),
+        lng: Number.parseFloat(position.longitude)
+      },
+      22
+    )
     const bqk = BinaryQuadkey.fromQuadkey(qk)
-    this.push([timestamp, timestamp.getMilliseconds(), '', position.latitude, position.longitude, bqk.toString()])
+    this.push([
+      timestamp,
+      timestamp.getMilliseconds(),
+      '',
+      position.latitude,
+      position.longitude,
+      bqk.toString()
+    ])
     callback()
   }
 }
@@ -166,7 +207,7 @@ class PositionsToClickHouseTSV extends Transform {
 function getDayMillis(timestamp) {
   const date = new Date(timestamp)
   const day = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  return (day).getTime()
+  return day.getTime()
 }
 
 export default new SKClickHouse()
