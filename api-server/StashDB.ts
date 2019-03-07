@@ -16,3 +16,15 @@ export interface ITrackDB extends IDB {
 }
 
 export default interface IStashDB extends ITrackDB, IAuthDB {}
+
+// TODO: Move to a different file?
+export interface BBox {
+  readonly nw: {
+    longitude: number
+    latitude: number
+  }
+  readonly se: {
+    longitude: number
+    latitude: number
+  }
+}

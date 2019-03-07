@@ -22,7 +22,27 @@ describe('ClickHouseDeltaWriter', () => {
     return writeDeltasFromPositionFixture()
       .then(() => DB.getVesselTracks())
       .then(result => {
-        expect(result).to.have.lengthOf(3)
+        expect(result).to.have.lengthOf(4)
+      })
+  })
+
+  it('returns daily tracks by bbox', () => {
+    return writeDeltasFromPositionFixture()
+      .then(() =>
+        DB.getVesselTracks({
+          nw: {
+            longitude: 21.877,
+            latitude: 59.901
+          },
+          se: {
+            longitude: 21.881,
+            latitude: 59.9
+          }
+        })
+      )
+      .then(tracks => {
+        expect(tracks).to.have.lengthOf(1)
+        expect(tracks[0]).to.have.lengthOf(3)
       })
   })
 })

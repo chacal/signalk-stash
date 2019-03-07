@@ -14,8 +14,7 @@ export default class SignalKDeltaWriter {
       return update.values.map(value => {
         if (value.path === 'navigation.position') {
           const position = value.value as SKPosition // TODO: Add type guard to SKPosition
-          const ctx =
-            context !== undefined ? stripVesselsPrefix(context) : 'n/a' // TODO: Fix handling empty context
+          const ctx = stripVesselsPrefix(context)
           return this.db.insertTrackpoint(
             new Trackpoint(
               ctx,
@@ -34,7 +33,10 @@ export default class SignalKDeltaWriter {
   }
 }
 
-function stripVesselsPrefix(deltaContext: SKContext) {
+function stripVesselsPrefix(deltaContext?: SKContext) {
+  if (!deltaContext) {
+    return 'self'
+  }
   return deltaContext.startsWith('vessels.')
     ? deltaContext.replace(/^vessels\./, '')
     : deltaContext

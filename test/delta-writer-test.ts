@@ -18,7 +18,8 @@ describe('SignalKDeltaWriter', () => {
     )
       .then(() => testdb.getAllTrackPointsForVessel(vesselUuid))
       .then(result => {
-        expect(result).to.have.lengthOf(positionFixtures.length)
+        // 3 have self context
+        expect(result).to.have.lengthOf(positionFixtures.length - 3)
         assertTrackpoint(result[0], positionFixtures[0])
       })
   })

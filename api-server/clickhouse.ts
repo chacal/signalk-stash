@@ -1,7 +1,9 @@
 import ClickHouse from '@apla/clickhouse'
+import BinaryQuadkey from 'binaryquadkey'
 import _ from 'lodash'
+import QK from 'quadkeytools'
 import config from './config'
-import { ITrackDB } from './StashDB'
+import { BBox, ITrackDB } from './StashDB'
 import Trackpoint, { Track } from './Trackpoint'
 
 class SKClickHouse implements ITrackDB {
@@ -32,31 +34,62 @@ class SKClickHouse implements ITrackDB {
         { format: 'TSV' },
         err => (err ? reject(err) : resolve())
       )
+      const qk = QK.locationToQuadkey(
+        { lat: trackpoint.latitude, lng: trackpoint.longitude },
+        22
+      )
+      const bqk = BinaryQuadkey.fromQuadkey(qk)
+
       chInsert.write([
         trackpoint.timestamp,
         trackpoint.timestamp.getMilliseconds(),
         trackpoint.source,
         trackpoint.latitude,
         trackpoint.longitude,
-        ''
+        bqk.toString()
       ])
       chInsert.end()
     })
   }
 
-  getTrackPointsForVessel(): Promise<Trackpoint[]> {
+  getTrackPointsForVessel(bbox?: BBox): Promise<Trackpoint[]> {
+    let bboxWHERE = ''
+
+    // TODO: Extract method
+    if (bbox) {
+      const NWQuadKey = BinaryQuadkey.fromQuadkey(
+        QK.locationToQuadkey(
+          { lng: bbox.nw.longitude, lat: bbox.nw.latitude },
+          22
+        )
+      )
+      const SEQuadKey = BinaryQuadkey.fromQuadkey(
+        QK.locationToQuadkey(
+          { lng: bbox.se.longitude, lat: bbox.se.latitude },
+          22
+        )
+      )
+      bboxWHERE = `
+        WHERE
+          quadkey BETWEEN ${NWQuadKey} AND ${SEQuadKey} AND
+          lat BETWEEN ${bbox.se.latitude} AND ${bbox.nw.latitude} AND
+          lng BETWEEN ${bbox.nw.longitude} AND ${bbox.se.longitude}
+      `
+    }
+
     return this.ch
       .querying(
         `
           SELECT toUnixTimestamp(ts), millis, source, lat, lng
           FROM position
+          ${bboxWHERE}
           ORDER BY ts, millis`
       )
       .then(x =>
         x.data.map(
           ([timestamp, millis, source, lat, lng]: any[]) =>
             new Trackpoint(
-              source,
+              source, // TODO: Replace with context
               new Date(timestamp * 1000 + millis),
               source,
               lng,
@@ -66,8 +99,8 @@ class SKClickHouse implements ITrackDB {
       )
   }
 
-  getVesselTracks(): Promise<Track[]> {
-    return this.getTrackPointsForVessel().then(pointsData =>
+  getVesselTracks(bbox?: BBox): Promise<Track[]> {
+    return this.getTrackPointsForVessel(bbox).then(pointsData =>
       _.values(_.groupBy(pointsData, point => getDayMillis(point.timestamp)))
     )
   }
