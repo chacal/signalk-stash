@@ -15,7 +15,8 @@
     "object-literal-sort-keys": false,
     "member-access": [true, "no-public"],
     "no-shadowed-variable": false,
-    "no-console": false
+    "no-console": false,
+    "max-classes-per-file": false
   },
   "linterOptions": {
     "exclude": [
