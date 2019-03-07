@@ -12,10 +12,7 @@ describe('ClickHouseDeltaWriter', () => {
   it('writes positions', () => {
     return writeDeltasFromPositionFixture()
       .then(() => DB.getTrackPointsForVessel())
-      .then(result => {
-        expect(result).to.have.lengthOf(positionFixtures.length)
-        assertTrackpoint(result[0], positionFixtures[0])
-      })
+      .then(assertFixturePositionsFound)
   })
 
   it('returns daily tracks', () => {
@@ -45,7 +42,25 @@ describe('ClickHouseDeltaWriter', () => {
         expect(tracks[0]).to.have.lengthOf(3)
       })
   })
+
+  it('writes positions via stream', done => {
+    const chStream = DB.deltaWriteStream(err => {
+      expect(err).to.be.null
+      assertFixturePositionsFound().then(done)
+    })
+    positionFixtures.forEach(delta =>
+      chStream.write(SKDelta.fromJSON(JSON.stringify(delta)))
+    ) // TODO: Fix SKDelta parsing
+    chStream.end()
+  })
 })
+
+function assertFixturePositionsFound(): Promise<void> {
+  return DB.getTrackPointsForVessel().then(result => {
+    expect(result).to.have.lengthOf(positionFixtures.length)
+    assertTrackpoint(result[0], positionFixtures[0])
+  })
+}
 
 function writeDeltasFromPositionFixture(): Promise<void[][]> {
   return Promise.all(

@@ -1,8 +1,10 @@
-import ClickHouse from '@apla/clickhouse'
+import ClickHouse, { QueryCallback, QueryStream } from '@apla/clickhouse'
 import BinaryQuadkey from 'binaryquadkey'
 import _ from 'lodash'
 import QK from 'quadkeytools'
+import { Transform, TransformCallback } from 'stream'
 import config from './config'
+import DeltaToTrackpointStream from './DeltaToTrackpointStream'
 import { BBox, ITrackDB } from './StashDB'
 import Trackpoint, { Track } from './Trackpoint'
 
@@ -34,20 +36,7 @@ class SKClickHouse implements ITrackDB {
         { format: 'TSV' },
         err => (err ? reject(err) : resolve())
       )
-      const qk = QK.locationToQuadkey(
-        { lat: trackpoint.latitude, lng: trackpoint.longitude },
-        22
-      )
-      const bqk = BinaryQuadkey.fromQuadkey(qk)
-
-      chInsert.write([
-        trackpoint.timestamp,
-        trackpoint.timestamp.getMilliseconds(),
-        trackpoint.source,
-        trackpoint.latitude,
-        trackpoint.longitude,
-        bqk.toString()
-      ])
+      chInsert.write(trackPointToColumns(trackpoint))
       chInsert.end()
     })
   }
@@ -104,6 +93,49 @@ class SKClickHouse implements ITrackDB {
       _.values(_.groupBy(pointsData, point => getDayMillis(point.timestamp)))
     )
   }
+
+  // TODO: Could this return a typed stream that would only accept writes for SKDelta?
+  deltaWriteStream(cb: QueryCallback<void>): QueryStream {
+    const deltaToTrackpointsStream = new DeltaToTrackpointStream()
+    const pointsToTsv = new TrackpointsToClickHouseTSV()
+    const chWriteStream = this.ch.query(
+      `INSERT INTO position`,
+      { format: 'TSV' },
+      cb
+    )
+    deltaToTrackpointsStream.pipe(pointsToTsv).pipe(chWriteStream)
+    return deltaToTrackpointsStream
+  }
+}
+
+class TrackpointsToClickHouseTSV extends Transform {
+  constructor() {
+    super({ objectMode: true })
+  }
+
+  _transform(trackpoint: Trackpoint, encoding: string, cb: TransformCallback) {
+    this.push(trackPointToColumns(trackpoint))
+    cb()
+  }
+}
+
+function trackPointToColumns(trackpoint: Trackpoint): any[] {
+  const qk = QK.locationToQuadkey(
+    {
+      lat: trackpoint.latitude,
+      lng: trackpoint.longitude
+    },
+    22
+  )
+  const bqk = BinaryQuadkey.fromQuadkey(qk)
+  return [
+    trackpoint.timestamp,
+    trackpoint.timestamp.getMilliseconds(),
+    trackpoint.source,
+    trackpoint.latitude,
+    trackpoint.longitude,
+    bqk.toString()
+  ]
 }
 
 function getDayMillis(date: Date) {
