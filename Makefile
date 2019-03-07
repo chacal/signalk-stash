@@ -6,6 +6,9 @@ TSLINT=$(NODE_BIN)/tslint
 
 API_SERVER_MAIN=built/api-server/index.js
 
+clean:
+	@rm -rf built
+
 compile:
 	@$(TSC)
 
