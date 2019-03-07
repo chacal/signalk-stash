@@ -1,7 +1,8 @@
 import ClickHouse from '@apla/clickhouse'
+import _ from 'lodash'
 import config from './config'
 import { ITrackDB } from './StashDB'
-import Trackpoint from './Trackpoint'
+import Trackpoint, { Track } from './Trackpoint'
 
 class SKClickHouse implements ITrackDB {
   constructor(private readonly ch = new ClickHouse(config.clickhouse)) {}
@@ -43,7 +44,7 @@ class SKClickHouse implements ITrackDB {
     })
   }
 
-  getTracksForVessel(): Promise<Trackpoint[]> {
+  getTrackPointsForVessel(): Promise<Trackpoint[]> {
     return this.ch
       .querying(
         `
@@ -64,6 +65,17 @@ class SKClickHouse implements ITrackDB {
         )
       )
   }
+
+  getVesselTracks(): Promise<Track[]> {
+    return this.getTrackPointsForVessel().then(pointsData =>
+      _.values(_.groupBy(pointsData, point => getDayMillis(point.timestamp)))
+    )
+  }
+}
+
+function getDayMillis(date: Date) {
+  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  return day.getTime()
 }
 
 export default new SKClickHouse()

@@ -7,3 +7,6 @@ export default class Trackpoint {
     readonly latitude: number
   ) {}
 }
+
+// TODO: Move to a separate file?
+export type Track = Trackpoint[]
