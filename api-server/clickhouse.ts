@@ -37,21 +37,25 @@ class SKClickHouse {
           resolve()
         }
       )
-      chInsert.write([new Date(timestamp), 0, '', latitude, longitude, ''])
+      const ts = new Date(timestamp)
+      chInsert.write([ts, ts.getMilliseconds(), '', latitude, longitude, ''])
       chInsert.end()
     })
   }
   getTracksForVessel() {
     return this.ch
-      .querying(
-        `
-      SELECT *
-      FROM position`
+      .querying(`
+      SELECT toUnixTimestamp(ts), millis, source, lat, lng
+      FROM position
+      ORDER BY (ts, millis)`
       )
       .then(x =>
-        x.data.map(([timestamp, ts, millis, source, lat, lng]) => ({
-          timestamp: new Date(timestamp),
-          position: { lat, lng }
+        x.data.map(([timestamp, millis, source, lat, lng]) => ({
+          timestamp: new Date(timestamp * 1000 + millis),
+          geojson: {
+            type: 'Point',
+            coordinates: [lng, lat]
+          }
         }))
       )
   }

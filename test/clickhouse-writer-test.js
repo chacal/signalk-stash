@@ -13,7 +13,6 @@ describe('ClickHouseDeltaWriter', () => {
     return Promise.all(positionFixtures.map(delta => writer.writeDelta(delta)))
       .then(() => clickhouse.getTracksForVessel(vesselUuid, new Date(0), new Date()))
       .then(result => {
-        console.log(result)
         expect(result).to.have.lengthOf(positionFixtures.length)
         expect(result[0].timestamp).to.exist
         expect(result[0].timestamp.toISOString()).to.have.string(
