@@ -2,7 +2,7 @@ import _ from 'lodash'
 import IStashDB from './StashDB'
 import Trackpoint from './Trackpoint'
 
-class SignalKDeltaWriter {
+export default class SignalKDeltaWriter {
   constructor(private readonly db: IStashDB) {}
 
   writeDelta(delta) {
@@ -36,5 +36,3 @@ function stripVesselsPrefix(deltaContext) {
     ? deltaContext.replace(/^vessels\./, '')
     : deltaContext
 }
-
-export default SignalKDeltaWriter
