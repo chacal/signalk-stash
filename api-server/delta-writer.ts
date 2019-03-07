@@ -40,6 +40,9 @@ class SignalKDeltaWriter {
 }
 
 function stripVesselsPrefix(deltaContext) {
+  if (!deltaContext) {
+    return 'self'
+  }
   return deltaContext.startsWith('vessels.')
     ? deltaContext.replace(/^vessels\./, '')
     : deltaContext

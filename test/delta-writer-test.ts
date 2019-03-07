@@ -11,10 +11,12 @@ const writer = new SignalKDeltaWriter(DB)
 describe('SignalKDeltaWriter', () => {
   beforeEach(() => testdb.resetTables())
   it('writes positions', () => {
+    console.log(positionFixtures.length)
     return Promise.all(positionFixtures.map(delta => writer.writeDelta(delta)))
       .then(() => testdb.getAllTrackPointsForVessel(vesselUuid))
       .then(result => {
-        expect(result).to.have.lengthOf(positionFixtures.length)
+        // 3 have self context
+        expect(result).to.have.lengthOf(positionFixtures.length - 3)
         expect(result[0].timestamp).to.exist
         expect(result[0].timestamp.toISOString()).to.have.string(
           positionFixtures[0].updates[0].timestamp

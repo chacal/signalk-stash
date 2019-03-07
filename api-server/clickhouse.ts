@@ -1,4 +1,6 @@
 import ClickHouse from '@apla/clickhouse'
+import BinaryQuadkey from 'binaryquadkey'
+import QK from 'quadkeytools'
 import config from './config'
 
 const DAY_AS_MILLISECONDS = 24 * 60 * 60 * 1000
@@ -40,7 +42,9 @@ class SKClickHouse {
         }
       )
       const ts = new Date(timestamp)
-      chInsert.write([ts, ts.getMilliseconds(), '', latitude, longitude, ''])
+      const qk = QK.locationToQuadkey({ lat: Number.parseFloat(latitude), lng: Number.parseFloat(longitude) }, 22)
+      const bqk = BinaryQuadkey.fromQuadkey(qk)
+      chInsert.write([ts, ts.getMilliseconds(), '', latitude, longitude, bqk.toString()])
       chInsert.end()
     })
   }
@@ -61,13 +65,35 @@ class SKClickHouse {
         }))
       )
   }
-  getVesselTracks() {
+  getVesselTracks({bbox}) {
+    let query = `
+    SELECT toUnixTimestamp(ts), millis, lat, lng
+    FROM position
+    ORDER BY (ts, millis)`
+    if (bbox && bbox.nw && bbox.se) {
+      const NWQuadKey = BinaryQuadkey.fromQuadkey(QK.locationToQuadkey(bbox.nw, 22))
+      const SEQuadKey = BinaryQuadkey.fromQuadkey(QK.locationToQuadkey(bbox.se, 22))
+      const timeResolutionSeconds = 2
+      query = `
+        SELECT
+          (intDiv(toUInt32(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) * 1000 as t,
+          0,
+            avg(lat),
+            avg(lng)
+        FROM position
+        WHERE
+          quadkey BETWEEN ${NWQuadKey} AND ${SEQuadKey} AND
+          lat BETWEEN ${bbox.se.lat} AND ${bbox.nw.lat} AND
+          lng BETWEEN ${bbox.nw.lng} AND ${bbox.se.lng}
+        GROUP BY t
+        ORDER BY t`
+    }
     return this.ch
-      .querying(`
-      SELECT toUnixTimestamp(ts), millis, lat, lng
-      FROM position
-      ORDER BY (ts, millis)`
-      )
+      .querying(query)
+      // .then(x => {
+      //   console.log(x.data)
+      //   return x
+      // })
       .then(x =>
         x.data.map(([timestamp, millis, lat, lng]) => ({
           millis: timestamp * 1000 + millis,

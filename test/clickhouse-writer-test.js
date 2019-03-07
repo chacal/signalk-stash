@@ -28,7 +28,25 @@ describe('ClickHouseDeltaWriter', () => {
     return Promise.all(positionFixtures.map(delta => writer.writeDelta(delta)))
       .then(() => clickhouse.getVesselTracks(vesselUuid))
       .then(result => {
-        expect(result.coordinates).to.have.lengthOf(3)
+        expect(result.coordinates).to.have.lengthOf(4)
+      })
+  })
+
+  it('returns daily tracks by bbox', () => {
+    return Promise.all(positionFixtures.map(delta => writer.writeDelta(delta)))
+      .then(() => clickhouse.getVesselTracks({bbox: {
+        nw: {
+          lat: 59.901,
+          lng: 21.877
+        },
+        se: {
+          lat: 59.900,
+          lng: 21.881
+        }
+      }}))
+      .then(result => {
+        // console.log(JSON.stringify(result))
+        expect(result.coordinates).to.have.lengthOf(1)
       })
   })
 
