@@ -1,9 +1,9 @@
 /* eslint-env mocha */
 import BPromise from 'bluebird'
-import {expect} from 'chai'
+import { expect } from 'chai'
 import * as mqtt from 'mqtt'
 
-import {AclLevel} from '../api-server/acl'
+import { AclLevel } from '../api-server/acl'
 import db from '../api-server/db'
 import SignalKDeltaWriter from '../api-server/delta-writer'
 import MqttDeltaInput from '../delta-inputs/mqtt'
@@ -79,11 +79,11 @@ function initializeTestDb() {
 }
 
 function getMqttClient() {
-  const client = mqtt.connect(
-    mqttBrokerUrl,
-    { username: testAccount.username, password: testAccount.password }
-  )
-  return BPromise.fromCallback(cb => client.once('connect', () => cb(null))).then(
-    () => client
-  )
+  const client = mqtt.connect(mqttBrokerUrl, {
+    username: testAccount.username,
+    password: testAccount.password
+  })
+  return BPromise.fromCallback(cb =>
+    client.once('connect', () => cb(null))
+  ).then(() => client)
 }

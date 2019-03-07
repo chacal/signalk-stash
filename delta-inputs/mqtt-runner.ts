@@ -20,15 +20,15 @@ process.on('unhandledRejection', error => {
 })
 
 function startMqttClient(brokerUrl, brokerUser, brokerPw) {
-  const client = mqtt.connect(
-    brokerUrl,
-    { username: brokerUser, password: brokerPw }
-  )
+  const client = mqtt.connect(brokerUrl, {
+    username: brokerUser,
+    password: brokerPw
+  })
   client.on('connect', () => console.log('Connected to MQTT server'))
   client.on('offline', () => console.log('Disconnected from MQTT server'))
   client.on('error', e => console.log('MQTT client error', e))
 
-  return BPromise.fromCallback(cb => client.once('connect', () => cb(null))).then(
-    () => client
-  )
+  return BPromise.fromCallback(cb =>
+    client.once('connect', () => cb(null))
+  ).then(() => client)
 }

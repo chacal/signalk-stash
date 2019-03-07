@@ -37,8 +37,7 @@ describe('SignalKDeltaWriter', () => {
           .map(update => update.values)
           .flatten()
           .map(v => v.value)
-          .value()
-          .length
+          .value().length
         expect(result).to.have.lengthOf(expectedMeasurementsCount)
         expect(result[0].timestamp.toISOString()).to.have.string(
           measurementFixtures[0].updates[0].timestamp

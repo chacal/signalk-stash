@@ -29,8 +29,11 @@
     "chai": "^4.2.0",
     "mocha": "^6.0.2",
     "nodemon": "^1.18.10",
+    "prettier": "^1.16.4",
     "source-map-support": "^0.5.10",
     "tslint": "^5.13.1",
-    "tslint-no-unused-expression-chai": "^0.1.4"
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-no-unused-expression-chai": "^0.1.4",
+    "tslint-plugin-prettier": "^2.0.1"
   }
 }
