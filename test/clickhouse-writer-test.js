@@ -11,7 +11,7 @@ describe('ClickHouseDeltaWriter', () => {
   beforeEach(() => clickhouse.resetTables())
   it('writes positions', () => {
     return Promise.all(positionFixtures.map(delta => writer.writeDelta(delta)))
-      .then(() => clickhouse.getTracksForVessel(vesselUuid, new Date(0), new Date()))
+      .then(() => clickhouse.getTrackPointsForVessel(vesselUuid, new Date(0), new Date()))
       .then(result => {
         expect(result).to.have.lengthOf(positionFixtures.length)
         expect(result[0].timestamp).to.exist
@@ -21,6 +21,14 @@ describe('ClickHouseDeltaWriter', () => {
         expect(result[0].geojson.coordinates[0]).to.equal(
           positionFixtures[0].updates[0].values[0].value.longitude
         )
+      })
+  })
+
+  it('returns daily tracks', () => {
+    return Promise.all(positionFixtures.map(delta => writer.writeDelta(delta)))
+      .then(() => clickhouse.getVesselTracks(vesselUuid))
+      .then(result => {
+        expect(result.coordinates).to.have.lengthOf(3)
       })
   })
 

@@ -1,6 +1,8 @@
 import ClickHouse from '@apla/clickhouse'
 import config from './config'
 
+const DAY_AS_MILLISECONDS = 24 * 60 * 60 * 1000
+
 class SKClickHouse {
   ch
   constructor() {
@@ -42,7 +44,7 @@ class SKClickHouse {
       chInsert.end()
     })
   }
-  getTracksForVessel() {
+  getTrackPointsForVessel() {
     return this.ch
       .querying(`
       SELECT toUnixTimestamp(ts), millis, source, lat, lng
@@ -59,6 +61,42 @@ class SKClickHouse {
         }))
       )
   }
+  getVesselTracks() {
+    return this.ch
+      .querying(`
+      SELECT toUnixTimestamp(ts), millis, lat, lng
+      FROM position
+      ORDER BY (ts, millis)`
+      )
+      .then(x =>
+        x.data.map(([timestamp, millis, lat, lng]) => ({
+          millis: timestamp * 1000 + millis,
+          coordinate: [lng, lat]
+        }))
+      ).then(pointsData => {
+        let previousTrackDayMillis = 0
+        let currentTrackPoints = []
+        const tracks = []
+        pointsData.forEach(pointData => {
+          if (pointData.millis - previousTrackDayMillis > DAY_AS_MILLISECONDS) {
+           currentTrackPoints = []
+           previousTrackDayMillis = getDayMillis(pointData.millis)
+           tracks.push(currentTrackPoints)
+          }
+          currentTrackPoints.push(pointData.coordinate)
+        })
+        return tracks
+      }).then(tracksData => ({
+        type: 'MultiLineString',
+        coordinates: tracksData
+     }))
+  }
+}
+
+function getDayMillis(timestamp) {
+  const date = new Date(timestamp)
+  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  return (day).getTime()
 }
 
 export default new SKClickHouse()
