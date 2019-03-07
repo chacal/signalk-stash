@@ -1,5 +1,20 @@
 import _ from 'lodash'
 
+export interface IConfig {
+  db: {
+    host: string
+    port: number
+    database: string
+    user: string
+    password: string
+  }
+  port: number
+}
+
+interface IEnvironments {
+  [key: string]: {}
+}
+
 const baseConfig = {
   db: {
     host: 'localhost',
@@ -11,7 +26,7 @@ const baseConfig = {
   port: 3000
 }
 
-const environments = {
+const environments: IEnvironments = {
   development: {},
   production: {
     db: {
