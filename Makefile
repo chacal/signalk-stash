@@ -18,6 +18,9 @@ start: compile
 lint:
 	@node $(TSLINT) --project tsconfig.json "./**/*.ts"
 
+lint-fix:
+	@node $(TSLINT) --project tsconfig.json --fix "./**/*.ts"
+
 test: compile docker-up lint
 	@ENVIRONMENT=test $(MOCHA) --require source-map-support/register --exit built/test/**/*test.js
 

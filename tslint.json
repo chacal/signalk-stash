@@ -1,10 +1,13 @@
 {
   "defaultSeverity": "error",
+  "rulesDirectory": ["tslint-plugin-prettier"],
   "extends": [
     "tslint:recommended",
-    "tslint-no-unused-expression-chai"
+    "tslint-no-unused-expression-chai",
+    "tslint-config-prettier"
   ],
   "rules": {
+    "prettier": true,
     "semicolon": [true, "never"],
     "quotemark": [true, "single"],
     "arrow-parens": [true, "ban-single-arg-parens"],
