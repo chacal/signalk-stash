@@ -3,7 +3,9 @@ import pgp from 'pg-promise'
 import config from './config'
 
 // Needs to be relative from "built/api-server" directory
-const TABLES_FILE = new pgp.QueryFile(path.join(__dirname, '../../api-server/tables.sql'))
+const TABLES_FILE = new pgp.QueryFile(
+  path.join(__dirname, '../../api-server/tables.sql')
+)
 
 class DB {
   readonly db

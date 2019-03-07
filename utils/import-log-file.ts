@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 /*
-* Usage:
-*    npm run import-log-file <file> <context>
-* Example:
-*    npm run import-log-file sk-deltas.log urn:mrn:imo:mmsi:230099999
-*/
+ * Usage:
+ *    npm run import-log-file <file> <context>
+ * Example:
+ *    npm run import-log-file sk-deltas.log urn:mrn:imo:mmsi:230099999
+ */
 
 import byline from 'byline'
 import { createReadStream, fstatSync, openSync } from 'fs'
@@ -20,7 +20,7 @@ const writer = new SignalKDeltaWriter(db)
 function importOneLine(line, context) {
   try {
     const delta = JSON.parse(line)
-    return writer.writeDelta(_.assignIn({}, delta, {context}))
+    return writer.writeDelta(_.assignIn({}, delta, { context }))
   } catch (e) {
     return Promise.reject(e)
   }
