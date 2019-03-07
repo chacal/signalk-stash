@@ -23,7 +23,7 @@ class TestDB {
       .then(() => DB.ensureTables())
   }
 
-  getAllTrackPointsForVessel(context): Promise<Trackpoint[]> {
+  getAllTrackPointsForVessel(context: SKContext): Promise<Trackpoint[]> {
     return DB.db
       .any(
         `SELECT context, timestamp, source, ST_AsGeoJSON(point) :: json AS geojson

@@ -17,7 +17,10 @@ import positionFixtures from './data/position-fixtures.json'
 
 export { measurementFixtures, positionFixtures }
 
-export function waitFor(action, predicate) {
+export function waitFor<T>(
+  action: () => Promise<T>,
+  predicate: (t: T) => boolean
+): Promise<T> {
   return action().then(res => {
     if (predicate(res)) {
       return BPromise.resolve(res)
