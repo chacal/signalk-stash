@@ -17,6 +17,7 @@
     "@types/lodash": "^4.14.122",
     "@types/mocha": "^5.2.6",
     "@types/node": "^11.10.4",
+    "binaryquadkey": "0.0.1",
     "bluebird": "^3.5.3",
     "byline": "^5.0.0",
     "debug": "^4.1.1",
@@ -24,6 +25,7 @@
     "lodash": "^4.17.11",
     "mqtt": "^2.18.8",
     "pg-promise": "^8.6.0",
+    "quadkeytools": "git+https://bitbucket.org/steele/quadkeytools.git",
     "typescript": "^3.3.3333"
   },
   "devDependencies": {
