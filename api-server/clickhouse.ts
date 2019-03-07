@@ -1,6 +1,7 @@
 import ClickHouse from '@apla/clickhouse'
 import BinaryQuadkey from 'binaryquadkey'
 import QK from 'quadkeytools'
+import {Transform} from 'stream'
 import config from './config'
 
 const DAY_AS_MILLISECONDS = 24 * 60 * 60 * 1000
@@ -116,6 +117,49 @@ class SKClickHouse {
         type: 'MultiLineString',
         coordinates: tracksData
      }))
+  }
+
+  deltaWriteStream(cb) {
+    const deltaToPositionStream = new DeltaToPositionStream()
+    const posToTsv = new PositionsToClickHouseTSV()
+    const chWriteStream  = this.ch.query(
+      `INSERT INTO position`,
+      { format: 'TSV' }, cb)
+    deltaToPositionStream.pipe(posToTsv).pipe(chWriteStream)
+    return deltaToPositionStream
+  }
+}
+
+class DeltaToPositionStream extends Transform {
+  constructor() {
+    super({objectMode: true})
+  }
+
+  _transform(delta, encoding, done) {
+    delta.updates && delta.updates.forEach(update => {
+      update.values && update.values.forEach(pathValue => {
+        if (pathValue.path === 'navigation.position') {
+          this.push({
+            timestamp: new Date(update.timestamp),
+            position: pathValue.value
+          })
+        }
+      })
+    })
+    done()
+  }
+}
+
+class PositionsToClickHouseTSV extends Transform {
+  constructor() {
+    super({objectMode: true})
+  }
+
+  _transform({timestamp, position}, encoding, callback) {
+    const qk = QK.locationToQuadkey({ lat: Number.parseFloat(position.latitude), lng: Number.parseFloat(position.longitude) }, 22)
+    const bqk = BinaryQuadkey.fromQuadkey(qk)
+    this.push([timestamp, timestamp.getMilliseconds(), '', position.latitude, position.longitude, bqk.toString()])
+    callback()
   }
 }
 

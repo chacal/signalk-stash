@@ -11,17 +11,7 @@ describe('ClickHouseDeltaWriter', () => {
   beforeEach(() => clickhouse.resetTables())
   it('writes positions', () => {
     return Promise.all(positionFixtures.map(delta => writer.writeDelta(delta)))
-      .then(() => clickhouse.getTrackPointsForVessel(vesselUuid, new Date(0), new Date()))
-      .then(result => {
-        expect(result).to.have.lengthOf(positionFixtures.length)
-        expect(result[0].timestamp).to.exist
-        expect(result[0].timestamp.toISOString()).to.have.string(
-          positionFixtures[0].updates[0].timestamp
-        )
-        expect(result[0].geojson.coordinates[0]).to.equal(
-          positionFixtures[0].updates[0].values[0].value.longitude
-        )
-      })
+      .then(assertFixturePositionsFound)
   })
 
   it('returns daily tracks', () => {
@@ -50,6 +40,18 @@ describe('ClickHouseDeltaWriter', () => {
       })
   })
 
+  it('writes positions via stream', (done) => {
+    const chStream = clickhouse.deltaWriteStream((err) => {
+      expect(err).to.be.null
+      assertFixturePositionsFound()
+      done()
+    })
+    positionFixtures.forEach(delta => {
+      chStream.write(delta)
+    })
+    chStream.end()
+  })
+
 //   it('writes measurements', () => {
 //     return Promise.all(
 //       measurementFixtures.map(delta => writer.writeDelta(delta))
@@ -73,4 +75,16 @@ describe('ClickHouseDeltaWriter', () => {
 //         expect(result[0].value).to.deep.equal(firstValue.value)
 //       })
 //   })
+})
+
+const assertFixturePositionsFound = () => clickhouse.getTrackPointsForVessel(vesselUuid, new Date(0), new Date())
+.then(result => {
+  expect(result).to.have.lengthOf(positionFixtures.length)
+  expect(result[0].timestamp).to.exist
+  expect(result[0].timestamp.toISOString()).to.have.string(
+    positionFixtures[0].updates[0].timestamp
+  )
+  expect(result[0].geojson.coordinates[0]).to.equal(
+    positionFixtures[0].updates[0].values[0].value.longitude
+  )
 })
