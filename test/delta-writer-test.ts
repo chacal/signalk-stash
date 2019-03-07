@@ -1,8 +1,8 @@
 /* eslint-env mocha */
-import {expect} from 'chai'
+import { expect } from 'chai'
 import DB from '../api-server/db'
 import SignalKDeltaWriter from '../api-server/delta-writer'
-import {assertTrackpoint, positionFixtures, vesselUuid} from './test-util'
+import { assertTrackpoint, positionFixtures, vesselUuid } from './test-util'
 import testdb from './testdb'
 
 const writer = new SignalKDeltaWriter(DB)

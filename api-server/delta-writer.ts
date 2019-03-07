@@ -18,13 +18,15 @@ class SignalKDeltaWriter {
           const {
             value: { latitude, longitude }
           } = value
-          return this.db.insertTrackpoint(new Trackpoint(
-            stripVesselsPrefix(context),
-            timestamp,
-            sourceId,
-            longitude,
-            latitude
-          ))
+          return this.db.insertTrackpoint(
+            new Trackpoint(
+              stripVesselsPrefix(context),
+              timestamp,
+              sourceId,
+              longitude,
+              latitude
+            )
+          )
         }
       })
     })

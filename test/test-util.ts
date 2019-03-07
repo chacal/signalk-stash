@@ -2,14 +2,15 @@ import BPromise from 'bluebird'
 
 import TestAccount from './TestAccount'
 
-export const vesselUuid = 'urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e'
+export const vesselUuid =
+  'urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e'
 export const testAccount = new TestAccount(
   'signalk',
   'signalk',
   'PBKDF2$sha256$901$SsBHerbO7k6HXr3V$FK1Dcra1YV+kvqeV/LYaFZN4DslbgL6y' // "signalk"
 )
 
-import {expect} from 'chai'
+import { expect } from 'chai'
 import Trackpoint from '../api-server/Trackpoint'
 import measurementFixtures from './data/measurement-fixtures.json'
 import positionFixtures from './data/position-fixtures.json'

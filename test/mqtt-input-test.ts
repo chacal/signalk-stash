@@ -5,7 +5,7 @@ import * as mqtt from 'mqtt'
 
 import db from '../api-server/db'
 import SignalKDeltaWriter from '../api-server/delta-writer'
-import MqttACL, {MqttACLLevel} from '../api-server/MqttACL'
+import MqttACL, { MqttACLLevel } from '../api-server/MqttACL'
 import MqttDeltaInput from '../delta-inputs/mqtt'
 import {
   assertTrackpoint,
@@ -50,7 +50,9 @@ function initializeTestDb() {
     .resetTables()
     .then(() => db.upsertAccount(testAccount))
     .then(() =>
-      db.upsertAcl(new MqttACL(testAccount.username, 'signalk/delta', MqttACLLevel.ALL))
+      db.upsertAcl(
+        new MqttACL(testAccount.username, 'signalk/delta', MqttACLLevel.ALL)
+      )
     )
 }
 

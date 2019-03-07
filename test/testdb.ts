@@ -32,8 +32,17 @@ class TestDB {
             ORDER BY TIMESTAMP`,
         { context }
       )
-      .then(rows => rows.map(({ context, timestamp, source, geojson }) =>
-        new Trackpoint(context, new Date(timestamp), source, geojson.coordinates[0], geojson.coordinates[1]))
+      .then(rows =>
+        rows.map(
+          ({ context, timestamp, source, geojson }) =>
+            new Trackpoint(
+              context,
+              new Date(timestamp),
+              source,
+              geojson.coordinates[0],
+              geojson.coordinates[1]
+            )
+        )
       )
   }
 }
