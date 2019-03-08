@@ -16,7 +16,8 @@
     "member-access": [true, "no-public"],
     "no-shadowed-variable": false,
     "no-console": false,
-    "max-classes-per-file": false
+    "max-classes-per-file": false,
+    "interface-name": false
   },
   "linterOptions": {
     "exclude": [
