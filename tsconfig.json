@@ -6,7 +6,11 @@
     "esModuleInterop": true,
     "target": "es6",
     "module": "commonjs",
-    "sourceMap": true
+    "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "strict": true,
+    "noUnusedLocals": true
   },
   "exclude": [
     "node_modules",
