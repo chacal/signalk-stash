@@ -1,3 +1,4 @@
+import { SKContext } from '@chartedsails/strongly-signalk'
 import DB from '../api-server/db'
 import Trackpoint from '../api-server/Trackpoint'
 

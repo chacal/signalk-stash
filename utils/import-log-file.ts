@@ -7,6 +7,7 @@
  *    npm run import-log-file sk-deltas.log urn:mrn:imo:mmsi:230099999
  */
 
+import { SKContext } from '@chartedsails/strongly-signalk'
 import byline from 'byline'
 import { createReadStream, fstatSync, openSync } from 'fs'
 import _ from 'lodash'
