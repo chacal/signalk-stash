@@ -5,7 +5,7 @@ import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
 import config from '../Config'
 import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
-import { BBox } from '../domain/Geo'
+import { BBox, Coords } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
 
 export default class SKClickHouse {
@@ -44,16 +44,10 @@ export default class SKClickHouse {
     // TODO: Extract method
     if (bbox) {
       const NWQuadKey = BinaryQuadkey.fromQuadkey(
-        QK.locationToQuadkey(
-          { lng: bbox.nw.longitude, lat: bbox.nw.latitude },
-          22
-        )
+        QK.locationToQuadkey(bbox.nw, 22)
       )
       const SEQuadKey = BinaryQuadkey.fromQuadkey(
-        QK.locationToQuadkey(
-          { lng: bbox.se.longitude, lat: bbox.se.latitude },
-          22
-        )
+        QK.locationToQuadkey(bbox.se, 22)
       )
       bboxWHERE = `
         WHERE
@@ -78,8 +72,7 @@ export default class SKClickHouse {
               source, // TODO: Replace with context
               new Date(timestamp * 1000 + millis),
               source,
-              lng,
-              lat
+              new Coords({ lat, lng })
             )
         )
       )
@@ -117,20 +110,14 @@ class TrackpointsToClickHouseTSV extends Transform {
 }
 
 function trackPointToColumns(trackpoint: Trackpoint): any[] {
-  const qk = QK.locationToQuadkey(
-    {
-      lat: trackpoint.latitude,
-      lng: trackpoint.longitude
-    },
-    22
-  )
+  const qk = QK.locationToQuadkey(trackpoint.coords, 22)
   const bqk = BinaryQuadkey.fromQuadkey(qk)
   return [
     trackpoint.timestamp,
     trackpoint.timestamp.getMilliseconds(),
     trackpoint.source,
-    trackpoint.latitude,
-    trackpoint.longitude,
+    trackpoint.coords.latitude,
+    trackpoint.coords.longitude,
     bqk.toString()
   ]
 }

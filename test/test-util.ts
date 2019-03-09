@@ -37,7 +37,7 @@ export function assertTrackpoint(point: Trackpoint, fixturePoint: any): void {
   expect(point.timestamp.toISOString()).to.have.string(
     fixturePoint.updates[0].timestamp
   )
-  expect(point.longitude).to.equal(
+  expect(point.coords.longitude).to.equal(
     fixturePoint.updates[0].values[0].value.longitude
   )
 }
