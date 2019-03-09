@@ -1,3 +1,4 @@
+import { SKDelta } from '@chartedsails/strongly-signalk'
 import * as mqtt from 'mqtt'
 import SignalKDeltaWriter from '../api-server/delta-writer'
 
@@ -13,14 +14,11 @@ export default class MqttDeltaInput {
   }
 
   _sendDeltaToWriter(topic: string, payload: Buffer, packet: mqtt.Packet) {
-    let delta
     try {
-      delta = JSON.parse(payload.toString())
+      const delta = SKDelta.fromJSON(payload.toString())
+      this.deltaWriter.writeDelta(delta)
     } catch (e) {
       console.error(`Invalid SignalK delta from MQTT: ${payload}`)
-    }
-    if (delta) {
-      this.deltaWriter.writeDelta(delta)
     }
   }
 }

@@ -30,6 +30,7 @@ export function waitFor<T>(
   })
 }
 
+// TODO: Better type for fixturePoint
 export function assertTrackpoint(point: Trackpoint, fixturePoint: any): void {
   expect(point.timestamp).to.exist
   expect(point.source).to.equal('aava')
