@@ -1,4 +1,12 @@
-export default class MqttACL {
+export class Account {
+  constructor(
+    readonly username: string,
+    readonly passwordHash: string,
+    readonly isMqttSuperUser: boolean = false
+  ) {}
+}
+
+export class MqttACL {
   constructor(
     readonly username: string,
     readonly topic: string,

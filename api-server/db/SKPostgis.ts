@@ -1,9 +1,8 @@
 import path from 'path'
 import pgp from 'pg-promise'
 
-import Account from '../Account'
-import config from '../config'
-import MqttACL from '../MqttACL'
+import config from '../Config'
+import { Account, MqttACL } from '../domain/Auth'
 
 // Needs to be relative from "built/api-server/db" directory
 const TABLES_FILE = new pgp.QueryFile(

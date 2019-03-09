@@ -1,4 +1,4 @@
-import Account from '../api-server/Account'
+import { Account } from '../api-server/domain/Auth'
 
 export default class TestAccount extends Account {
   constructor(

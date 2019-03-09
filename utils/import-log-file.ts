@@ -14,7 +14,7 @@ import _ from 'lodash'
 import * as path from 'path'
 import { Writable } from 'stream'
 import DB from '../api-server/db/StashDB'
-import SignalKDeltaWriter from '../api-server/delta-writer'
+import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 
 const writer = new SignalKDeltaWriter(DB)
 

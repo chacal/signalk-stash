@@ -11,7 +11,7 @@ export const testAccount = new TestAccount(
 )
 
 import { expect } from 'chai'
-import Trackpoint from '../api-server/Trackpoint'
+import Trackpoint from '../api-server/domain/Trackpoint'
 import measurementFixtures from './data/measurement-fixtures.json'
 import positionFixtures from './data/position-fixtures.json'
 

@@ -1,7 +1,6 @@
 import { QueryCallback, QueryStream } from '@apla/clickhouse'
-import Account from '../Account'
-import MqttACL from '../MqttACL'
-import Trackpoint, { Track } from '../Trackpoint'
+import { Account, MqttACL } from '../domain/Auth'
+import Trackpoint, { Track } from '../domain/Trackpoint'
 import SKClickHouse from './SKClickHouse'
 import SKPostgis from './SKPostgis'
 

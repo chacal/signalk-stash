@@ -4,8 +4,8 @@ import { expect } from 'chai'
 import * as mqtt from 'mqtt'
 
 import DB from '../api-server/db/StashDB'
-import SignalKDeltaWriter from '../api-server/delta-writer'
-import MqttACL, { MqttACLLevel } from '../api-server/MqttACL'
+import { MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
+import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import MqttDeltaInput from '../delta-inputs/mqtt'
 import {
   assertTrackpoint,

@@ -3,9 +3,9 @@ import BinaryQuadkey from 'binaryquadkey'
 import _ from 'lodash'
 import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
-import config from '../config'
+import config from '../Config'
 import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
-import Trackpoint, { Track } from '../Trackpoint'
+import Trackpoint, { Track } from '../domain/Trackpoint'
 import { BBox } from './StashDB'
 
 export default class SKClickHouse {
