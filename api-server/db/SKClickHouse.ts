@@ -8,6 +8,8 @@ import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
 import { BBox, Coords } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
 
+type PositionRowColumns = [Date, number, string, number, number, string]
+
 export default class SKClickHouse {
   constructor(readonly ch = new ClickHouse(config.clickhouse)) {}
 
@@ -109,7 +111,7 @@ class TrackpointsToClickHouseTSV extends Transform {
   }
 }
 
-function trackPointToColumns(trackpoint: Trackpoint): any[] {
+function trackPointToColumns(trackpoint: Trackpoint): PositionRowColumns {
   const qk = QK.locationToQuadkey(trackpoint.coords, 22)
   const bqk = BinaryQuadkey.fromQuadkey(qk)
   return [
