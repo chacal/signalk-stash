@@ -6,6 +6,9 @@ TSLINT=$(NODE_BIN)/tslint
 
 API_SERVER_MAIN=built/api-server/index.js
 
+clean:
+	@rm -rf built
+
 compile:
 	@$(TSC)
 
@@ -16,10 +19,10 @@ start: compile
 	@node $(API_SERVER_MAIN)
 
 lint:
-	@node $(TSLINT) --project tsconfig.json "./**/*.ts"
+	@node $(TSLINT) --project tsconfig.json
 
 lint-fix:
-	@node $(TSLINT) --project tsconfig.json --fix "./**/*.ts"
+	@node $(TSLINT) --project tsconfig.json --fix
 
 test: compile docker-up lint
 	@ENVIRONMENT=test $(MOCHA) --require source-map-support/register --exit built/test/**/*test.js

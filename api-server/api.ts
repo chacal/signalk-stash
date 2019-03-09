@@ -1,15 +1,11 @@
 import express from 'express'
+import { IConfig } from './config'
 
 class API {
-  private readonly config
-  private readonly db
-  private readonly app
-
-  constructor(config, db) {
-    this.config = config
-    this.db = db
-    this.app = express()
-  }
+  constructor(
+    private readonly config: IConfig,
+    private readonly app = express()
+  ) {}
 
   start() {
     this.app.listen(this.config.port, () =>

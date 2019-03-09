@@ -1,37 +1,32 @@
+import { SKContext, SKDelta, SKPosition } from '@chartedsails/strongly-signalk'
 import _ from 'lodash'
+import IStashDB from './StashDB'
+import Trackpoint from './Trackpoint'
 
-class SignalKDeltaWriter {
-  private readonly db
+export default class SignalKDeltaWriter {
+  constructor(private readonly db: IStashDB) {}
 
-  constructor(db) {
-    this.db = db
-  }
-
-  writeDelta(delta) {
+  writeDelta(delta: SKDelta) {
     const { context, updates } = delta
     const inserts = updates.map(update => {
-      const { timestamp, $source } = update
-      const sourceId = $source || 'n/a'
+      const { timestamp, source } = update
+      const sourceId = source !== undefined ? source.label : 'n/a' // TODO: Fix handling empty source
       return update.values.map(value => {
         if (value.path === 'navigation.position') {
-          const {
-            value: { latitude, longitude }
-          } = value
-          return this.db.insertTrackpoint({
-            context: stripVesselsPrefix(context),
-            timestamp,
-            latitude,
-            longitude
-          })
+          const position = value.value as SKPosition // TODO: Add type guard to SKPosition
+          const ctx =
+            context !== undefined ? stripVesselsPrefix(context) : 'n/a' // TODO: Fix handling empty context
+          return this.db.insertTrackpoint(
+            new Trackpoint(
+              ctx,
+              timestamp,
+              sourceId,
+              position.longitude,
+              position.latitude
+            )
+          )
         } else {
-          const { path, value: valueData } = value
-          return this.db.insertMeasurement({
-            context: stripVesselsPrefix(context),
-            timestamp,
-            path,
-            sourceId,
-            value: valueData
-          })
+          return Promise.resolve()
         }
       })
     })
@@ -39,10 +34,8 @@ class SignalKDeltaWriter {
   }
 }
 
-function stripVesselsPrefix(deltaContext) {
+function stripVesselsPrefix(deltaContext: SKContext) {
   return deltaContext.startsWith('vessels.')
     ? deltaContext.replace(/^vessels\./, '')
     : deltaContext
 }
-
-export default SignalKDeltaWriter

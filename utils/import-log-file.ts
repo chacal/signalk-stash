@@ -7,6 +7,7 @@
  *    npm run import-log-file sk-deltas.log urn:mrn:imo:mmsi:230099999
  */
 
+import { SKContext } from '@chartedsails/strongly-signalk'
 import byline from 'byline'
 import { createReadStream, fstatSync, openSync } from 'fs'
 import _ from 'lodash'
@@ -17,7 +18,7 @@ import SignalKDeltaWriter from '../api-server/delta-writer'
 
 const writer = new SignalKDeltaWriter(db)
 
-function importOneLine(line, context) {
+function importOneLine(line: string, context: SKContext) {
   try {
     const delta = JSON.parse(line)
     return writer.writeDelta(_.assignIn({}, delta, { context }))
@@ -26,7 +27,7 @@ function importOneLine(line, context) {
   }
 }
 
-function runImport(file, context) {
+function runImport(file: string, context: SKContext) {
   console.log(`Importing rows from ${file} with context ${context}`)
 
   const fd = openSync(file, 'r')

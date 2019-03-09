@@ -3,17 +3,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS trackpoint (
   context   TEXT,
   timestamp TIMESTAMP WITH TIME ZONE,
+  source    TEXT,
   point     GEOGRAPHY(Point, 4326) NOT NULL,
   PRIMARY KEY (context, timestamp)
-);
-
-CREATE TABLE IF NOT EXISTS instrument_measurement (
-  context   TEXT,
-  timestamp TIMESTAMP WITH TIME ZONE,
-  path      TEXT  NOT NULL,
-  sourceId  TEXT  NOT NULL,
-  value     jsonb NOT NULL,
-  PRIMARY KEY (context, timestamp, path, sourceId)
 );
 
 CREATE TABLE IF NOT EXISTS account (

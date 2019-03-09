@@ -3,12 +3,12 @@ import BPromise from 'bluebird'
 import { expect } from 'chai'
 import * as mqtt from 'mqtt'
 
-import { AclLevel } from '../api-server/acl'
 import db from '../api-server/db'
 import SignalKDeltaWriter from '../api-server/delta-writer'
+import MqttACL, { MqttACLLevel } from '../api-server/MqttACL'
 import MqttDeltaInput from '../delta-inputs/mqtt'
 import {
-  measurementFixtures,
+  assertTrackpoint,
   positionFixtures,
   testAccount,
   vesselUuid,
@@ -40,31 +40,7 @@ describe('MQTT input', () => {
       )
       .then(trackpoints => {
         expect(trackpoints).to.have.lengthOf(1)
-        expect(trackpoints[0].timestamp.toISOString()).to.have.string(
-          positionFixtures[0].updates[0].timestamp
-        )
-      })
-  })
-
-  it('writes measurements published to signalk/delta', () => {
-    return getMqttClient()
-      .then(mqttClient =>
-        mqttClient.publish(
-          'signalk/delta',
-          JSON.stringify(measurementFixtures[0])
-        )
-      )
-      .then(() =>
-        waitFor(
-          () => testdb.getAllMeasurementsForVessel(vesselUuid),
-          res => res.length === 1
-        )
-      )
-      .then(measurements => {
-        expect(measurements).to.have.lengthOf(1)
-        expect(measurements[0].timestamp.toISOString()).to.have.string(
-          measurementFixtures[0].updates[0].timestamp
-        )
+        assertTrackpoint(trackpoints[0], positionFixtures[0])
       })
   })
 })
@@ -74,7 +50,9 @@ function initializeTestDb() {
     .resetTables()
     .then(() => db.upsertAccount(testAccount))
     .then(() =>
-      db.upsertAcl(testAccount.username, 'signalk/delta', AclLevel.ALL)
+      db.upsertAcl(
+        new MqttACL(testAccount.username, 'signalk/delta', MqttACLLevel.ALL)
+      )
     )
 }
 

@@ -1,13 +1,13 @@
 import API from './api'
-import config from './config'
+import config, { IConfig } from './config'
 import DB from './db'
 
 console.log('Starting SignalK Stash..')
 
-DB.ensureTables().then(() => startApi(config, DB))
+DB.ensureTables().then(() => startApi(config))
 
-function startApi(config, db) {
-  const api = new API(config, db)
+function startApi(config: IConfig) {
+  const api = new API(config)
   api.start()
 }
 

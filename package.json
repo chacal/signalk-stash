@@ -9,6 +9,7 @@
     "node": ">=9.10.0"
   },
   "dependencies": {
+    "@chartedsails/strongly-signalk": "0.0.2",
     "@types/bluebird": "^3.5.26",
     "@types/byline": "^4.2.31",
     "@types/chai": "^4.1.7",
@@ -16,6 +17,7 @@
     "@types/lodash": "^4.14.122",
     "@types/mocha": "^5.2.6",
     "@types/node": "^11.10.4",
+    "@types/papaparse": "^4.5.9",
     "bluebird": "^3.5.3",
     "byline": "^5.0.0",
     "debug": "^4.1.1",
