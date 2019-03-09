@@ -2,7 +2,7 @@ import BPromise from 'bluebird'
 import * as mqtt from 'mqtt'
 import DB from '../api-server/db/StashDB'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
-import MqttDeltaInput from './mqtt'
+import MqttDeltaInput from './MqttDeltaInput'
 
 const MQTT_BROKER = process.env.MQTT_BROKER || 'mqtt://localhost:11883'
 const MQTT_USERNAME = process.env.MQTT_USERNAME

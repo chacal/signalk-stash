@@ -4,11 +4,11 @@ import { expect } from 'chai'
 import DB from '../api-server/db/StashDB'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import { assertTrackpoint, positionFixtures } from './test-util'
-import TestDB from './testdb'
+import TestDB from './TestDB'
 
 const writer = new SignalKDeltaWriter(DB)
 
-describe('ClickHouseDeltaWriter', () => {
+describe('StashDB', () => {
   beforeEach(() => TestDB.resetTables())
   it('writes positions', () => {
     return writeDeltasFromPositionFixture()

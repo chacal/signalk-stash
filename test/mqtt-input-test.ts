@@ -6,14 +6,14 @@ import * as mqtt from 'mqtt'
 import DB from '../api-server/db/StashDB'
 import { MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
-import MqttDeltaInput from '../delta-inputs/mqtt'
+import MqttDeltaInput from '../delta-inputs/MqttDeltaInput'
 import {
   assertTrackpoint,
   positionFixtures,
   testAccount,
   waitFor
 } from './test-util'
-import testdb from './testdb'
+import testdb from './TestDB'
 
 const writer = new SignalKDeltaWriter(DB)
 const mqttBrokerUrl = 'mqtt://localhost:21883'
