@@ -10,7 +10,7 @@ class TestDB {
     }
     return this.pg
       .query(
-        `DROP TABLE IF EXISTS trackpoint;
+        `
           DO $$
           BEGIN
             DELETE FROM account;
