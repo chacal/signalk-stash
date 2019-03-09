@@ -2,7 +2,7 @@
 import { SKDelta } from '@chartedsails/strongly-signalk'
 import { expect } from 'chai'
 import DB from '../api-server/db/StashDB'
-import { Coords } from '../api-server/domain/Geo'
+import { BBox, Coords } from '../api-server/domain/Geo'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import { assertTrackpoint, positionFixtures } from './test-util'
 import TestDB from './TestDB'
@@ -28,10 +28,12 @@ describe('StashDB', () => {
   it('returns daily tracks by bbox', () => {
     return writeDeltasFromPositionFixture()
       .then(() =>
-        DB.getVesselTracks({
-          nw: new Coords({ lng: 21.877, lat: 59.901 }),
-          se: new Coords({ lng: 21.881, lat: 59.9 })
-        })
+        DB.getVesselTracks(
+          new BBox({
+            nw: new Coords({ lng: 21.877, lat: 59.901 }),
+            se: new Coords({ lng: 21.881, lat: 59.9 })
+          })
+        )
       )
       .then(tracks => {
         expect(tracks).to.have.lengthOf(1)

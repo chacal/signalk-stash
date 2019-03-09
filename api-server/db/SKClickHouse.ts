@@ -8,7 +8,7 @@ import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
 import { BBox, Coords } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
 
-type PositionRowColumns = [Date, number, string, number, number, string]
+type PositionRowColumns = [number, number, string, number, number, string]
 
 export default class SKClickHouse {
   constructor(readonly ch = new ClickHouse(config.clickhouse)) {}
@@ -43,17 +43,11 @@ export default class SKClickHouse {
   getTrackPointsForVessel(bbox?: BBox): Promise<Trackpoint[]> {
     let bboxWHERE = ''
 
-    // TODO: Extract method
     if (bbox) {
-      const NWQuadKey = BinaryQuadkey.fromQuadkey(
-        QK.locationToQuadkey(bbox.nw, 22)
-      )
-      const SEQuadKey = BinaryQuadkey.fromQuadkey(
-        QK.locationToQuadkey(bbox.se, 22)
-      )
+      const { nwKey, seKey } = bbox.toQuadKeys()
       bboxWHERE = `
         WHERE
-          quadkey BETWEEN ${NWQuadKey} AND ${SEQuadKey} AND
+          quadkey BETWEEN ${nwKey} AND ${seKey} AND
           lat BETWEEN ${bbox.se.latitude} AND ${bbox.nw.latitude} AND
           lng BETWEEN ${bbox.nw.longitude} AND ${bbox.se.longitude}
       `
@@ -67,17 +61,7 @@ export default class SKClickHouse {
           ${bboxWHERE}
           ORDER BY ts, millis`
       )
-      .then(x =>
-        x.data.map(
-          ([timestamp, millis, source, lat, lng]: any[]) =>
-            new Trackpoint(
-              source, // TODO: Replace with context
-              new Date(timestamp * 1000 + millis),
-              source,
-              new Coords({ lat, lng })
-            )
-        )
-      )
+      .then(x => x.data.map(columnsToTrackpoint))
   }
 
   getVesselTracks(bbox?: BBox): Promise<Track[]> {
@@ -111,17 +95,36 @@ class TrackpointsToClickHouseTSV extends Transform {
   }
 }
 
+function columnsToTrackpoint([
+  unixTime,
+  millis,
+  source,
+  lat,
+  lng
+]: PositionRowColumns): Trackpoint {
+  return new Trackpoint(
+    source, // TODO: Replace with context
+    new Date(unixTime * 1000 + millis),
+    source,
+    new Coords({ lat, lng })
+  )
+}
+
 function trackPointToColumns(trackpoint: Trackpoint): PositionRowColumns {
   const qk = QK.locationToQuadkey(trackpoint.coords, 22)
   const bqk = BinaryQuadkey.fromQuadkey(qk)
   return [
-    trackpoint.timestamp,
+    toUnixTime(trackpoint.timestamp),
     trackpoint.timestamp.getMilliseconds(),
     trackpoint.source,
     trackpoint.coords.latitude,
     trackpoint.coords.longitude,
     bqk.toString()
   ]
+}
+
+function toUnixTime(date: Date): number {
+  return parseInt((date.getTime() / 1000).toFixed(0), 10)
 }
 
 function getDayMillis(date: Date) {
