@@ -1,5 +1,7 @@
 import express from 'express'
+import path from 'path'
 import { IConfig } from './Config'
+import stash from './db/StashDB'
 
 class API {
   constructor(
@@ -8,9 +10,24 @@ class API {
   ) {}
 
   start() {
+    this.setupRoutes()
     this.app.listen(this.config.port, () =>
       console.log(`Listening on port ${this.config.port}!`)
     )
+  }
+
+  setupRoutes() {
+    this.app.use(express.static(path.join(__dirname, '../../public')))
+    this.app.get('/tracks', (req, res) => {
+      stash.getVesselTracks('self').then(tracksData => {
+        res.json({
+          type: 'MultiLineString',
+          coordinates: tracksData.map(trackData =>
+            trackData.map(({ coords }) => [coords.lng, coords.lat])
+          )
+        })
+      })
+    })
   }
 }
 

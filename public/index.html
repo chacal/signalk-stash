@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+          integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
+            integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
+            crossorigin=""></script>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+<div id='map'></div>
+
+<script>
+  const map = L.map('map').setView([60, 24], 9)
+
+  L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+    maxZoom: 23,
+    attribution: 'MMap data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+      '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+      'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+    id: 'mapbox.light',
+  }).addTo(map)
+  L.control.scale().addTo(map)
+
+  let track
+
+  function replaceTrack(feature, color) {
+    console.log(feature)
+    const oldTrack = track
+    track = L.geoJSON(feature, {
+      style: {
+        color,
+        weight: 3,
+        opacity: 1,
+      },
+    })
+    track.on('add', () => {
+      if (oldTrack) {
+        oldTrack.remove()
+      }
+    })
+    track.addTo(map)
+  }
+
+  function loadJson(url) {
+    return fetch(url)
+      .then(response => response.json())
+  }
+
+  function renderData() {
+    const viewport = map.getBounds()
+    const nw = viewport.getNorthWest()
+    const se = viewport.getSouthEast()
+
+    loadJson(`/tracks?zoom=${map.getZoom()}&nwLat=${nw.lat}&nwLng=${nw.lng}&seLat=${se.lat}&seLng=${se.lng}`)
+      .then(track => replaceTrack(track, '#199aff'))
+  }
+
+  renderData()
+
+  map.on('moveend', renderData)
+
+</script>
+</body>
+
+</html>
