@@ -1,5 +1,12 @@
 import ClickHouse, { QueryCallback, QueryStream } from '@apla/clickhouse'
 import BinaryQuadkey from 'binaryquadkey'
+import {
+  ChronoField,
+  ChronoUnit,
+  Instant,
+  ZonedDateTime,
+  ZoneId
+} from 'js-joda'
 import _ from 'lodash'
 import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
@@ -66,7 +73,11 @@ export default class SKClickHouse {
 
   getVesselTracks(bbox?: BBox): Promise<Track[]> {
     return this.getTrackPointsForVessel(bbox).then(pointsData =>
-      _.values(_.groupBy(pointsData, point => getDayMillis(point.timestamp)))
+      _.values(
+        _.groupBy(pointsData, point =>
+          point.timestamp.truncatedTo(ChronoUnit.DAYS).toEpochSecond()
+        )
+      )
     )
   }
 
@@ -104,7 +115,10 @@ function columnsToTrackpoint([
 ]: PositionRowColumns): Trackpoint {
   return new Trackpoint(
     source, // TODO: Replace with context
-    new Date(unixTime * 1000 + millis),
+    ZonedDateTime.ofInstant(
+      Instant.ofEpochMilli(unixTime * 1000 + millis),
+      ZoneId.UTC
+    ),
     source,
     new Coords({ lat, lng })
   )
@@ -114,20 +128,11 @@ function trackPointToColumns(trackpoint: Trackpoint): PositionRowColumns {
   const qk = QK.locationToQuadkey(trackpoint.coords, 22)
   const bqk = BinaryQuadkey.fromQuadkey(qk)
   return [
-    toUnixTime(trackpoint.timestamp),
-    trackpoint.timestamp.getMilliseconds(),
+    trackpoint.timestamp.toEpochSecond(),
+    trackpoint.timestamp.get(ChronoField.MILLI_OF_SECOND),
     trackpoint.source,
     trackpoint.coords.latitude,
     trackpoint.coords.longitude,
     bqk.toString()
   ]
-}
-
-function toUnixTime(date: Date): number {
-  return parseInt((date.getTime() / 1000).toFixed(0), 10)
-}
-
-function getDayMillis(date: Date) {
-  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  return day.getTime()
 }

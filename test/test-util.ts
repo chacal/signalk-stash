@@ -34,7 +34,7 @@ export function waitFor<T>(
 export function assertTrackpoint(point: Trackpoint, fixturePoint: any): void {
   expect(point.timestamp).to.exist
   expect(point.source).to.equal('aava')
-  expect(point.timestamp.toISOString()).to.have.string(
+  expect(point.timestamp.toString()).to.have.string(
     fixturePoint.updates[0].timestamp
   )
   expect(point.coords.longitude).to.equal(
