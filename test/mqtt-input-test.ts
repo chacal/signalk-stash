@@ -11,6 +11,7 @@ import {
   assertTrackpoint,
   positionFixtures,
   testAccount,
+  vesselUuid,
   waitFor
 } from './test-util'
 import testdb from './TestDB'
@@ -32,7 +33,10 @@ describe('MQTT input', () => {
         mqttClient.publish('signalk/delta', JSON.stringify(positionFixtures[0]))
       )
       .then(() =>
-        waitFor(() => DB.getTrackPointsForVessel(), res => res.length === 1)
+        waitFor(
+          () => DB.getTrackPointsForVessel(vesselUuid),
+          res => res.length === 1
+        )
       )
       .then(trackpoints => {
         expect(trackpoints).to.have.lengthOf(1)
