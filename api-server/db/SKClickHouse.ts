@@ -5,8 +5,8 @@ import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
 import config from '../Config'
 import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
+import { BBox } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
-import { BBox } from './StashDB'
 
 export default class SKClickHouse {
   constructor(readonly ch = new ClickHouse(config.clickhouse)) {}

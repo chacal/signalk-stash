@@ -1,5 +1,6 @@
 import { QueryCallback, QueryStream } from '@apla/clickhouse'
 import { Account, MqttACL } from '../domain/Auth'
+import { BBox } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
 import SKClickHouse from './SKClickHouse'
 import SKPostgis from './SKPostgis'
@@ -47,15 +48,3 @@ export class StashDB {
 }
 
 export default new StashDB()
-
-// TODO: Move to a different file?
-export interface BBox {
-  readonly nw: {
-    longitude: number
-    latitude: number
-  }
-  readonly se: {
-    longitude: number
-    latitude: number
-  }
-}
