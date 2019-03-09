@@ -50,3 +50,5 @@ psql-dev:
 psql-test:
 	@psql 'postgresql://signalk:signalk@localhost:50500/signalk'
 
+clickhouse-dev:
+	@docker exec -it signalk-stash_clickhouse-dev_1 clickhouse-client
