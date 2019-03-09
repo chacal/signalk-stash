@@ -1,15 +1,16 @@
-import { SKContext } from '@chartedsails/strongly-signalk'
-import DB from '../api-server/db/SKPostgis'
-import Trackpoint from '../api-server/Trackpoint'
+import StashDB from '../api-server/db/StashDB'
 
 class TestDB {
+  private readonly ch = StashDB.ch.ch
+  private readonly pg = StashDB.postgis.db
+
   resetTables() {
     if (process.env.ENVIRONMENT !== 'test') {
       throw new Error('Can reset tables only in test environment!')
     }
-    return DB.db
+    return this.pg
       .query(
-        `DROP TABLE IF EXISTS trackpoint, instrument_measurement;
+        `DROP TABLE IF EXISTS trackpoint;
           DO $$
           BEGIN
             DELETE FROM account;
@@ -21,30 +22,8 @@ class TestDB {
           END $$;
         `
       )
-      .then(() => DB.ensureTables())
-  }
-
-  getAllTrackPointsForVessel(context: SKContext): Promise<Trackpoint[]> {
-    return DB.db
-      .any(
-        `SELECT context, timestamp, source, ST_AsGeoJSON(point) :: json AS geojson
-         FROM trackpoint
-         WHERE context = $[context]
-            ORDER BY TIMESTAMP`,
-        { context }
-      )
-      .then(rows =>
-        rows.map(
-          ({ context, timestamp, source, geojson }) =>
-            new Trackpoint(
-              context,
-              new Date(timestamp),
-              source,
-              geojson.coordinates[0],
-              geojson.coordinates[1]
-            )
-        )
-      )
+      .then(() => this.ch.querying('DROP TABLE IF EXISTS position'))
+      .then(() => StashDB.ensureTables())
   }
 }
 

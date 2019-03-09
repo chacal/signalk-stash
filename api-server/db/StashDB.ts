@@ -1,21 +1,53 @@
+import { QueryCallback, QueryStream } from '@apla/clickhouse'
 import Account from '../Account'
 import MqttACL from '../MqttACL'
-import Trackpoint from '../Trackpoint'
+import Trackpoint, { Track } from '../Trackpoint'
+import SKClickHouse from './SKClickHouse'
+import SKPostgis from './SKPostgis'
 
-interface IDB {
-  ensureTables(): Promise<void>
+export class StashDB {
+  readonly postgis: SKPostgis = new SKPostgis()
+  readonly ch: SKClickHouse = new SKClickHouse()
+
+  /*
+    Common DB functionality
+   */
+  ensureTables(): Promise<[void, void]> {
+    return Promise.all([this.postgis.ensureTables(), this.ch.ensureTables()])
+  }
+
+  /*
+    Track DB functionality
+   */
+  insertTrackpoint(trackpoint: Trackpoint): Promise<void> {
+    return this.ch.insertTrackpoint(trackpoint)
+  }
+
+  getTrackPointsForVessel(bbox?: BBox): Promise<Trackpoint[]> {
+    return this.ch.getTrackPointsForVessel(bbox)
+  }
+
+  getVesselTracks(bbox?: BBox): Promise<Track[]> {
+    return this.ch.getVesselTracks(bbox)
+  }
+
+  deltaWriteStream(cb: QueryCallback<void>): QueryStream {
+    return this.ch.deltaWriteStream(cb)
+  }
+
+  /*
+    Auth DB functionality
+  */
+  upsertAccount(account: Account): Promise<void> {
+    return this.postgis.upsertAccount(account)
+  }
+
+  upsertAcl(acl: MqttACL): Promise<void> {
+    return this.postgis.upsertAcl(acl)
+  }
 }
 
-interface IAuthDB extends IDB {
-  upsertAccount(account: Account): Promise<void>
-  upsertAcl(acl: MqttACL): Promise<void>
-}
-
-export interface ITrackDB extends IDB {
-  insertTrackpoint(trackpoint: Trackpoint): Promise<void>
-}
-
-export default interface IStashDB extends ITrackDB, IAuthDB {}
+export default new StashDB()
 
 // TODO: Move to a different file?
 export interface BBox {

@@ -1,6 +1,6 @@
 import BPromise from 'bluebird'
 import * as mqtt from 'mqtt'
-import db from '../api-server/db/SKPostgis'
+import DB from '../api-server/db/StashDB'
 import SignalKDeltaWriter from '../api-server/delta-writer'
 import MqttDeltaInput from './mqtt'
 
@@ -14,7 +14,7 @@ if (MQTT_USERNAME === undefined || MQTT_PASSWORD === undefined) {
 } else {
   startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD).then(
     mqttClient => {
-      const writer = new SignalKDeltaWriter(db)
+      const writer = new SignalKDeltaWriter(DB)
       const deltaInput = new MqttDeltaInput(mqttClient, writer)
       deltaInput.start()
     }

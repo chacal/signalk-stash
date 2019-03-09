@@ -6,27 +6,24 @@ import { Transform, TransformCallback } from 'stream'
 import config from '../config'
 import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
 import Trackpoint, { Track } from '../Trackpoint'
-import { BBox, ITrackDB } from './StashDB'
+import { BBox } from './StashDB'
 
-class SKClickHouse implements ITrackDB {
-  constructor(private readonly ch = new ClickHouse(config.clickhouse)) {}
+export default class SKClickHouse {
+  constructor(readonly ch = new ClickHouse(config.clickhouse)) {}
 
   ensureTables(): Promise<void> {
-    // TODO: Remove DROP TABLE
-    return this.ch.querying(`DROP TABLE IF EXISTS position`).then(() =>
-      this.ch.querying(`
-        CREATE TABLE IF NOT EXISTS position (
-          ts     DateTime,
-          millis UInt16,
-          source String,
-          lat Float64,
-          lng Float64,
-          quadkey UInt64
-        ) ENGINE = MergeTree()
-        PARTITION BY toYYYYMMDD(ts)
-        ORDER BY (source, quadkey, ts)
-      `)
-    )
+    return this.ch.querying(`
+      CREATE TABLE IF NOT EXISTS position (
+        ts     DateTime,
+        millis UInt16,
+        source String,
+        lat Float64,
+        lng Float64,
+        quadkey UInt64
+      ) ENGINE = MergeTree()
+      PARTITION BY toYYYYMMDD(ts)
+      ORDER BY (source, quadkey, ts)
+    `)
   }
 
   insertTrackpoint(trackpoint: Trackpoint): Promise<void> {
@@ -142,5 +139,3 @@ function getDayMillis(date: Date) {
   const day = new Date(date.getFullYear(), date.getMonth(), date.getDate())
   return day.getTime()
 }
-
-export default new SKClickHouse()

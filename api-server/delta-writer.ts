@@ -1,9 +1,9 @@
 import { SKDelta } from '@chartedsails/strongly-signalk'
-import { ITrackDB } from './db/StashDB'
+import { StashDB } from './db/StashDB'
 import { trackpointsFromDelta } from './Trackpoint'
 
 export default class SignalKDeltaWriter {
-  constructor(private readonly db: ITrackDB) {}
+  constructor(private readonly db: StashDB) {}
 
   writeDelta(delta: SKDelta): Promise<void[]> {
     return Promise.all(
