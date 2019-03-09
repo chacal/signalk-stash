@@ -11,6 +11,7 @@
   "dependencies": {
     "@apla/clickhouse": "^1.5.5",
     "@chacal/signalk-ts": "0.0.3",
+    "@signalk/streams": "^1.0.0",
     "@types/bluebird": "^3.5.26",
     "@types/byline": "^4.2.31",
     "@types/chai": "^4.1.7",
@@ -22,6 +23,7 @@
     "binaryquadkey": "0.0.1",
     "bluebird": "^3.5.3",
     "byline": "^5.0.0",
+    "commander": "^2.19.0",
     "debug": "^4.1.1",
     "express": "^4.16.4",
     "js-joda": "^1.9.3",

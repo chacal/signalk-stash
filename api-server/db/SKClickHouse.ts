@@ -1,4 +1,8 @@
-import ClickHouse, { QueryCallback, QueryStream } from '@apla/clickhouse'
+import ClickHouse, {
+  QueryCallback,
+  QueryStream,
+  TsvRowCallback
+} from '@apla/clickhouse'
 import BinaryQuadkey from 'binaryquadkey'
 import {
   ChronoField,
@@ -94,9 +98,12 @@ export default class SKClickHouse {
   }
 
   // TODO: Could this return a typed stream that would only accept writes for SKDelta?
-  deltaWriteStream(cb: QueryCallback<void>): QueryStream {
+  deltaWriteStream(
+    cb: QueryCallback<void>,
+    tsvRowCb?: TsvRowCallback
+  ): QueryStream {
     const deltaToTrackpointsStream = new DeltaToTrackpointStream()
-    const pointsToTsv = new TrackpointsToClickHouseTSV()
+    const pointsToTsv = new TrackpointsToClickHouseTSV(tsvRowCb)
     const chWriteStream = this.ch.query(
       `INSERT INTO position`,
       { format: 'TSV' },
@@ -108,11 +115,12 @@ export default class SKClickHouse {
 }
 
 class TrackpointsToClickHouseTSV extends Transform {
-  constructor() {
+  constructor(readonly tsvRowCb: TsvRowCallback = () => undefined) {
     super({ objectMode: true })
   }
 
   _transform(trackpoint: Trackpoint, encoding: string, cb: TransformCallback) {
+    this.tsvRowCb()
     this.push(trackPointToColumns(trackpoint))
     cb()
   }

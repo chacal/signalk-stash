@@ -1,4 +1,4 @@
-import { QueryCallback, QueryStream } from '@apla/clickhouse'
+import { QueryCallback, QueryStream, TsvRowCallback } from '@apla/clickhouse'
 import { Account, MqttACL } from '../domain/Auth'
 import { BBox } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
@@ -34,8 +34,11 @@ export class StashDB {
     return this.ch.getVesselTracks(vesselId, bbox)
   }
 
-  deltaWriteStream(cb: QueryCallback<void>): QueryStream {
-    return this.ch.deltaWriteStream(cb)
+  deltaWriteStream(
+    cb: QueryCallback<void>,
+    tsvRowCb?: TsvRowCallback
+  ): QueryStream {
+    return this.ch.deltaWriteStream(cb, tsvRowCb)
   }
 
   /*

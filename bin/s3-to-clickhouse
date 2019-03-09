@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+
+const AutoDetect = require('@signalk/streams/autodetect')
+const Liner = require('@signalk/streams/liner')
+const S3Stream = require('@signalk/streams/s3')
+const program = require('commander')
+const stash = require('../built/api-server/db/StashDB').default
+
+process.stdin.resume()
+process.stdin.setEncoding('utf8')
+
+program
+  .usage('s3-to-clickhouse --bucket=<bucket> [options]')
+  .option('-b, --bucket <required>', 'S3 Bucket')
+  .option('--prefix <required>', 'S3 file prefix', '')
+program.parse(process.argv)
+
+if (!program.bucket) {
+  program.outputHelp()
+  process.exit(-1)
+}
+const liner = new Liner({})
+const autodetect = new AutoDetect({ noThrottle: true, app: { signalk: {} } })
+
+const s3Stream = new S3Stream(program)
+
+let tsvRowCount = 0
+const interval = setInterval(() => {
+  console.log(tsvRowCount)
+}, 1000)
+s3Stream.on('finish', () => process.exit(0))
+
+s3Stream
+  .pipe(liner)
+  .pipe(autodetect)
+  .pipe(stash.deltaWriteStream(() => undefined, () => tsvRowCount++))
