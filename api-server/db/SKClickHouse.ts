@@ -3,10 +3,10 @@ import BinaryQuadkey from 'binaryquadkey'
 import _ from 'lodash'
 import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
-import config from './config'
-import DeltaToTrackpointStream from './DeltaToTrackpointStream'
+import config from '../config'
+import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
+import Trackpoint, { Track } from '../Trackpoint'
 import { BBox, ITrackDB } from './StashDB'
-import Trackpoint, { Track } from './Trackpoint'
 
 class SKClickHouse implements ITrackDB {
   constructor(private readonly ch = new ClickHouse(config.clickhouse)) {}

@@ -1,5 +1,5 @@
 import { SKDelta } from '@chartedsails/strongly-signalk'
-import { ITrackDB } from './StashDB'
+import { ITrackDB } from './db/StashDB'
 import { trackpointsFromDelta } from './Trackpoint'
 
 export default class SignalKDeltaWriter {

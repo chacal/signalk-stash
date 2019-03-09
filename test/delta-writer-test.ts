@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import { SKDelta } from '@chartedsails/strongly-signalk'
 import { expect } from 'chai'
-import DB from '../api-server/db'
+import DB from '../api-server/db/SKPostgis'
 import SignalKDeltaWriter from '../api-server/delta-writer'
 import { assertTrackpoint, positionFixtures, vesselUuid } from './test-util'
 import testdb from './testdb'

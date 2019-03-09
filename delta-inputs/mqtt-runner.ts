@@ -1,6 +1,6 @@
 import BPromise from 'bluebird'
 import * as mqtt from 'mqtt'
-import db from '../api-server/db'
+import db from '../api-server/db/SKPostgis'
 import SignalKDeltaWriter from '../api-server/delta-writer'
 import MqttDeltaInput from './mqtt'
 

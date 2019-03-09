@@ -1,18 +1,18 @@
 import path from 'path'
 import pgp from 'pg-promise'
 
-import Account from './Account'
-import config from './config'
-import MqttACL from './MqttACL'
+import Account from '../Account'
+import config from '../config'
+import MqttACL from '../MqttACL'
+import Trackpoint from '../Trackpoint'
 import IStashDB from './StashDB'
-import Trackpoint from './Trackpoint'
 
-// Needs to be relative from "built/api-server" directory
+// Needs to be relative from "built/api-server/db" directory
 const TABLES_FILE = new pgp.QueryFile(
-  path.join(__dirname, '../../api-server/tables.sql')
+  path.join(__dirname, '../../../api-server/db/postgis-tables.sql')
 )
 
-class DB implements IStashDB {
+class SKPostgis implements IStashDB {
   readonly db: pgp.IDatabase<any>
 
   constructor() {
@@ -60,4 +60,4 @@ class DB implements IStashDB {
   }
 }
 
-export default new DB()
+export default new SKPostgis()

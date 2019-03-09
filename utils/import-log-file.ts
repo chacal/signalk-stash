@@ -13,7 +13,7 @@ import { createReadStream, fstatSync, openSync } from 'fs'
 import _ from 'lodash'
 import * as path from 'path'
 import { Writable } from 'stream'
-import db from '../api-server/db'
+import db from '../api-server/db/SKPostgis'
 import SignalKDeltaWriter from '../api-server/delta-writer'
 
 const writer = new SignalKDeltaWriter(db)

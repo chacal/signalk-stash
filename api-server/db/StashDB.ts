@@ -1,6 +1,6 @@
-import Account from './Account'
-import MqttACL from './MqttACL'
-import Trackpoint from './Trackpoint'
+import Account from '../Account'
+import MqttACL from '../MqttACL'
+import Trackpoint from '../Trackpoint'
 
 interface IDB {
   ensureTables(): Promise<void>

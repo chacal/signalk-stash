@@ -1,6 +1,6 @@
 import API from './api'
 import config, { IConfig } from './config'
-import DB from './db'
+import DB from './db/SKPostgis'
 
 console.log('Starting SignalK Stash..')
 

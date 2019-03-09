@@ -1,5 +1,5 @@
 import { SKContext } from '@chartedsails/strongly-signalk'
-import DB from '../api-server/db'
+import DB from '../api-server/db/SKPostgis'
 import Trackpoint from '../api-server/Trackpoint'
 
 class TestDB {
