@@ -72,7 +72,7 @@ export default class SKClickHouse {
         '',
         avg(lat),
         avg(lng)`
-      groupBy = 'ts, millis'
+      groupBy = 'ts'
     }
 
     let bboxClause = ''
@@ -91,7 +91,7 @@ export default class SKClickHouse {
     FROM position
     WHERE context = '${vesselId}' ${bboxClause}
     GROUP BY ${groupBy}
-    ORDER BY ts, millis`
+    ORDER BY ts`
     console.log(query)
 
     return this.ch.querying(query).then(x => x.data.map(columnsToTrackpoint))
