@@ -19,8 +19,7 @@ export function trackpointsFromDelta(delta: SKDelta): Trackpoint[] {
   const { context, updates } = delta
   return _.flatten(
     updates.map(update => {
-      const { timestamp, source } = update
-      const sourceId = source !== undefined ? source.label : 'n/a' // TODO: Fix handling empty source
+      const { timestamp, sourceRef } = update
       return update.values
         .filter(v => v.path === 'navigation.position')
         .map(value => {
@@ -29,7 +28,7 @@ export function trackpointsFromDelta(delta: SKDelta): Trackpoint[] {
           return new Trackpoint(
             ctx,
             ZonedDateTime.from(nativeJs(timestamp)),
-            sourceId,
+            sourceRef,
             Coords.fromSKPosition(position)
           )
         })
