@@ -28,7 +28,7 @@ export function trackpointsFromDelta(delta: SKDelta): Trackpoint[] {
           const ctx = stripVesselsPrefix(context)
           return new Trackpoint(
             ctx,
-            ZonedDateTime.from(nativeJs(new Date(timestamp))),
+            ZonedDateTime.from(nativeJs(timestamp)),
             sourceId,
             Coords.fromSKPosition(position)
           )
