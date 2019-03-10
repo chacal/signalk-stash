@@ -1,5 +1,6 @@
 import { SKPosition } from '@chartedsails/strongly-signalk'
 import BinaryQuadkey from 'binaryquadkey'
+import { isUndefined } from 'lodash'
 import QK from 'quadkeytools'
 
 export interface LatLng {
@@ -26,6 +27,20 @@ export class Coords implements LatLng {
 }
 
 export class BBox {
+  static fromProps(o: any): BBox | undefined {
+    if (
+      !isUndefined(o.nwLat) &&
+      !isUndefined(o.nwLng) &&
+      !isUndefined(o.seLat) &&
+      !isUndefined(o.seLng)
+    ) {
+      return new BBox({
+        nw: new Coords({ lat: o.nwLat, lng: o.nwLng }),
+        se: new Coords({ lat: o.seLat, lng: o.seLng })
+      })
+    }
+    return undefined
+  }
   readonly nw: Coords
   readonly se: Coords
 
