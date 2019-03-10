@@ -1,6 +1,6 @@
 import { SKDelta } from '@chartedsails/strongly-signalk'
 import { Transform, TransformCallback } from 'stream'
-import { trackpointsFromDelta } from './Trackpoint'
+import { trackpointsFromDelta } from './domain/Trackpoint'
 
 export default class DeltaToTrackpointStream extends Transform {
   constructor() {

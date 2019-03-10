@@ -24,6 +24,8 @@
     "byline": "^5.0.0",
     "debug": "^4.1.1",
     "express": "^4.16.4",
+    "js-joda": "^1.9.3",
+    "js-joda-timezone": "^2.0.2",
     "lodash": "^4.17.11",
     "mqtt": "^2.18.8",
     "pg-promise": "^8.6.0",

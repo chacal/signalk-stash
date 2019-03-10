@@ -7,7 +7,7 @@ services:
      - 58123:8123
      - 59000:9000
   postgis:
-    image: mdillon/postgis:10-alpine
+    image: mdillon/postgis:11-alpine
     ports:
      - 50400:5432
     volumes:

@@ -13,10 +13,10 @@ import { createReadStream, fstatSync, openSync } from 'fs'
 import _ from 'lodash'
 import * as path from 'path'
 import { Writable } from 'stream'
-import db from '../api-server/db'
-import SignalKDeltaWriter from '../api-server/delta-writer'
+import DB from '../api-server/db/StashDB'
+import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 
-const writer = new SignalKDeltaWriter(db)
+const writer = new SignalKDeltaWriter(DB)
 
 function importOneLine(line: string, context: SKContext) {
   try {

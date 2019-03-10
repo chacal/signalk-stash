@@ -1,5 +1,5 @@
 import express from 'express'
-import { IConfig } from './config'
+import { IConfig } from './Config'
 
 class API {
   constructor(

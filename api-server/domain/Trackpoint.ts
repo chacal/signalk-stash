@@ -1,13 +1,14 @@
 import { SKContext, SKDelta, SKPosition } from '@chartedsails/strongly-signalk'
+import { nativeJs, ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
+import { Coords } from './Geo'
 
 export default class Trackpoint {
   constructor(
     readonly context: string,
-    readonly timestamp: Date,
+    readonly timestamp: ZonedDateTime,
     readonly source: string,
-    readonly longitude: number,
-    readonly latitude: number
+    readonly coords: Coords
   ) {}
 }
 
@@ -27,10 +28,9 @@ export function trackpointsFromDelta(delta: SKDelta): Trackpoint[] {
           const ctx = stripVesselsPrefix(context)
           return new Trackpoint(
             ctx,
-            timestamp,
+            ZonedDateTime.from(nativeJs(timestamp)),
             sourceId,
-            position.longitude,
-            position.latitude
+            Coords.fromSKPosition(position)
           )
         })
     })

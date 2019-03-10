@@ -1,6 +1,6 @@
-import API from './api'
-import config, { IConfig } from './config'
-import DB from './db'
+import API from './API'
+import config, { IConfig } from './Config'
+import DB from './db/StashDB'
 
 console.log('Starting SignalK Stash..')
 

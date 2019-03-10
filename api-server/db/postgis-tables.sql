@@ -1,13 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TABLE IF NOT EXISTS trackpoint (
-  context   TEXT,
-  timestamp TIMESTAMP WITH TIME ZONE,
-  source    TEXT,
-  point     GEOGRAPHY(Point, 4326) NOT NULL,
-  PRIMARY KEY (context, timestamp)
-);
-
 CREATE TABLE IF NOT EXISTS account (
   id              UUID DEFAULT uuid_generate_v4() NOT NULL,
   username        TEXT UNIQUE                     NOT NULL,

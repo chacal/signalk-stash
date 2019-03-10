@@ -1,32 +1,38 @@
 import ClickHouse, { QueryCallback, QueryStream } from '@apla/clickhouse'
 import BinaryQuadkey from 'binaryquadkey'
+import {
+  ChronoField,
+  ChronoUnit,
+  Instant,
+  ZonedDateTime,
+  ZoneId
+} from 'js-joda'
 import _ from 'lodash'
 import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
-import config from './config'
-import DeltaToTrackpointStream from './DeltaToTrackpointStream'
-import { BBox, ITrackDB } from './StashDB'
-import Trackpoint, { Track } from './Trackpoint'
+import config from '../Config'
+import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
+import { BBox, Coords } from '../domain/Geo'
+import Trackpoint, { Track } from '../domain/Trackpoint'
 
-class SKClickHouse implements ITrackDB {
-  constructor(private readonly ch = new ClickHouse(config.clickhouse)) {}
+type PositionRowColumns = [number, number, string, number, number, string]
+
+export default class SKClickHouse {
+  constructor(readonly ch = new ClickHouse(config.clickhouse)) {}
 
   ensureTables(): Promise<void> {
-    // TODO: Remove DROP TABLE
-    return this.ch.querying(`DROP TABLE IF EXISTS position`).then(() =>
-      this.ch.querying(`
-        CREATE TABLE IF NOT EXISTS position (
-          ts     DateTime,
-          millis UInt16,
-          source String,
-          lat Float64,
-          lng Float64,
-          quadkey UInt64
-        ) ENGINE = MergeTree()
-        PARTITION BY toYYYYMMDD(ts)
-        ORDER BY (source, quadkey, ts)
-      `)
-    )
+    return this.ch.querying(`
+      CREATE TABLE IF NOT EXISTS position (
+        ts     DateTime,
+        millis UInt16,
+        source String,
+        lat Float64,
+        lng Float64,
+        quadkey UInt64
+      ) ENGINE = MergeTree()
+      PARTITION BY toYYYYMMDD(ts)
+      ORDER BY (source, quadkey, ts)
+    `)
   }
 
   insertTrackpoint(trackpoint: Trackpoint): Promise<void> {
@@ -44,23 +50,11 @@ class SKClickHouse implements ITrackDB {
   getTrackPointsForVessel(bbox?: BBox): Promise<Trackpoint[]> {
     let bboxWHERE = ''
 
-    // TODO: Extract method
     if (bbox) {
-      const NWQuadKey = BinaryQuadkey.fromQuadkey(
-        QK.locationToQuadkey(
-          { lng: bbox.nw.longitude, lat: bbox.nw.latitude },
-          22
-        )
-      )
-      const SEQuadKey = BinaryQuadkey.fromQuadkey(
-        QK.locationToQuadkey(
-          { lng: bbox.se.longitude, lat: bbox.se.latitude },
-          22
-        )
-      )
+      const { nwKey, seKey } = bbox.toQuadKeys()
       bboxWHERE = `
         WHERE
-          quadkey BETWEEN ${NWQuadKey} AND ${SEQuadKey} AND
+          quadkey BETWEEN ${nwKey} AND ${seKey} AND
           lat BETWEEN ${bbox.se.latitude} AND ${bbox.nw.latitude} AND
           lng BETWEEN ${bbox.nw.longitude} AND ${bbox.se.longitude}
       `
@@ -74,23 +68,16 @@ class SKClickHouse implements ITrackDB {
           ${bboxWHERE}
           ORDER BY ts, millis`
       )
-      .then(x =>
-        x.data.map(
-          ([timestamp, millis, source, lat, lng]: any[]) =>
-            new Trackpoint(
-              source, // TODO: Replace with context
-              new Date(timestamp * 1000 + millis),
-              source,
-              lng,
-              lat
-            )
-        )
-      )
+      .then(x => x.data.map(columnsToTrackpoint))
   }
 
   getVesselTracks(bbox?: BBox): Promise<Track[]> {
     return this.getTrackPointsForVessel(bbox).then(pointsData =>
-      _.values(_.groupBy(pointsData, point => getDayMillis(point.timestamp)))
+      _.values(
+        _.groupBy(pointsData, point =>
+          point.timestamp.truncatedTo(ChronoUnit.DAYS).toEpochSecond()
+        )
+      )
     )
   }
 
@@ -119,28 +106,33 @@ class TrackpointsToClickHouseTSV extends Transform {
   }
 }
 
-function trackPointToColumns(trackpoint: Trackpoint): any[] {
-  const qk = QK.locationToQuadkey(
-    {
-      lat: trackpoint.latitude,
-      lng: trackpoint.longitude
-    },
-    22
+function columnsToTrackpoint([
+  unixTime,
+  millis,
+  source,
+  lat,
+  lng
+]: PositionRowColumns): Trackpoint {
+  return new Trackpoint(
+    source, // TODO: Replace with context
+    ZonedDateTime.ofInstant(
+      Instant.ofEpochMilli(unixTime * 1000 + millis),
+      ZoneId.UTC
+    ),
+    source,
+    new Coords({ lat, lng })
   )
+}
+
+function trackPointToColumns(trackpoint: Trackpoint): PositionRowColumns {
+  const qk = QK.locationToQuadkey(trackpoint.coords, 22)
   const bqk = BinaryQuadkey.fromQuadkey(qk)
   return [
-    trackpoint.timestamp,
-    trackpoint.timestamp.getMilliseconds(),
+    trackpoint.timestamp.toEpochSecond(),
+    trackpoint.timestamp.get(ChronoField.MILLI_OF_SECOND),
     trackpoint.source,
-    trackpoint.latitude,
-    trackpoint.longitude,
+    trackpoint.coords.latitude,
+    trackpoint.coords.longitude,
     bqk.toString()
   ]
 }
-
-function getDayMillis(date: Date) {
-  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  return day.getTime()
-}
-
-export default new SKClickHouse()

@@ -1,6 +1,6 @@
 import { SKDelta } from '@chartedsails/strongly-signalk'
 import * as mqtt from 'mqtt'
-import SignalKDeltaWriter from '../api-server/delta-writer'
+import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 
 export default class MqttDeltaInput {
   constructor(

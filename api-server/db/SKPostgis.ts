@@ -1,18 +1,15 @@
 import path from 'path'
 import pgp from 'pg-promise'
 
-import Account from './Account'
-import config from './config'
-import MqttACL from './MqttACL'
-import IStashDB from './StashDB'
-import Trackpoint from './Trackpoint'
+import config from '../Config'
+import { Account, MqttACL } from '../domain/Auth'
 
-// Needs to be relative from "built/api-server" directory
+// Needs to be relative from "built/api-server/db" directory
 const TABLES_FILE = new pgp.QueryFile(
-  path.join(__dirname, '../../api-server/tables.sql')
+  path.join(__dirname, '../../../api-server/db/postgis-tables.sql')
 )
 
-class DB implements IStashDB {
+export default class SKPostgis {
   readonly db: pgp.IDatabase<any>
 
   constructor() {
@@ -21,18 +18,6 @@ class DB implements IStashDB {
 
   ensureTables(): Promise<void> {
     return this.db.query(TABLES_FILE)
-  }
-
-  insertTrackpoint(trackpoint: Trackpoint): Promise<void> {
-    return this.db.query(
-      `
-          INSERT INTO trackpoint (context, timestamp, source, point)
-          VALUES ($[context], $[timestamp], $[source], st_point($[longitude], $[latitude]))
-          ON CONFLICT (context, timestamp)
-          DO UPDATE SET source = $[source], point = st_point($[longitude], $[latitude])
-        `,
-      { ...trackpoint }
-    )
   }
 
   upsertAccount(account: Account): Promise<void> {
@@ -59,5 +44,3 @@ class DB implements IStashDB {
     )
   }
 }
-
-export default new DB()

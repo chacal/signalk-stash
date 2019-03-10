@@ -1,14 +1,16 @@
 /* eslint-env mocha */
 import { SKDelta } from '@chartedsails/strongly-signalk'
 import { expect } from 'chai'
-import DB from '../api-server/clickhouse'
-import SignalKDeltaWriter from '../api-server/delta-writer'
+import DB from '../api-server/db/StashDB'
+import { BBox, Coords } from '../api-server/domain/Geo'
+import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import { assertTrackpoint, positionFixtures } from './test-util'
+import TestDB from './TestDB'
 
 const writer = new SignalKDeltaWriter(DB)
 
-describe('ClickHouseDeltaWriter', () => {
-  beforeEach(() => DB.ensureTables())
+describe('StashDB', () => {
+  beforeEach(() => TestDB.resetTables())
   it('writes positions', () => {
     return writeDeltasFromPositionFixture()
       .then(() => DB.getTrackPointsForVessel())
@@ -26,16 +28,12 @@ describe('ClickHouseDeltaWriter', () => {
   it('returns daily tracks by bbox', () => {
     return writeDeltasFromPositionFixture()
       .then(() =>
-        DB.getVesselTracks({
-          nw: {
-            longitude: 21.877,
-            latitude: 59.901
-          },
-          se: {
-            longitude: 21.881,
-            latitude: 59.9
-          }
-        })
+        DB.getVesselTracks(
+          new BBox({
+            nw: new Coords({ lng: 21.877, lat: 59.901 }),
+            se: new Coords({ lng: 21.881, lat: 59.9 })
+          })
+        )
       )
       .then(tracks => {
         expect(tracks).to.have.lengthOf(1)

@@ -11,7 +11,7 @@ export const testAccount = new TestAccount(
 )
 
 import { expect } from 'chai'
-import Trackpoint from '../api-server/Trackpoint'
+import Trackpoint from '../api-server/domain/Trackpoint'
 import measurementFixtures from './data/measurement-fixtures.json'
 import positionFixtures from './data/position-fixtures.json'
 
@@ -34,10 +34,10 @@ export function waitFor<T>(
 export function assertTrackpoint(point: Trackpoint, fixturePoint: any): void {
   expect(point.timestamp).to.exist
   expect(point.source).to.equal('aava')
-  expect(point.timestamp.toISOString()).to.have.string(
+  expect(point.timestamp.toString()).to.have.string(
     fixturePoint.updates[0].timestamp
   )
-  expect(point.longitude).to.equal(
+  expect(point.coords.longitude).to.equal(
     fixturePoint.updates[0].values[0].value.longitude
   )
 }
