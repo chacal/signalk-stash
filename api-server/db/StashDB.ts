@@ -35,7 +35,7 @@ export class StashDB {
   }
 
   deltaWriteStream(
-    cb: QueryCallback<void>,
+    cb?: QueryCallback<void>,
     tsvRowCb?: TsvRowCallback
   ): QueryStream {
     return this.ch.deltaWriteStream(cb, tsvRowCb)

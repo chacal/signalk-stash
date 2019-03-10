@@ -21,7 +21,7 @@ declare module '@apla/clickhouse' {
     query<T = any>(
       query: string,
       options: QueryOptions,
-      cb: QueryCallback<T>
+      cb?: QueryCallback<T>
     ): QueryStream
   }
 }

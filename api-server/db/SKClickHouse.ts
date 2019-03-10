@@ -99,7 +99,7 @@ export default class SKClickHouse {
 
   // TODO: Could this return a typed stream that would only accept writes for SKDelta?
   deltaWriteStream(
-    cb: QueryCallback<void>,
+    cb?: QueryCallback<void>,
     tsvRowCb?: TsvRowCallback
   ): QueryStream {
     const deltaToTrackpointsStream = new DeltaToTrackpointStream()

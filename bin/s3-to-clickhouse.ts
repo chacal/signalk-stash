@@ -47,4 +47,4 @@ s3Stream
       }
     })
   )
-  .pipe(stashDB.deltaWriteStream(() => undefined, () => tsvRowCount++))
+  .pipe(stashDB.deltaWriteStream(undefined, () => tsvRowCount++))
