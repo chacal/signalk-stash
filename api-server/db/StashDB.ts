@@ -23,12 +23,15 @@ export class StashDB {
     return this.ch.insertTrackpoint(trackpoint)
   }
 
-  getTrackPointsForVessel(bbox?: BBox): Promise<Trackpoint[]> {
-    return this.ch.getTrackPointsForVessel(bbox)
+  getTrackPointsForVessel(
+    vesselId: string,
+    bbox?: BBox
+  ): Promise<Trackpoint[]> {
+    return this.ch.getTrackPointsForVessel(vesselId, bbox)
   }
 
-  getVesselTracks(bbox?: BBox): Promise<Track[]> {
-    return this.ch.getVesselTracks(bbox)
+  getVesselTracks(vesselId: string, bbox?: BBox): Promise<Track[]> {
+    return this.ch.getVesselTracks(vesselId, bbox)
   }
 
   deltaWriteStream(cb: QueryCallback<void>): QueryStream {

@@ -15,7 +15,15 @@ import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
 import { BBox, Coords } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
 
-type PositionRowColumns = [number, number, string, number, number, string]
+type PositionRowColumns = [
+  number,
+  number,
+  string,
+  string,
+  number,
+  number,
+  string
+]
 
 export default class SKClickHouse {
   constructor(readonly ch = new ClickHouse(config.clickhouse)) {}
@@ -25,13 +33,14 @@ export default class SKClickHouse {
       CREATE TABLE IF NOT EXISTS position (
         ts     DateTime,
         millis UInt16,
+        context String,
         source String,
         lat Float64,
         lng Float64,
         quadkey UInt64
       ) ENGINE = MergeTree()
       PARTITION BY toYYYYMMDD(ts)
-      ORDER BY (source, quadkey, ts)
+      ORDER BY (context, quadkey, ts)
     `)
   }
 
@@ -47,13 +56,16 @@ export default class SKClickHouse {
     })
   }
 
-  getTrackPointsForVessel(bbox?: BBox): Promise<Trackpoint[]> {
-    let bboxWHERE = ''
+  getTrackPointsForVessel(
+    vesselId: string,
+    bbox?: BBox
+  ): Promise<Trackpoint[]> {
+    let bboxClause = ''
 
     if (bbox) {
       const { nwKey, seKey } = bbox.toQuadKeys()
-      bboxWHERE = `
-        WHERE
+      bboxClause = `
+        AND
           quadkey BETWEEN ${nwKey} AND ${seKey} AND
           lat BETWEEN ${bbox.se.latitude} AND ${bbox.nw.latitude} AND
           lng BETWEEN ${bbox.nw.longitude} AND ${bbox.se.longitude}
@@ -63,16 +75,16 @@ export default class SKClickHouse {
     return this.ch
       .querying(
         `
-          SELECT toUnixTimestamp(ts), millis, source, lat, lng
+          SELECT toUnixTimestamp(ts), millis, context, source, lat, lng
           FROM position
-          ${bboxWHERE}
+          WHERE context = '${vesselId}' ${bboxClause}
           ORDER BY ts, millis`
       )
       .then(x => x.data.map(columnsToTrackpoint))
   }
 
-  getVesselTracks(bbox?: BBox): Promise<Track[]> {
-    return this.getTrackPointsForVessel(bbox).then(pointsData =>
+  getVesselTracks(vesselId: string, bbox?: BBox): Promise<Track[]> {
+    return this.getTrackPointsForVessel(vesselId, bbox).then(pointsData =>
       _.values(
         _.groupBy(pointsData, point =>
           point.timestamp.truncatedTo(ChronoUnit.DAYS).toEpochSecond()
@@ -109,12 +121,13 @@ class TrackpointsToClickHouseTSV extends Transform {
 function columnsToTrackpoint([
   unixTime,
   millis,
+  context,
   source,
   lat,
   lng
 ]: PositionRowColumns): Trackpoint {
   return new Trackpoint(
-    source, // TODO: Replace with context
+    context,
     ZonedDateTime.ofInstant(
       Instant.ofEpochMilli(unixTime * 1000 + millis),
       ZoneId.UTC
@@ -130,6 +143,7 @@ function trackPointToColumns(trackpoint: Trackpoint): PositionRowColumns {
   return [
     trackpoint.timestamp.toEpochSecond(),
     trackpoint.timestamp.get(ChronoField.MILLI_OF_SECOND),
+    trackpoint.context,
     trackpoint.source,
     trackpoint.coords.latitude,
     trackpoint.coords.longitude,
