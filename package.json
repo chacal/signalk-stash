@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@apla/clickhouse": "^1.5.5",
-    "@chacal/signalk-ts": "0.0.4",
+    "@chacal/signalk-ts": "0.0.7",
     "@signalk/streams": "^1.0.0",
     "@types/bluebird": "^3.5.26",
     "@types/byline": "^4.2.31",
