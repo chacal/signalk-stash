@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 
-import { SKDelta } from '@chacal/signalk-ts'
 import AutoDetect from '@signalk/streams/autodetect'
 import Liner from '@signalk/streams/liner'
 import S3Stream from '@signalk/streams/s3'
 import program from 'commander'
-import { Transform } from 'stream'
 import stashDB from '../api-server/db/StashDB'
+import SKDeserializingStream from '../delta-inputs/SKDeserializingStream'
 
 process.stdin.resume()
 process.stdin.setEncoding('utf8')
@@ -38,13 +37,5 @@ s3Stream.on('finish', () => process.exit(0))
 s3Stream
   .pipe(liner)
   .pipe(autodetect)
-  .pipe(
-    new Transform({
-      objectMode: true,
-      transform(chunk, encoding, callback) {
-        this.push(SKDelta.fromJSON(chunk))
-        callback()
-      }
-    })
-  )
+  .pipe(new SKDeserializingStream())
   .pipe(stashDB.deltaWriteStream(undefined, () => tsvRowCount++))
