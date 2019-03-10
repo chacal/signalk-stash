@@ -1,4 +1,4 @@
-import { SKDelta } from '@chartedsails/strongly-signalk'
+import { SKDelta } from '@chacal/signalk-ts'
 import { Transform, TransformCallback } from 'stream'
 import { trackpointsFromDelta } from './domain/Trackpoint'
 

@@ -1,4 +1,4 @@
-import { SKDelta } from '@chartedsails/strongly-signalk'
+import { SKDelta } from '@chacal/signalk-ts'
 import { StashDB } from './db/StashDB'
 import { trackpointsFromDelta } from './domain/Trackpoint'
 
