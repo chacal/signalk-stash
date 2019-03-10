@@ -12,7 +12,7 @@ import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
 import config from '../Config'
 import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
-import { BBox, Coords } from '../domain/Geo'
+import { BBox, Coords, ZoomLevel } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
 
 type PositionRowColumns = [
@@ -58,10 +58,24 @@ export default class SKClickHouse {
 
   getTrackPointsForVessel(
     vesselId: string,
-    bbox?: BBox
+    bbox?: BBox,
+    zoomLevel?: ZoomLevel
   ): Promise<Trackpoint[]> {
-    let bboxClause = ''
+    let selectFields = 'toUnixTimestamp(ts), millis, context, source, lat, lng'
+    let groupBy = ''
+    if (zoomLevel) {
+      const timeResolutionSeconds = timeResolutionForZoom(zoomLevel)
+      selectFields = `
+        (intDiv(toUInt32(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) * 1000 as t,
+        0,
+        '${vesselId}',
+        '',
+        avg(lat),
+        avg(lng)`
+      groupBy = 'ts, millis'
+    }
 
+    let bboxClause = ''
     if (bbox) {
       const { nwKey, seKey } = bbox.toQuadKeys()
       bboxClause = `
@@ -72,24 +86,29 @@ export default class SKClickHouse {
       `
     }
 
-    return this.ch
-      .querying(
-        `
-          SELECT toUnixTimestamp(ts), millis, context, source, lat, lng
-          FROM position
-          WHERE context = '${vesselId}' ${bboxClause}
-          ORDER BY ts, millis`
-      )
-      .then(x => x.data.map(columnsToTrackpoint))
+    const query = `
+    SELECT ${selectFields}
+    FROM position
+    WHERE context = '${vesselId}' ${bboxClause}
+    GROUP BY ${groupBy}
+    ORDER BY ts, millis`
+    console.log(query)
+
+    return this.ch.querying(query).then(x => x.data.map(columnsToTrackpoint))
   }
 
-  getVesselTracks(vesselId: string, bbox?: BBox): Promise<Track[]> {
-    return this.getTrackPointsForVessel(vesselId, bbox).then(pointsData =>
-      _.values(
-        _.groupBy(pointsData, point =>
-          point.timestamp.truncatedTo(ChronoUnit.DAYS).toEpochSecond()
+  getVesselTracks(
+    vesselId: string,
+    bbox?: BBox,
+    zoomLevel?: ZoomLevel
+  ): Promise<Track[]> {
+    return this.getTrackPointsForVessel(vesselId, bbox, zoomLevel).then(
+      pointsData =>
+        _.values(
+          _.groupBy(pointsData, point =>
+            point.timestamp.truncatedTo(ChronoUnit.DAYS).toEpochSecond()
+          )
         )
-      )
     )
   }
 
@@ -149,4 +168,22 @@ function trackPointToColumns(trackpoint: Trackpoint): PositionRowColumns {
     trackpoint.coords.longitude,
     bqk.toString()
   ]
+}
+
+function timeResolutionForZoom(zoom: ZoomLevel) {
+  if (zoom >= 20) {
+    return 2
+  } else if (zoom >= 16) {
+    return 5
+  } else if (zoom >= 14) {
+    return 10
+  } else if (zoom >= 11) {
+    return 30
+  } else if (zoom >= 9) {
+    return 2 * 60
+  } else if (zoom >= 7) {
+    return 4 * 60
+  } else {
+    return 10 * 60
+  }
 }

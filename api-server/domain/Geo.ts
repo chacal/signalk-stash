@@ -56,3 +56,5 @@ export class BBox {
     }
   }
 }
+
+export type ZoomLevel = number

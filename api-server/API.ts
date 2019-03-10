@@ -2,7 +2,7 @@ import express from 'express'
 import path from 'path'
 import { IConfig } from './Config'
 import stash from './db/StashDB'
-import {BBox} from './domain/Geo'
+import { BBox } from './domain/Geo'
 
 class API {
   constructor(
@@ -20,14 +20,20 @@ class API {
   setupRoutes() {
     this.app.use(express.static(path.join(__dirname, '../../public')))
     this.app.get('/tracks', (req, res) => {
-      stash.getVesselTracks('self', BBox.fromProps(req.query)).then(tracksData => {
-        res.json({
-          type: 'MultiLineString',
-          coordinates: tracksData.map(trackData =>
-            trackData.map(({ coords }) => [coords.lng, coords.lat])
-          )
+      stash
+        .getVesselTracks(
+          'self',
+          BBox.fromProps(req.query),
+          Number(req.query.zoom)
+        )
+        .then(tracksData => {
+          res.json({
+            type: 'MultiLineString',
+            coordinates: tracksData.map(trackData =>
+              trackData.map(({ coords }) => [coords.lng, coords.lat])
+            )
+          })
         })
-      })
     })
   }
 }
