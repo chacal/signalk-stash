@@ -7,7 +7,7 @@ export default class Trackpoint {
   constructor(
     readonly context: string,
     readonly timestamp: ZonedDateTime,
-    readonly source: string,
+    readonly sourceRef: string,
     readonly coords: Coords
   ) {}
 }
