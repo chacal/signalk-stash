@@ -1,5 +1,7 @@
 import ClickHouse, { QueryCallback, QueryStream } from '@apla/clickhouse'
 import BinaryQuadkey from 'binaryquadkey'
+import Debug from 'debug'
+const debug = Debug('stash:skclickhouse')
 import {
   ChronoField,
   ChronoUnit,
@@ -92,9 +94,12 @@ export default class SKClickHouse {
     WHERE context = '${vesselId}' ${bboxClause}
     GROUP BY ${groupBy}
     ORDER BY ts`
-    console.log(query)
+    debug(query)
 
-    return this.ch.querying(query).then(x => x.data.map(columnsToTrackpoint))
+    return this.ch.querying(query).then(x => {
+      debug(JSON.stringify(x.statistics) + ' ' + x.data.length)
+      return x
+    }).then(x => x.data.map(columnsToTrackpoint))
   }
 
   getVesselTracks(
