@@ -1,4 +1,4 @@
-import { SKPosition } from '@chartedsails/strongly-signalk'
+import { SKPosition } from '@chacal/signalk-ts'
 import BinaryQuadkey from 'binaryquadkey'
 import QK from 'quadkeytools'
 

@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-import { SKDelta } from '@chartedsails/strongly-signalk'
+import { SKDelta } from '@chacal/signalk-ts'
 import { expect } from 'chai'
 import DB from '../api-server/db/StashDB'
 import { BBox, Coords } from '../api-server/domain/Geo'
@@ -53,17 +53,13 @@ describe('StashDB', () => {
         .then(() => done())
         .catch(err => done(err))
     })
-    positionFixtures.forEach(delta =>
-      chStream.write(SKDelta.fromJSON(JSON.stringify(delta)))
-    ) // TODO: Fix SKDelta parsing
+    positionFixtures.forEach(delta => chStream.write(SKDelta.fromJSON(delta)))
     chStream.end()
   })
 })
 
 function writeDeltasFromPositionFixture(): Promise<void[][]> {
   return Promise.all(
-    positionFixtures.map(
-      delta => writer.writeDelta(SKDelta.fromJSON(JSON.stringify(delta))) // TODO: Fix SKDelta parsing
-    )
+    positionFixtures.map(delta => writer.writeDelta(SKDelta.fromJSON(delta)))
   )
 }

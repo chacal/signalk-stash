@@ -1,4 +1,4 @@
-import { SKContext, SKDelta, SKPosition } from '@chartedsails/strongly-signalk'
+import { SKContext, SKDelta, SKPosition } from '@chacal/signalk-ts'
 import { nativeJs, ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
 import { Coords } from './Geo'
@@ -37,10 +37,7 @@ export function trackpointsFromDelta(delta: SKDelta): Trackpoint[] {
   )
 }
 
-function stripVesselsPrefix(deltaContext?: SKContext) {
-  if (!deltaContext) {
-    return 'self'
-  }
+function stripVesselsPrefix(deltaContext: SKContext) {
   return deltaContext.startsWith('vessels.')
     ? deltaContext.replace(/^vessels\./, '')
     : deltaContext
