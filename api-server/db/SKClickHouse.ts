@@ -15,8 +15,13 @@ import _ from 'lodash'
 import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
 import config from '../Config'
+import CountDownLatch from '../CountDownLatch'
 import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
 import { BBox, Coords } from '../domain/Geo'
+import {
+  createValuesTable,
+  PathValuesToClickHouseTSV
+} from '../domain/PathValue'
 import Trackpoint, { Track } from '../domain/Trackpoint'
 
 type PositionRowColumns = [
@@ -33,7 +38,9 @@ export default class SKClickHouse {
   constructor(readonly ch = new ClickHouse(config.clickhouse)) {}
 
   ensureTables(): Promise<void> {
-    return this.ch.querying(`
+    return this.ch
+      .querying(
+        `
       CREATE TABLE IF NOT EXISTS position (
         ts     DateTime,
         millis UInt16,
@@ -45,7 +52,9 @@ export default class SKClickHouse {
       ) ENGINE = MergeTree()
       PARTITION BY toYYYYMMDD(ts)
       ORDER BY (context, quadkey, ts)
-    `)
+    `
+      )
+      .then(() => createValuesTable(this.ch))
   }
 
   insertTrackpoint(trackpoint: Trackpoint): Promise<void> {
@@ -99,17 +108,23 @@ export default class SKClickHouse {
 
   // TODO: Could this return a typed stream that would only accept writes for SKDelta?
   deltaWriteStream(
-    cb?: QueryCallback<void>,
+    done?: QueryCallback<void>,
     tsvRowCb?: TsvRowCallback
   ): QueryStream {
-    const deltaToTrackpointsStream = new DeltaToTrackpointStream()
     const pointsToTsv = new TrackpointsToClickHouseTSV(tsvRowCb)
-    const chWriteStream = this.ch.query(
-      `INSERT INTO position`,
-      { format: 'TSV' },
-      cb
+    const pathValuesToTsv = new PathValuesToClickHouseTSV()
+    const deltaToTrackpointsStream = new DeltaToTrackpointStream(
+      pointsToTsv,
+      pathValuesToTsv
     )
-    deltaToTrackpointsStream.pipe(pointsToTsv).pipe(chWriteStream)
+    const streamsEndedLatch = new CountDownLatch(2, done as () => {})
+    const streamDone = streamsEndedLatch.signal.bind(streamsEndedLatch)
+    pointsToTsv.pipe(
+      this.ch.query(`INSERT INTO position`, { format: 'TSV' }, streamDone)
+    )
+    pathValuesToTsv.pipe(
+      this.ch.query(`INSERT INTO value`, { format: 'TSV' }, streamDone)
+    )
     return deltaToTrackpointsStream
   }
 }
