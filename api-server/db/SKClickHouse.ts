@@ -1,4 +1,8 @@
-import ClickHouse, { QueryCallback, QueryStream } from '@apla/clickhouse'
+import ClickHouse, {
+  QueryCallback,
+  QueryStream,
+  TsvRowCallback
+} from '@apla/clickhouse'
 import BinaryQuadkey from 'binaryquadkey'
 import {
   ChronoField,
@@ -34,7 +38,7 @@ export default class SKClickHouse {
         ts     DateTime,
         millis UInt16,
         context String,
-        source String,
+        sourceRef String,
         lat Float64,
         lng Float64,
         quadkey UInt64
@@ -75,7 +79,7 @@ export default class SKClickHouse {
     return this.ch
       .querying(
         `
-          SELECT toUnixTimestamp(ts), millis, context, source, lat, lng
+          SELECT toUnixTimestamp(ts), millis, context, sourceRef, lat, lng
           FROM position
           WHERE context = '${vesselId}' ${bboxClause}
           ORDER BY ts, millis`
@@ -94,9 +98,12 @@ export default class SKClickHouse {
   }
 
   // TODO: Could this return a typed stream that would only accept writes for SKDelta?
-  deltaWriteStream(cb: QueryCallback<void>): QueryStream {
+  deltaWriteStream(
+    cb?: QueryCallback<void>,
+    tsvRowCb?: TsvRowCallback
+  ): QueryStream {
     const deltaToTrackpointsStream = new DeltaToTrackpointStream()
-    const pointsToTsv = new TrackpointsToClickHouseTSV()
+    const pointsToTsv = new TrackpointsToClickHouseTSV(tsvRowCb)
     const chWriteStream = this.ch.query(
       `INSERT INTO position`,
       { format: 'TSV' },
@@ -108,11 +115,12 @@ export default class SKClickHouse {
 }
 
 class TrackpointsToClickHouseTSV extends Transform {
-  constructor() {
+  constructor(readonly tsvRowCb: TsvRowCallback = () => undefined) {
     super({ objectMode: true })
   }
 
   _transform(trackpoint: Trackpoint, encoding: string, cb: TransformCallback) {
+    this.tsvRowCb()
     this.push(trackPointToColumns(trackpoint))
     cb()
   }
@@ -122,7 +130,7 @@ function columnsToTrackpoint([
   unixTime,
   millis,
   context,
-  source,
+  sourceRef,
   lat,
   lng
 ]: PositionRowColumns): Trackpoint {
@@ -132,7 +140,7 @@ function columnsToTrackpoint([
       Instant.ofEpochMilli(unixTime * 1000 + millis),
       ZoneId.UTC
     ),
-    source,
+    sourceRef,
     new Coords({ lat, lng })
   )
 }
@@ -144,7 +152,7 @@ function trackPointToColumns(trackpoint: Trackpoint): PositionRowColumns {
     trackpoint.timestamp.toEpochSecond(),
     trackpoint.timestamp.get(ChronoField.MILLI_OF_SECOND),
     trackpoint.context,
-    trackpoint.source,
+    trackpoint.sourceRef,
     trackpoint.coords.latitude,
     trackpoint.coords.longitude,
     bqk.toString()
