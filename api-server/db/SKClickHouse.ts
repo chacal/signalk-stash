@@ -3,58 +3,32 @@ import ClickHouse, {
   QueryStream,
   TsvRowCallback
 } from '@apla/clickhouse'
-import BinaryQuadkey from 'binaryquadkey'
-import {
-  ChronoField,
-  ChronoUnit,
-  Instant,
-  ZonedDateTime,
-  ZoneId
-} from 'js-joda'
+import { ChronoUnit } from 'js-joda'
 import _ from 'lodash'
-import QK from 'quadkeytools'
-import { Transform, TransformCallback } from 'stream'
 import config from '../Config'
 import CountDownLatch from '../CountDownLatch'
 import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
-import { BBox, Coords } from '../domain/Geo'
+import { BBox } from '../domain/Geo'
 import {
   createValuesTable,
   PathValuesToClickHouseTSV
 } from '../domain/PathValue'
-import Trackpoint, { Track } from '../domain/Trackpoint'
-
-type PositionRowColumns = [
-  number,
-  number,
-  string,
-  string,
-  number,
-  number,
-  string
-]
+import Trackpoint, {
+  createPositionsTable,
+  getTrackPointsForVessel,
+  Track,
+  TrackpointsToClickHouseTSV,
+  trackPointToColumns
+} from '../domain/Trackpoint'
 
 export default class SKClickHouse {
   constructor(readonly ch = new ClickHouse(config.clickhouse)) {}
 
-  ensureTables(): Promise<void> {
-    return this.ch
-      .querying(
-        `
-      CREATE TABLE IF NOT EXISTS position (
-        ts     DateTime,
-        millis UInt16,
-        context String,
-        sourceRef String,
-        lat Float64,
-        lng Float64,
-        quadkey UInt64
-      ) ENGINE = MergeTree()
-      PARTITION BY toYYYYMMDD(ts)
-      ORDER BY (context, quadkey, ts)
-    `
-      )
-      .then(() => createValuesTable(this.ch))
+  ensureTables(): Promise<[void, void]> {
+    return Promise.all([
+      createPositionsTable(this.ch),
+      createValuesTable(this.ch)
+    ])
   }
 
   insertTrackpoint(trackpoint: Trackpoint): Promise<void> {
@@ -73,27 +47,7 @@ export default class SKClickHouse {
     vesselId: string,
     bbox?: BBox
   ): Promise<Trackpoint[]> {
-    let bboxClause = ''
-
-    if (bbox) {
-      const { nwKey, seKey } = bbox.toQuadKeys()
-      bboxClause = `
-        AND
-          quadkey BETWEEN ${nwKey} AND ${seKey} AND
-          lat BETWEEN ${bbox.se.latitude} AND ${bbox.nw.latitude} AND
-          lng BETWEEN ${bbox.nw.longitude} AND ${bbox.se.longitude}
-      `
-    }
-
-    return this.ch
-      .querying(
-        `
-          SELECT toUnixTimestamp(ts), millis, context, sourceRef, lat, lng
-          FROM position
-          WHERE context = '${vesselId}' ${bboxClause}
-          ORDER BY ts, millis`
-      )
-      .then(x => x.data.map(columnsToTrackpoint))
+    return getTrackPointsForVessel(this.ch, vesselId, bbox)
   }
 
   getVesselTracks(vesselId: string, bbox?: BBox): Promise<Track[]> {
@@ -127,49 +81,4 @@ export default class SKClickHouse {
     )
     return deltaToTrackpointsStream
   }
-}
-
-class TrackpointsToClickHouseTSV extends Transform {
-  constructor(readonly tsvRowCb: TsvRowCallback = () => undefined) {
-    super({ objectMode: true })
-  }
-
-  _transform(trackpoint: Trackpoint, encoding: string, cb: TransformCallback) {
-    this.tsvRowCb()
-    this.push(trackPointToColumns(trackpoint))
-    cb()
-  }
-}
-
-function columnsToTrackpoint([
-  unixTime,
-  millis,
-  context,
-  sourceRef,
-  lat,
-  lng
-]: PositionRowColumns): Trackpoint {
-  return new Trackpoint(
-    context,
-    ZonedDateTime.ofInstant(
-      Instant.ofEpochMilli(unixTime * 1000 + millis),
-      ZoneId.UTC
-    ),
-    sourceRef,
-    new Coords({ lat, lng })
-  )
-}
-
-function trackPointToColumns(trackpoint: Trackpoint): PositionRowColumns {
-  const qk = QK.locationToQuadkey(trackpoint.coords, 22)
-  const bqk = BinaryQuadkey.fromQuadkey(qk)
-  return [
-    trackpoint.timestamp.toEpochSecond(),
-    trackpoint.timestamp.get(ChronoField.MILLI_OF_SECOND),
-    trackpoint.context,
-    trackpoint.sourceRef,
-    trackpoint.coords.latitude,
-    trackpoint.coords.longitude,
-    bqk.toString()
-  ]
 }

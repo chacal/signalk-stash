@@ -1,4 +1,4 @@
-import { TsvRowCallback } from '@apla/clickhouse'
+import Clickhouse, { TsvRowCallback } from '@apla/clickhouse'
 import { SKValue } from '@chacal/signalk-ts'
 import { ChronoField, ZonedDateTime } from 'js-joda'
 import { Transform, TransformCallback } from 'stream'
@@ -12,7 +12,7 @@ export default class PathValue {
   ) {}
 }
 
-export function createValuesTable(ch: any) {
+export function createValuesTable(ch: Clickhouse) {
   return ch.querying(`
     CREATE TABLE IF NOT EXISTS value (
     ts     DateTime,

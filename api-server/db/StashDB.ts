@@ -12,8 +12,11 @@ export class StashDB {
   /*
     Common DB functionality
    */
-  ensureTables(): Promise<[void, void]> {
-    return Promise.all([this.postgis.ensureTables(), this.ch.ensureTables()])
+  ensureTables(): Promise<void> {
+    return Promise.all([
+      this.postgis.ensureTables(),
+      this.ch.ensureTables()
+    ]).then(() => undefined)
   }
 
   /*
