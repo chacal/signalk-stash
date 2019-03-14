@@ -34,10 +34,13 @@ watch:
 	@$(NODEMON) $(API_SERVER_MAIN)
 
 docker-up:
-	@docker-compose -f docker-compose.dev.yml up -d
+	@docker-compose -f docker-compose.dev.yml -p signalk-stash up -d
 
 docker-stop:
-	@docker-compose -f docker-compose.dev.yml stop
+	@docker-compose -f docker-compose.dev.yml -p signalk-stash stop
+
+docker-down:
+	@docker-compose -f docker-compose.dev.yml -p signalk-stash down
 
 dev: docker-up watch
 
