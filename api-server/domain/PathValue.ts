@@ -26,6 +26,13 @@ export function createValuesTable(ch: Clickhouse) {
     ORDER BY (ts)`)
 }
 
+export function insertPathValueStream(
+  ch: Clickhouse,
+  cb: (err: void | Error) => void
+) {
+  return ch.query(`INSERT INTO value`, { format: 'TSV' }, cb)
+}
+
 type PathValueRowColumns = [number, number, string, string, string, number]
 
 export class PathValuesToClickHouseTSV extends Transform {

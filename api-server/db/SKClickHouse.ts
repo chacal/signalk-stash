@@ -11,6 +11,7 @@ import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
 import { BBox } from '../domain/Geo'
 import {
   createValuesTable,
+  insertPathValueStream,
   PathValuesToClickHouseTSV
 } from '../domain/PathValue'
 import Trackpoint, {
@@ -67,9 +68,7 @@ export default class SKClickHouse {
     const streamsEndedLatch = new CountDownLatch(2, done as () => {})
     const streamDone = streamsEndedLatch.signal.bind(streamsEndedLatch)
     pointsToTsv.pipe(insertTrackpointStream(this.ch, streamDone))
-    pathValuesToTsv.pipe(
-      this.ch.query(`INSERT INTO value`, { format: 'TSV' }, streamDone)
-    )
+    pathValuesToTsv.pipe(insertPathValueStream(this.ch, streamDone))
     return deltaToTrackpointsStream
   }
 }
