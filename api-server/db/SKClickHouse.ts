@@ -14,11 +14,12 @@ import {
   PathValuesToClickHouseTSV
 } from '../domain/PathValue'
 import Trackpoint, {
-  createPositionsTable,
+  createTrackpointTable,
   getTrackPointsForVessel,
+  insertTrackpoint,
+  insertTrackpointStream,
   Track,
-  TrackpointsToClickHouseTSV,
-  trackPointToColumns
+  TrackpointsToClickHouseTSV
 } from '../domain/Trackpoint'
 
 export default class SKClickHouse {
@@ -26,21 +27,13 @@ export default class SKClickHouse {
 
   ensureTables(): Promise<[void, void]> {
     return Promise.all([
-      createPositionsTable(this.ch),
+      createTrackpointTable(this.ch),
       createValuesTable(this.ch)
     ])
   }
 
   insertTrackpoint(trackpoint: Trackpoint): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const chInsert = this.ch.query(
-        `INSERT INTO position`,
-        { format: 'TSV' },
-        err => (err ? reject(err) : resolve())
-      )
-      chInsert.write(trackPointToColumns(trackpoint))
-      chInsert.end()
-    })
+    return insertTrackpoint(this.ch, trackpoint)
   }
 
   getTrackPointsForVessel(
@@ -73,9 +66,7 @@ export default class SKClickHouse {
     )
     const streamsEndedLatch = new CountDownLatch(2, done as () => {})
     const streamDone = streamsEndedLatch.signal.bind(streamsEndedLatch)
-    pointsToTsv.pipe(
-      this.ch.query(`INSERT INTO position`, { format: 'TSV' }, streamDone)
-    )
+    pointsToTsv.pipe(insertTrackpointStream(this.ch, streamDone))
     pathValuesToTsv.pipe(
       this.ch.query(`INSERT INTO value`, { format: 'TSV' }, streamDone)
     )

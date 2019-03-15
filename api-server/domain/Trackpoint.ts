@@ -17,7 +17,7 @@ export default class Trackpoint {
 // TODO: Move to a separate file?
 export type Track = Trackpoint[]
 
-type PositionRowColumns = [
+type TrackpointRowColumns = [
   number,
   number,
   string,
@@ -27,10 +27,10 @@ type PositionRowColumns = [
   string
 ]
 
-export function createPositionsTable(ch: Clickhouse) {
+export function createTrackpointTable(ch: Clickhouse) {
   return ch.querying(
     `
-  CREATE TABLE IF NOT EXISTS position (
+  CREATE TABLE IF NOT EXISTS trackpoint (
     ts     DateTime,
     millis UInt16,
     context String,
@@ -43,6 +43,26 @@ export function createPositionsTable(ch: Clickhouse) {
   ORDER BY (context, quadkey, ts)
 `
   )
+}
+
+export function insertTrackpointStream(
+  ch: Clickhouse,
+  cb: (err: void | Error) => void
+) {
+  return ch.query(`INSERT INTO trackpoint`, { format: 'TSV' }, cb)
+}
+
+export function insertTrackpoint(
+  ch: Clickhouse,
+  trackpoint: Trackpoint
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const chInsert = insertTrackpointStream(ch, err =>
+      err ? reject(err) : resolve()
+    )
+    chInsert.write(trackPointToColumns(trackpoint))
+    chInsert.end()
+  })
 }
 
 export class TrackpointsToClickHouseTSV extends Transform {
@@ -59,7 +79,7 @@ export class TrackpointsToClickHouseTSV extends Transform {
 
 export function trackPointToColumns(
   trackpoint: Trackpoint
-): PositionRowColumns {
+): TrackpointRowColumns {
   const qk = QK.locationToQuadkey(trackpoint.coords, 22)
   const bqk = BinaryQuadkey.fromQuadkey(qk)
   return [
@@ -80,7 +100,7 @@ function columnsToTrackpoint([
   sourceRef,
   lat,
   lng
-]: PositionRowColumns): Trackpoint {
+]: TrackpointRowColumns): Trackpoint {
   return new Trackpoint(
     context,
     ZonedDateTime.ofInstant(
@@ -113,7 +133,7 @@ export function getTrackPointsForVessel(
     .querying(
       `
         SELECT toUnixTimestamp(ts), millis, context, sourceRef, lat, lng
-        FROM position
+        FROM trackpoint
         WHERE context = '${vesselId}' ${bboxClause}
         ORDER BY ts, millis`
     )
