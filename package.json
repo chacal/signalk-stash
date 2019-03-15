@@ -35,14 +35,22 @@
     "typescript": "^3.3.3333"
   },
   "devDependencies": {
+    "@types/webpack": "^4.4.25",
+    "@types/webpack-dev-middleware": "^2.0.2",
+    "@types/webpack-hot-middleware": "^2.16.5",
     "chai": "^4.2.0",
     "mocha": "^6.0.2",
     "nodemon": "^1.18.10",
     "prettier": "^1.16.4",
     "source-map-support": "^0.5.10",
+    "ts-loader": "^5.3.3",
     "tslint": "^5.13.1",
     "tslint-config-prettier": "^1.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
-    "tslint-plugin-prettier": "^2.0.1"
+    "tslint-plugin-prettier": "^2.0.1",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-middleware": "^3.6.1",
+    "webpack-hot-middleware": "^2.24.3"
   }
 }
