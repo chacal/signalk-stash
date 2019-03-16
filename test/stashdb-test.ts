@@ -4,17 +4,15 @@ import { expect } from 'chai'
 import _ from 'lodash'
 import DB from '../api-server/db/StashDB'
 import { BBox, Coords } from '../api-server/domain/Geo'
-import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import {
   assertFixturePositionsFound,
   assertFixtureValuesFound,
   measurementFixtures,
   positionFixtures,
-  vesselUuid
+  vesselUuid,
+  writeDeltasFromPositionFixture
 } from './test-util'
 import TestDB from './TestDB'
-
-const writer = new SignalKDeltaWriter(DB)
 
 describe('StashDBB', () => {
   beforeEach(() => TestDB.resetTables())
@@ -64,9 +62,3 @@ describe('StashDBB', () => {
     chStream.end()
   })
 })
-
-function writeDeltasFromPositionFixture(): Promise<void[][]> {
-  return Promise.all(
-    positionFixtures.map(delta => writer.writeDelta(SKDelta.fromJSON(delta)))
-  )
-}

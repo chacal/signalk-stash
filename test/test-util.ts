@@ -1,4 +1,6 @@
 import BPromise from 'bluebird'
+import express from 'express'
+import request from 'supertest'
 
 import TestAccount from './TestAccount'
 
@@ -11,12 +13,16 @@ export const testAccount = new TestAccount(
   'PBKDF2$sha256$901$SsBHerbO7k6HXr3V$FK1Dcra1YV+kvqeV/LYaFZN4DslbgL6y' // "signalk"
 )
 
-import { SKDeltaJSON } from '@chacal/signalk-ts'
+import { SKDelta, SKDeltaJSON } from '@chacal/signalk-ts'
 import { expect } from 'chai'
 import { ZonedDateTime } from 'js-joda'
 import { StashDB } from '../api-server/db/StashDB'
 import Trackpoint from '../api-server/domain/Trackpoint'
 
+import API from '../api-server/API'
+import config from '../api-server/Config'
+import DB from '../api-server/db/StashDB'
+import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import untypedMeasurementFixtures from './data/measurement-fixtures.json'
 import untypedPositionFixtures from './data/position-fixtures.json'
 const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures
@@ -35,6 +41,29 @@ export function waitFor<T>(
       return BPromise.delay(100).then(() => waitFor(action, predicate))
     }
   })
+}
+
+export function writeDeltasFromPositionFixture(): Promise<void[][]> {
+  return Promise.all(
+    positionFixtures.map(delta =>
+      new SignalKDeltaWriter(DB).writeDelta(SKDelta.fromJSON(delta))
+    )
+  )
+}
+
+export function getJson(app: express.Express, path: string): request.Test {
+  return request(app)
+    .get(path)
+    .set('Accept', 'application/json')
+    .expect('Content-Type', /json/)
+}
+
+export function startTestApp(): express.Express {
+  const testApp = express()
+  // @ts-ignore: Unused expression
+  // tslint:disable-next-line:no-unused-expression-chai
+  new API(config, testApp)
+  return testApp
 }
 
 // TODO: Better type for fixturePoint

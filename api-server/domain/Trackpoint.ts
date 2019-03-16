@@ -1,9 +1,11 @@
 import Clickhouse from '@apla/clickhouse'
 import BinaryQuadkey from 'binaryquadkey'
+import Debug from 'debug'
 import { ChronoField, Instant, ZonedDateTime, ZoneId } from 'js-joda'
 import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
 import { BBox, Coords } from './Geo'
+const debug = Debug('stash:skclickhouse')
 
 export default class Trackpoint {
   constructor(
@@ -126,13 +128,18 @@ export function getTrackPointsForVessel(
     `
   }
 
-  return ch
-    .querying(
-      `
+  const query = `
         SELECT toUnixTimestamp(ts), millis, context, sourceRef, lat, lng
         FROM trackpoint
         WHERE context = '${vesselId}' ${bboxClause}
         ORDER BY ts, millis`
-    )
+  debug(query)
+
+  return ch
+    .querying(query)
+    .then(x => {
+      debug(JSON.stringify(x.statistics) + ' ' + x.data.length)
+      return x
+    })
     .then(x => x.data.map(columnsToTrackpoint))
 }
