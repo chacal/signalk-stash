@@ -1,13 +1,9 @@
 export default class CountDownLatch {
-  capacity: number
-  err: Error | void
+  private err: Error | undefined = undefined
   constructor(
-    capacity: number,
+    private capacity: number,
     readonly onCompletion: (err: Error | void) => any
-  ) {
-    this.capacity = capacity
-    this.err = undefined
-  }
+  ) {}
   signal(err: Error | void) {
     if (err) {
       this.err = err
