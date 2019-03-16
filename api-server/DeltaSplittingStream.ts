@@ -19,8 +19,8 @@ export default class DeltaSplittingStream extends AbstractDoubleOutputStream<
   }
 
   protected writeToOutputs(delta: SKDelta): OutputStates {
-    let canWriteMorePoints = true
-    let canWriteMoreValues = true
+    let canWritePoints = true
+    let canWriteValues = true
 
     const { context, updates } = delta
     updates.forEach(update => {
@@ -28,32 +28,26 @@ export default class DeltaSplittingStream extends AbstractDoubleOutputStream<
       return update.values.forEach(pathValue => {
         if (pathValue.path === 'navigation.position') {
           const position = pathValue.value as SKPosition // TODO: Add type guard to SKPosition
-          canWriteMorePoints =
-            canWriteMorePoints &&
-            this.trackPointStream.write(
-              new Trackpoint(
-                stripVesselsPrefix(context),
-                ZonedDateTime.from(nativeJs(timestamp)),
-                sourceRef,
-                Coords.fromSKPosition(position)
-              )
-            )
+          const point = new Trackpoint(
+            stripVesselsPrefix(context),
+            ZonedDateTime.from(nativeJs(timestamp)),
+            sourceRef,
+            Coords.fromSKPosition(position)
+          )
+          canWritePoints = canWritePoints && this.trackPointStream.write(point)
         } else if (typeof pathValue.value === 'number') {
-          canWriteMoreValues =
-            canWriteMoreValues &&
-            this.pathValueStream.write(
-              new PathValue(
-                stripVesselsPrefix(context),
-                ZonedDateTime.from(nativeJs(timestamp)),
-                sourceRef,
-                pathValue
-              )
-            )
+          const value = new PathValue(
+            stripVesselsPrefix(context),
+            ZonedDateTime.from(nativeJs(timestamp)),
+            sourceRef,
+            pathValue
+          )
+          canWriteValues = canWriteValues && this.pathValueStream.write(value)
         }
       })
     })
     this.emit('deltaProcessed', delta)
-    return [canWriteMorePoints, canWriteMoreValues]
+    return [canWritePoints, canWriteValues]
   }
 }
 
