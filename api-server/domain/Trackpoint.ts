@@ -39,8 +39,8 @@ export function createTrackpointTable(ch: Clickhouse) {
     lng Float64,
     quadkey UInt64
   ) ENGINE = MergeTree()
-  PARTITION BY toYYYYMMDD(ts)
-  ORDER BY (context, quadkey, ts)
+  PARTITION BY (context, toYYYYMMDD(ts))
+  ORDER BY (context, quadkey, sourceRef, ts)
 `
   )
 }

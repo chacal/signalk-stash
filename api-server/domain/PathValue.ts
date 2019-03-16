@@ -7,7 +7,7 @@ export default class PathValue {
   constructor(
     readonly context: string,
     readonly timestamp: ZonedDateTime,
-    readonly source: string,
+    readonly sourceRef: string,
     readonly pathvalue: SKValue
   ) {}
 }
@@ -15,15 +15,15 @@ export default class PathValue {
 export function createValuesTable(ch: Clickhouse) {
   return ch.querying(`
     CREATE TABLE IF NOT EXISTS value (
-    ts     DateTime,
-    millis UInt16,
-    context String,
-    source String,
-    path String,
-    value Float32
+      ts     DateTime,
+      millis UInt16,
+      context String,
+      sourceRef String,
+      path String,
+      value Float32
     ) ENGINE = MergeTree()
     PARTITION BY (context, toYYYYMMDD(ts))
-    ORDER BY (ts)`)
+    ORDER BY (context, path, sourceRef, ts)`)
 }
 
 export function insertPathValueStream(
@@ -51,7 +51,7 @@ function pathValuetoColumns(pathValue: PathValue): PathValueRowColumns {
     pathValue.timestamp.toEpochSecond(),
     pathValue.timestamp.get(ChronoField.MILLI_OF_SECOND),
     pathValue.context,
-    pathValue.source,
+    pathValue.sourceRef,
     pathValue.pathvalue.path,
     pathValue.pathvalue.value as number
   ]
