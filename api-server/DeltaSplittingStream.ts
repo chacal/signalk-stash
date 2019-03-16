@@ -52,6 +52,7 @@ export default class DeltaSplittingStream extends AbstractDoubleOutputStream<
         }
       })
     })
+    this.emit('deltaProcessed', delta)
     return [canWriteMorePoints, canWriteMoreValues]
   }
 }
