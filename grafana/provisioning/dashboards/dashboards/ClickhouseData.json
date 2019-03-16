@@ -15,7 +15,6 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 1,
   "links": [],
   "panels": [
     {
@@ -63,10 +62,10 @@
           "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
           "intervalFactor": 1,
           "query": "SELECT\n    $timeSeries as t,\n    count() as Positions\nFROM $table\nWHERE $timeFilter\nGROUP BY t\nORDER BY t",
-          "rawQuery": "SELECT     (intDiv(toUInt32(ts), 5) * 5) * 1000 as t,     count() as Positions FROM default.position WHERE ts BETWEEN toDateTime(1500710364) AND toDateTime(1500714014) GROUP BY t ORDER BY t",
+          "rawQuery": "SELECT     (intDiv(toUInt32(ts), 120) * 120) * 1000 as t,     count() as Positions FROM default.trackpoint WHERE ts >= toDateTime(1552637079) GROUP BY t ORDER BY t",
           "refId": "A",
           "round": "0s",
-          "table": "position",
+          "table": "trackpoint",
           "tableLoading": false
         }
       ],
@@ -120,8 +119,8 @@
     "list": []
   },
   "time": {
-    "from": "2017-07-22T07:59:25.198Z",
-    "to": "2017-07-22T09:00:13.953Z"
+    "from": "now-24h",
+    "to": "now"
   },
   "timepicker": {
     "refresh_intervals": [
@@ -151,5 +150,5 @@
   "timezone": "",
   "title": "Clickhouse Data",
   "uid": "IZ3_1kqiz",
-  "version": 1
+  "version": 2
 }
