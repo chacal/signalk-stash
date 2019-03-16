@@ -1,8 +1,4 @@
-import ClickHouse, {
-  QueryCallback,
-  QueryStream,
-  TsvRowCallback
-} from '@apla/clickhouse'
+import ClickHouse, { QueryCallback, QueryStream } from '@apla/clickhouse'
 import { ChronoUnit, ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
 import config from '../Config'
@@ -56,11 +52,8 @@ export default class SKClickHouse {
   }
 
   // TODO: Could this return a typed stream that would only accept writes for SKDelta?
-  deltaWriteStream(
-    done?: QueryCallback<void>,
-    tsvRowCb?: TsvRowCallback
-  ): QueryStream {
-    const pointsToTsv = new TrackpointsToClickHouseTSV(tsvRowCb)
+  deltaWriteStream(done?: QueryCallback<void>): QueryStream {
+    const pointsToTsv = new TrackpointsToClickHouseTSV()
     const pathValuesToTsv = new PathValuesToClickHouseTSV()
     const deltaSplittingStream = new DeltaSplittingStream(
       pointsToTsv,

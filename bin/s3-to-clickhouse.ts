@@ -38,4 +38,4 @@ s3Stream
   .pipe(liner)
   .pipe(autodetect)
   .pipe(new SKDeserializingStream())
-  .pipe(stashDB.deltaWriteStream(undefined, () => tsvRowCount++))
+  .pipe(stashDB.deltaWriteStream())

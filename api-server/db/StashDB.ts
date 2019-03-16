@@ -1,4 +1,4 @@
-import { QueryCallback, QueryStream, TsvRowCallback } from '@apla/clickhouse'
+import { QueryCallback, QueryStream } from '@apla/clickhouse'
 import { ZonedDateTime } from 'js-joda'
 import { Account, MqttACL } from '../domain/Auth'
 import { BBox } from '../domain/Geo'
@@ -38,11 +38,8 @@ export class StashDB {
     return this.ch.getVesselTracks(vesselId, bbox)
   }
 
-  deltaWriteStream(
-    cb?: QueryCallback<void>,
-    tsvRowCb?: TsvRowCallback
-  ): QueryStream {
-    return this.ch.deltaWriteStream(cb, tsvRowCb)
+  deltaWriteStream(cb?: QueryCallback<void>): QueryStream {
+    return this.ch.deltaWriteStream(cb)
   }
 
   getValues(

@@ -12,7 +12,6 @@ declare module '@apla/clickhouse' {
 
   export type QueryStream = Writable
   export type QueryCallback<T> = (error?: Error, data?: T) => void
-  export type TsvRowCallback = () => void
 
   export default class Clickhouse {
     constructor(options: DBOptions)

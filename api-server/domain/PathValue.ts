@@ -1,4 +1,4 @@
-import Clickhouse, { TsvRowCallback } from '@apla/clickhouse'
+import Clickhouse from '@apla/clickhouse'
 import { SKValue } from '@chacal/signalk-ts'
 import { ChronoField, ZonedDateTime } from 'js-joda'
 import { Transform, TransformCallback } from 'stream'
@@ -36,7 +36,7 @@ export function insertPathValueStream(
 type PathValueRowColumns = [number, number, string, string, string, number]
 
 export class PathValuesToClickHouseTSV extends Transform {
-  constructor(readonly tsvRowCb: TsvRowCallback = () => undefined) {
+  constructor() {
     super({ objectMode: true })
   }
 

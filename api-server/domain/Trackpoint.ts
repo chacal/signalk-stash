@@ -1,4 +1,4 @@
-import Clickhouse, { TsvRowCallback } from '@apla/clickhouse'
+import Clickhouse from '@apla/clickhouse'
 import BinaryQuadkey from 'binaryquadkey'
 import { ChronoField, Instant, ZonedDateTime, ZoneId } from 'js-joda'
 import QK from 'quadkeytools'
@@ -66,12 +66,11 @@ export function insertTrackpoint(
 }
 
 export class TrackpointsToClickHouseTSV extends Transform {
-  constructor(readonly tsvRowCb: TsvRowCallback = () => undefined) {
+  constructor() {
     super({ objectMode: true })
   }
 
   _transform(trackpoint: Trackpoint, encoding: string, cb: TransformCallback) {
-    this.tsvRowCb()
     this.push(trackPointToColumns(trackpoint))
     cb()
   }
