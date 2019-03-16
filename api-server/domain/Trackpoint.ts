@@ -77,9 +77,7 @@ export class TrackpointsToClickHouseTSV extends Transform {
   }
 }
 
-export function trackPointToColumns(
-  trackpoint: Trackpoint
-): TrackpointRowColumns {
+function trackPointToColumns(trackpoint: Trackpoint): TrackpointRowColumns {
   const qk = QK.locationToQuadkey(trackpoint.coords, 22)
   const bqk = BinaryQuadkey.fromQuadkey(qk)
   return [
