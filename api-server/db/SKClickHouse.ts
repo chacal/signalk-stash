@@ -1,90 +1,44 @@
-import ClickHouse, {
-  QueryCallback,
-  QueryStream,
-  TsvRowCallback
-} from '@apla/clickhouse'
-import BinaryQuadkey from 'binaryquadkey'
-import {
-  ChronoField,
-  ChronoUnit,
-  Instant,
-  ZonedDateTime,
-  ZoneId
-} from 'js-joda'
+import ClickHouse, { QueryCallback, QueryStream } from '@apla/clickhouse'
+import { ChronoUnit, ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
-import QK from 'quadkeytools'
-import { Transform, TransformCallback } from 'stream'
 import config from '../Config'
-import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
-import { BBox, Coords } from '../domain/Geo'
-import Trackpoint, { Track } from '../domain/Trackpoint'
-
-type PositionRowColumns = [
-  number,
-  number,
-  string,
-  string,
-  number,
-  number,
-  string
-]
+import CountDownLatch from '../CountDownLatch'
+import DeltaSplittingStream from '../DeltaSplittingStream'
+import { BBox } from '../domain/Geo'
+import {
+  createValuesTable,
+  getValues,
+  insertPathValueStream,
+  PathValuesToClickHouseTSV
+} from '../domain/PathValue'
+import Trackpoint, {
+  createTrackpointTable,
+  getTrackPointsForVessel,
+  insertTrackpoint,
+  insertTrackpointStream,
+  Track,
+  TrackpointsToClickHouseTSV
+} from '../domain/Trackpoint'
 
 export default class SKClickHouse {
   constructor(readonly ch = new ClickHouse(config.clickhouse)) {}
 
-  ensureTables(): Promise<void> {
-    return this.ch.querying(`
-      CREATE TABLE IF NOT EXISTS position (
-        ts     DateTime,
-        millis UInt16,
-        context String,
-        sourceRef String,
-        lat Float64,
-        lng Float64,
-        quadkey UInt64
-      ) ENGINE = MergeTree()
-      PARTITION BY toYYYYMMDD(ts)
-      ORDER BY (context, quadkey, ts)
-    `)
+  ensureTables(): Promise<[void, void]> {
+    return Promise.all([
+      createTrackpointTable(this.ch),
+      createValuesTable(this.ch)
+    ])
   }
 
   insertTrackpoint(trackpoint: Trackpoint): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const chInsert = this.ch.query(
-        `INSERT INTO position`,
-        { format: 'TSV' },
-        err => (err ? reject(err) : resolve())
-      )
-      chInsert.write(trackPointToColumns(trackpoint))
-      chInsert.end()
-    })
+    return insertTrackpoint(this.ch, trackpoint)
   }
 
   getTrackPointsForVessel(
     vesselId: string,
     bbox?: BBox
   ): Promise<Trackpoint[]> {
-    let bboxClause = ''
-
-    if (bbox) {
-      const { nwKey, seKey } = bbox.toQuadKeys()
-      bboxClause = `
-        AND
-          quadkey BETWEEN ${nwKey} AND ${seKey} AND
-          lat BETWEEN ${bbox.se.latitude} AND ${bbox.nw.latitude} AND
-          lng BETWEEN ${bbox.nw.longitude} AND ${bbox.se.longitude}
-      `
-    }
-
-    return this.ch
-      .querying(
-        `
-          SELECT toUnixTimestamp(ts), millis, context, sourceRef, lat, lng
-          FROM position
-          WHERE context = '${vesselId}' ${bboxClause}
-          ORDER BY ts, millis`
-      )
-      .then(x => x.data.map(columnsToTrackpoint))
+    return getTrackPointsForVessel(this.ch, vesselId, bbox)
   }
 
   getVesselTracks(vesselId: string, bbox?: BBox): Promise<Track[]> {
@@ -98,63 +52,32 @@ export default class SKClickHouse {
   }
 
   // TODO: Could this return a typed stream that would only accept writes for SKDelta?
-  deltaWriteStream(
-    cb?: QueryCallback<void>,
-    tsvRowCb?: TsvRowCallback
-  ): QueryStream {
-    const deltaToTrackpointsStream = new DeltaToTrackpointStream()
-    const pointsToTsv = new TrackpointsToClickHouseTSV(tsvRowCb)
-    const chWriteStream = this.ch.query(
-      `INSERT INTO position`,
-      { format: 'TSV' },
-      cb
+  deltaWriteStream(done?: QueryCallback<void>): QueryStream {
+    const pointsToTsv = new TrackpointsToClickHouseTSV()
+    const pathValuesToTsv = new PathValuesToClickHouseTSV()
+    const deltaSplittingStream = new DeltaSplittingStream(
+      pointsToTsv,
+      pathValuesToTsv
     )
-    deltaToTrackpointsStream.pipe(pointsToTsv).pipe(chWriteStream)
-    return deltaToTrackpointsStream
+
+    const streamDone = done !== undefined ? createLatchedCb(done) : undefined
+    pointsToTsv.pipe(insertTrackpointStream(this.ch, streamDone))
+    pathValuesToTsv.pipe(insertPathValueStream(this.ch, streamDone))
+    return deltaSplittingStream
+
+    function createLatchedCb(done: (err?: Error) => void) {
+      const streamsEndedLatch = new CountDownLatch(2, done)
+      return streamsEndedLatch.signal.bind(streamsEndedLatch)
+    }
   }
-}
 
-class TrackpointsToClickHouseTSV extends Transform {
-  constructor(readonly tsvRowCb: TsvRowCallback = () => undefined) {
-    super({ objectMode: true })
+  getValues(
+    context: any,
+    path: string,
+    from: ZonedDateTime,
+    to: ZonedDateTime,
+    timeresolution: number
+  ): any {
+    return getValues(this.ch, context, path, from, to, timeresolution)
   }
-
-  _transform(trackpoint: Trackpoint, encoding: string, cb: TransformCallback) {
-    this.tsvRowCb()
-    this.push(trackPointToColumns(trackpoint))
-    cb()
-  }
-}
-
-function columnsToTrackpoint([
-  unixTime,
-  millis,
-  context,
-  sourceRef,
-  lat,
-  lng
-]: PositionRowColumns): Trackpoint {
-  return new Trackpoint(
-    context,
-    ZonedDateTime.ofInstant(
-      Instant.ofEpochMilli(unixTime * 1000 + millis),
-      ZoneId.UTC
-    ),
-    sourceRef,
-    new Coords({ lat, lng })
-  )
-}
-
-function trackPointToColumns(trackpoint: Trackpoint): PositionRowColumns {
-  const qk = QK.locationToQuadkey(trackpoint.coords, 22)
-  const bqk = BinaryQuadkey.fromQuadkey(qk)
-  return [
-    trackpoint.timestamp.toEpochSecond(),
-    trackpoint.timestamp.get(ChronoField.MILLI_OF_SECOND),
-    trackpoint.context,
-    trackpoint.sourceRef,
-    trackpoint.coords.latitude,
-    trackpoint.coords.longitude,
-    bqk.toString()
-  ]
 }

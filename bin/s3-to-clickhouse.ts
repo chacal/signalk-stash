@@ -34,8 +34,11 @@ setInterval(() => {
 }, 1000)
 s3Stream.on('finish', () => process.exit(0))
 
+const deltaWriteStream = stashDB.deltaWriteStream()
+deltaWriteStream.on('deltaProcessed', () => tsvRowCount++)
+
 s3Stream
   .pipe(liner)
   .pipe(autodetect)
   .pipe(new SKDeserializingStream())
-  .pipe(stashDB.deltaWriteStream(undefined, () => tsvRowCount++))
+  .pipe(deltaWriteStream)

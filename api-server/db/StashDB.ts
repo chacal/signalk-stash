@@ -1,4 +1,5 @@
-import { QueryCallback, QueryStream, TsvRowCallback } from '@apla/clickhouse'
+import { QueryCallback, QueryStream } from '@apla/clickhouse'
+import { ZonedDateTime } from 'js-joda'
 import { Account, MqttACL } from '../domain/Auth'
 import { BBox } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
@@ -12,8 +13,11 @@ export class StashDB {
   /*
     Common DB functionality
    */
-  ensureTables(): Promise<[void, void]> {
-    return Promise.all([this.postgis.ensureTables(), this.ch.ensureTables()])
+  ensureTables(): Promise<void> {
+    return Promise.all([
+      this.postgis.ensureTables(),
+      this.ch.ensureTables()
+    ]).then(() => undefined)
   }
 
   /*
@@ -34,11 +38,18 @@ export class StashDB {
     return this.ch.getVesselTracks(vesselId, bbox)
   }
 
-  deltaWriteStream(
-    cb?: QueryCallback<void>,
-    tsvRowCb?: TsvRowCallback
-  ): QueryStream {
-    return this.ch.deltaWriteStream(cb, tsvRowCb)
+  deltaWriteStream(cb?: QueryCallback<void>): QueryStream {
+    return this.ch.deltaWriteStream(cb)
+  }
+
+  getValues(
+    context: any,
+    path: string,
+    from: ZonedDateTime,
+    to: ZonedDateTime,
+    timeresolution: number
+  ): any {
+    return this.ch.getValues(context, path, from, to, timeresolution)
   }
 
   /*

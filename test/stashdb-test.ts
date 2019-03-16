@@ -1,11 +1,14 @@
 /* eslint-env mocha */
 import { SKDelta } from '@chacal/signalk-ts'
 import { expect } from 'chai'
+import _ from 'lodash'
 import DB from '../api-server/db/StashDB'
 import { BBox, Coords } from '../api-server/domain/Geo'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import {
   assertFixturePositionsFound,
+  assertFixtureValuesFound,
+  measurementFixtures,
   positionFixtures,
   vesselUuid
 } from './test-util'
@@ -13,7 +16,7 @@ import TestDB from './TestDB'
 
 const writer = new SignalKDeltaWriter(DB)
 
-describe('StashDB', () => {
+describe('StashDBB', () => {
   beforeEach(() => TestDB.resetTables())
   it('writes positions', () => {
     return writeDeltasFromPositionFixture()
@@ -46,14 +49,18 @@ describe('StashDB', () => {
       })
   })
 
-  it('writes positions via stream', done => {
+  it('writes deltas via stream', done => {
     const chStream = DB.deltaWriteStream(err => {
-      expect(err).to.be.null
+      expect(err).to.be.undefined
       assertFixturePositionsFound(DB)
-        .then(() => done())
+        .then(() => assertFixtureValuesFound(DB))
+        .then(() => {
+          done()
+        })
         .catch(err => done(err))
     })
-    positionFixtures.forEach(delta => chStream.write(SKDelta.fromJSON(delta)))
+    const fixtures = _.shuffle(positionFixtures.concat(measurementFixtures))
+    fixtures.forEach(delta => chStream.write(SKDelta.fromJSON(delta)))
     chStream.end()
   })
 })

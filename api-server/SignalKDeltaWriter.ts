@@ -1,15 +1,19 @@
 import { SKDelta } from '@chacal/signalk-ts'
 import { StashDB } from './db/StashDB'
-import { trackpointsFromDelta } from './domain/Trackpoint'
 
 export default class SignalKDeltaWriter {
   constructor(private readonly db: StashDB) {}
 
   writeDelta(delta: SKDelta): Promise<void[]> {
-    return Promise.all(
-      trackpointsFromDelta(delta).map(trackpoint =>
-        this.db.insertTrackpoint(trackpoint)
-      )
-    )
+    return new Promise((resolve, reject) => {
+      const stream = this.db.deltaWriteStream((err?: Error, data?: any) => {
+        if (err) {
+          return reject(err)
+        }
+        resolve(data)
+      })
+      stream.write(delta)
+      stream.end()
+    })
   }
 }

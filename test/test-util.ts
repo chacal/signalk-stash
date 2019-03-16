@@ -11,11 +11,16 @@ export const testAccount = new TestAccount(
   'PBKDF2$sha256$901$SsBHerbO7k6HXr3V$FK1Dcra1YV+kvqeV/LYaFZN4DslbgL6y' // "signalk"
 )
 
+import { SKDeltaJSON } from '@chacal/signalk-ts'
 import { expect } from 'chai'
+import { ZonedDateTime } from 'js-joda'
 import { StashDB } from '../api-server/db/StashDB'
 import Trackpoint from '../api-server/domain/Trackpoint'
-import measurementFixtures from './data/measurement-fixtures.json'
-import positionFixtures from './data/position-fixtures.json'
+
+import untypedMeasurementFixtures from './data/measurement-fixtures.json'
+import untypedPositionFixtures from './data/position-fixtures.json'
+const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures
+const positionFixtures: SKDeltaJSON[] = untypedPositionFixtures
 
 export { measurementFixtures, positionFixtures }
 
@@ -44,7 +49,11 @@ export function assertTrackpoint(point: Trackpoint, fixturePoint: any): void {
   )
 }
 
-const vesselIds = [vesselUuid, 'self']
+const vesselIds = [
+  vesselUuid,
+  'self',
+  'urn:mrn:signalk:uuid:7434c104-feae-48c8-ab3a-fd3bf4ad552f'
+]
 export function assertFixturePositionsFound(DB: StashDB): Promise<void[]> {
   return Promise.all(vesselIds.map(id => DB.getTrackPointsForVessel(id))).then(
     positionsLists =>
@@ -58,4 +67,18 @@ export function assertFixturePositionsFound(DB: StashDB): Promise<void[]> {
         assertTrackpoint(positions[0], vesselFixturePositions[0])
       })
   )
+}
+
+export function assertFixtureValuesFound(DB: StashDB): Promise<void[]> {
+  return DB.getValues(
+    vesselUuid,
+    'navigation.speedOverGround',
+    ZonedDateTime.parse('2014-08-15T19:00:16.000Z'),
+    ZonedDateTime.parse('2014-08-15T19:00:23.000Z'),
+    3
+  ).then((result: any) => {
+    expect(result.data.length).to.equal(3)
+    expect(result.data[0][1]).to.be.closeTo(3.58, 0.001)
+    expect(result.data[0][0]).to.equal('2014-08-15 19:00:15')
+  })
 }

@@ -22,7 +22,8 @@ class TestDB {
           END $$;
         `
       )
-      .then(() => this.ch.querying('DROP TABLE IF EXISTS position'))
+      .then(() => this.ch.querying('DROP TABLE IF EXISTS trackpoint'))
+      .then(() => this.ch.querying('DROP TABLE IF EXISTS value'))
       .then(() => StashDB.ensureTables())
   }
 }
