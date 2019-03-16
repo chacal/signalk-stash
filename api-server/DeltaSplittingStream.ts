@@ -8,7 +8,7 @@ import { Coords } from './domain/Geo'
 import PathValue from './domain/PathValue'
 import Trackpoint from './domain/Trackpoint'
 
-export default class DeltaToTrackpointStream extends AbstractDoubleOutputStream<
+export default class DeltaSplittingStream extends AbstractDoubleOutputStream<
   SKDelta
 > {
   constructor(

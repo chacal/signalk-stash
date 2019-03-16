@@ -7,7 +7,7 @@ import { ChronoUnit, ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
 import config from '../Config'
 import CountDownLatch from '../CountDownLatch'
-import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
+import DeltaSplittingStream from '../DeltaSplittingStream'
 import { BBox } from '../domain/Geo'
 import {
   createValuesTable,
@@ -62,7 +62,7 @@ export default class SKClickHouse {
   ): QueryStream {
     const pointsToTsv = new TrackpointsToClickHouseTSV(tsvRowCb)
     const pathValuesToTsv = new PathValuesToClickHouseTSV()
-    const deltaToTrackpointsStream = new DeltaToTrackpointStream(
+    const deltaSplittingStream = new DeltaSplittingStream(
       pointsToTsv,
       pathValuesToTsv
     )
@@ -70,7 +70,7 @@ export default class SKClickHouse {
     const streamDone = streamsEndedLatch.signal.bind(streamsEndedLatch)
     pointsToTsv.pipe(insertTrackpointStream(this.ch, streamDone))
     pathValuesToTsv.pipe(insertPathValueStream(this.ch, streamDone))
-    return deltaToTrackpointsStream
+    return deltaSplittingStream
   }
 
   getValues(
