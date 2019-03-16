@@ -24,8 +24,7 @@ export default class DeltaToTrackpointStream extends AbstractDoubleOutputStream<
 
     const { context, updates } = delta
     updates.forEach(update => {
-      const { timestamp, source } = update
-      const sourceId = source !== undefined ? source.label : 'n/a' // TODO: Fix handling empty source
+      const { timestamp, sourceRef } = update
       return update.values.forEach(pathValue => {
         if (pathValue.path === 'navigation.position') {
           const position = pathValue.value as SKPosition // TODO: Add type guard to SKPosition
@@ -35,7 +34,7 @@ export default class DeltaToTrackpointStream extends AbstractDoubleOutputStream<
               new Trackpoint(
                 stripVesselsPrefix(context),
                 ZonedDateTime.from(nativeJs(timestamp)),
-                sourceId,
+                sourceRef,
                 Coords.fromSKPosition(position)
               )
             )
@@ -46,7 +45,7 @@ export default class DeltaToTrackpointStream extends AbstractDoubleOutputStream<
               new PathValue(
                 stripVesselsPrefix(context),
                 ZonedDateTime.from(nativeJs(timestamp)),
-                sourceId,
+                sourceRef,
                 pathValue
               )
             )
