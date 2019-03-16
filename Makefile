@@ -43,6 +43,21 @@ docker-stop:
 docker-down:
 	@docker-compose -f docker-compose.dev.yml -p signalk-stash down
 
+e2e-up:
+	@docker-compose -f e2e/docker-compose.e2e.yml -p signalk-stash-e2e up -d
+
+e2e-stop:
+	@docker-compose -f e2e/docker-compose.e2e.yml -p signalk-stash-e2e stop
+
+e2e-down:
+	@docker-compose -f e2e/docker-compose.e2e.yml -p signalk-stash-e2e down
+
+e2e-mqtt-input: compile
+	ENVIRONMENT=e2e node built/delta-inputs/mqtt-runner.js
+
+e2e-api: compile
+	ENVIRONMENT=e2e node $(API_SERVER_MAIN)
+
 dev: docker-up watch
 
 mqtt-input: compile docker-up

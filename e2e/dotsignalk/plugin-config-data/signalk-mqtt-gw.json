@@ -1,0 +1,23 @@
+{
+  "enabled": true,
+  "enableLogging": false,
+  "configuration": {
+    "runLocalServer": false,
+    "port": 1883,
+    "sendToRemote": true,
+    "remoteHost": "mqtt://signalk-stash-e2e_mqtt_1:1883",
+    "username": "signalk",
+    "password": "signalk",
+    "rejectUnauthorized": false,
+    "paths": [
+      {
+        "path": "navigation.position",
+        "interval": 10
+      },
+      {
+        "path": "navigation.speedOverGround",
+        "interval": 5
+      }
+    ]
+  }
+}
