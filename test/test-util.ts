@@ -11,12 +11,16 @@ export const testAccount = new TestAccount(
   'PBKDF2$sha256$901$SsBHerbO7k6HXr3V$FK1Dcra1YV+kvqeV/LYaFZN4DslbgL6y' // "signalk"
 )
 
+import { SKDeltaJSON } from '@chacal/signalk-ts'
 import { expect } from 'chai'
 import { ZonedDateTime } from 'js-joda'
 import { StashDB } from '../api-server/db/StashDB'
 import Trackpoint from '../api-server/domain/Trackpoint'
-import measurementFixtures from './data/measurement-fixtures.json'
-import positionFixtures from './data/position-fixtures.json'
+
+import untypedMeasurementFixtures from './data/measurement-fixtures.json'
+import untypedPositionFixtures from './data/position-fixtures.json'
+const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures
+const positionFixtures: SKDeltaJSON[] = untypedPositionFixtures
 
 export { measurementFixtures, positionFixtures }
 
