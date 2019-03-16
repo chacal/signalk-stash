@@ -47,7 +47,7 @@ export function createTrackpointTable(ch: Clickhouse) {
 
 export function insertTrackpointStream(
   ch: Clickhouse,
-  cb: (err: void | Error) => void
+  cb?: (err?: Error) => void
 ) {
   return ch.query(`INSERT INTO trackpoint`, { format: 'TSV' }, cb)
 }

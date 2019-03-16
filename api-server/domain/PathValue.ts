@@ -28,7 +28,7 @@ export function createValuesTable(ch: Clickhouse) {
 
 export function insertPathValueStream(
   ch: Clickhouse,
-  cb: (err: void | Error) => void
+  cb?: (err?: Error) => void
 ) {
   return ch.query(`INSERT INTO value`, { format: 'TSV' }, cb)
 }
