@@ -2,14 +2,18 @@ FROM node:alpine
 ENV NODE_ENV=production
 WORKDIR /opt/app
 
+RUN apk add git
+
 COPY package.json package-lock.json ./
 RUN npm install
 
-COPY tsconfig.json ./
+COPY tsconfig.json webpack.config.js ./
 
 COPY ./api-server ./api-server
-RUN ./node_modules/.bin/tsc
+COPY ./types ./types
+RUN ./node_modules/.bin/tsc --outDir ./built/api-server --sourceMap false
+RUN ./node_modules/.bin/webpack -p
 
-CMD ["node", "./built/index.js"]
+CMD ["node", "./built/api-server/index.js"]
 
 USER node

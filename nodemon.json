@@ -1,5 +1,5 @@
 {
-  "ignore": ["node_modules", "built", "test"],
+  "ignore": ["node_modules", "built", "test", "api-server/ui"],
   "watch": ["api-server"],
   "exec": "make start",
   "ext": "ts,js,json",

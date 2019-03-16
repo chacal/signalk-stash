@@ -3,6 +3,7 @@ TSC=$(NODE_BIN)/tsc
 MOCHA=$(NODE_BIN)/mocha
 NODEMON=$(NODE_BIN)/nodemon
 TSLINT=$(NODE_BIN)/tslint
+WEBPACK=$(NODE_BIN)/webpack
 
 API_SERVER_MAIN=built/api-server/index.js
 
@@ -55,3 +56,6 @@ psql-test:
 
 clickhouse-dev:
 	@docker exec -it signalk-stash_clickhouse-dev_1 clickhouse-client
+
+webpack-prod:
+	@$(WEBPACK) -p
