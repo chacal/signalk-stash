@@ -6,7 +6,12 @@ export default class SignalKDeltaWriter {
 
   writeDelta(delta: SKDelta): Promise<void[]> {
     return new Promise((resolve, reject) => {
-      const stream = this.db.deltaWriteStream(resolve)
+      const stream = this.db.deltaWriteStream((err?: Error, data?: any) => {
+        if (err) {
+          return reject(err)
+        }
+        resolve(data)
+      })
       stream.write(delta)
       stream.end()
     })
