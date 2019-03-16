@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 import { SKDelta } from '@chacal/signalk-ts'
 import { expect } from 'chai'
+import _ from 'lodash'
 import DB from '../api-server/db/StashDB'
 import { BBox, Coords } from '../api-server/domain/Geo'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
@@ -58,8 +59,7 @@ describe('StashDBB', () => {
         })
         .catch(err => done(err))
     })
-    const fixtures: any[] = positionFixtures.concat(measurementFixtures as any)
-    shuffle(fixtures)
+    const fixtures = _.shuffle(positionFixtures.concat(measurementFixtures))
     fixtures.forEach(delta => chStream.write(SKDelta.fromJSON(delta)))
     chStream.end()
   })
@@ -69,24 +69,4 @@ function writeDeltasFromPositionFixture(): Promise<void[][]> {
   return Promise.all(
     positionFixtures.map(delta => writer.writeDelta(SKDelta.fromJSON(delta)))
   )
-}
-
-function shuffle(array: any) {
-  let currentIndex = array.length
-  let temporaryValue
-  let randomIndex
-
-  // While there remain elements to shuffle...
-  while (0 !== currentIndex) {
-    // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex)
-    currentIndex -= 1
-
-    // And swap it with the current element.
-    temporaryValue = array[currentIndex]
-    array[currentIndex] = array[randomIndex]
-    array[randomIndex] = temporaryValue
-  }
-
-  return array
 }
