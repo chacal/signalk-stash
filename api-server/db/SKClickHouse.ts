@@ -66,11 +66,16 @@ export default class SKClickHouse {
       pointsToTsv,
       pathValuesToTsv
     )
-    const streamsEndedLatch = new CountDownLatch(2, done as () => {})
-    const streamDone = streamsEndedLatch.signal.bind(streamsEndedLatch)
+
+    const streamDone = done !== undefined ? createLatchedCb(done) : undefined
     pointsToTsv.pipe(insertTrackpointStream(this.ch, streamDone))
     pathValuesToTsv.pipe(insertPathValueStream(this.ch, streamDone))
     return deltaSplittingStream
+
+    function createLatchedCb(done: (err?: Error) => void) {
+      const streamsEndedLatch = new CountDownLatch(2, done)
+      return streamsEndedLatch.signal.bind(streamsEndedLatch)
+    }
   }
 
   getValues(
