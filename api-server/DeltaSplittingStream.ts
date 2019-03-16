@@ -52,10 +52,7 @@ export default class DeltaSplittingStream extends AbstractDoubleOutputStream<
         }
       })
     })
-    return {
-      output1CanWrite: canWriteMorePoints,
-      output2CanWrite: canWriteMoreValues
-    }
+    return [canWriteMorePoints, canWriteMoreValues]
   }
 }
 

@@ -1,10 +1,7 @@
 import { Writable, WritableOptions } from 'stream'
 import CountDownLatch from './CountDownLatch'
 
-export interface OutputStates {
-  output1CanWrite: boolean
-  output2CanWrite: boolean
-}
+export type OutputStates = [boolean, boolean]
 
 export default abstract class AbstractDoubleOutputStream<T> extends Writable {
   protected constructor(
@@ -20,7 +17,7 @@ export default abstract class AbstractDoubleOutputStream<T> extends Writable {
   }
 
   _write(value: T, encoding: string, done: any) {
-    const { output1CanWrite, output2CanWrite } = this.writeToOutputs(value)
+    const [output1CanWrite, output2CanWrite] = this.writeToOutputs(value)
     // if either or both out streams is over highwatermark we need to wait
     // for it to drain before processing more input
     const blockedCount = (!output1CanWrite ? 1 : 0) + (!output2CanWrite ? 1 : 0)
