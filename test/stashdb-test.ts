@@ -6,6 +6,7 @@ import { BBox, Coords } from '../api-server/domain/Geo'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import {
   assertFixturePositionsFound,
+  assertFixtureValuesFound,
   measurementFixtures,
   positionFixtures,
   vesselUuid
@@ -14,7 +15,7 @@ import TestDB from './TestDB'
 
 const writer = new SignalKDeltaWriter(DB)
 
-describe('StashDB', () => {
+describe('StashDBB', () => {
   beforeEach(() => TestDB.resetTables())
   it('writes positions', () => {
     return writeDeltasFromPositionFixture()
@@ -47,10 +48,11 @@ describe('StashDB', () => {
       })
   })
 
-  it('writes positions via stream', done => {
+  it('writes deltas via stream', done => {
     const chStream = DB.deltaWriteStream(err => {
       expect(err).to.be.undefined
       assertFixturePositionsFound(DB)
+        .then(() => assertFixtureValuesFound(DB))
         .then(() => {
           done()
         })

@@ -56,3 +56,33 @@ function pathValuetoColumns(pathValue: PathValue): PathValueRowColumns {
     pathValue.pathvalue.value as number
   ]
 }
+
+export function getValues(
+  ch: Clickhouse,
+  context: string,
+  path: string,
+  from: ZonedDateTime,
+  to: ZonedDateTime,
+  timeresolution: number
+): Promise<[any]> {
+  const query = `
+    SELECT
+      CAST((intDiv(toUInt32(ts), ${timeresolution}) * ${timeresolution}) AS DATETIME) as t,
+      avg(value)
+    FROM
+      value
+    WHERE
+      context = '${context}'
+      AND
+      path = '${path}'
+      AND
+      ts >= ${from.toEpochSecond()}
+      AND
+      ts <= ${to.toEpochSecond()}
+    GROUP BY
+      t
+    ORDER BY
+      t
+  `
+  return ch.querying(query)
+}

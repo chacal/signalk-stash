@@ -1,4 +1,5 @@
 import { QueryCallback, QueryStream, TsvRowCallback } from '@apla/clickhouse'
+import { ZonedDateTime } from 'js-joda'
 import { Account, MqttACL } from '../domain/Auth'
 import { BBox } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
@@ -42,6 +43,16 @@ export class StashDB {
     tsvRowCb?: TsvRowCallback
   ): QueryStream {
     return this.ch.deltaWriteStream(cb, tsvRowCb)
+  }
+
+  getValues(
+    context: any,
+    path: string,
+    from: ZonedDateTime,
+    to: ZonedDateTime,
+    timeresolution: number
+  ): any {
+    return this.ch.getValues(context, path, from, to, timeresolution)
   }
 
   /*

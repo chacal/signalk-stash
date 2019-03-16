@@ -3,7 +3,7 @@ import ClickHouse, {
   QueryStream,
   TsvRowCallback
 } from '@apla/clickhouse'
-import { ChronoUnit } from 'js-joda'
+import { ChronoUnit, ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
 import config from '../Config'
 import CountDownLatch from '../CountDownLatch'
@@ -11,6 +11,7 @@ import DeltaToTrackpointStream from '../DeltaToTrackpointStream'
 import { BBox } from '../domain/Geo'
 import {
   createValuesTable,
+  getValues,
   insertPathValueStream,
   PathValuesToClickHouseTSV
 } from '../domain/PathValue'
@@ -70,5 +71,15 @@ export default class SKClickHouse {
     pointsToTsv.pipe(insertTrackpointStream(this.ch, streamDone))
     pathValuesToTsv.pipe(insertPathValueStream(this.ch, streamDone))
     return deltaToTrackpointsStream
+  }
+
+  getValues(
+    context: any,
+    path: string,
+    from: ZonedDateTime,
+    to: ZonedDateTime,
+    timeresolution: number
+  ): any {
+    return getValues(this.ch, context, path, from, to, timeresolution)
   }
 }
