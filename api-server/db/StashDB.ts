@@ -5,6 +5,7 @@ import { BBox } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
 import SKClickHouse from './SKClickHouse'
 import SKPostgis from './SKPostgis'
+import { SKContext } from '@chacal/signalk-ts'
 
 export class StashDB {
   readonly postgis: SKPostgis = new SKPostgis()
@@ -34,8 +35,8 @@ export class StashDB {
     return this.ch.getTrackPointsForVessel(vesselId, bbox)
   }
 
-  getVesselTracks(vesselId: string, bbox?: BBox): Promise<Track[]> {
-    return this.ch.getVesselTracks(vesselId, bbox)
+  getVesselTracks(context: SKContext, bbox?: BBox): Promise<Track[]> {
+    return this.ch.getVesselTracks(context, bbox)
   }
 
   deltaWriteStream(cb?: QueryCallback<void>): QueryStream {

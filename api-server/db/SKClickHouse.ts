@@ -19,6 +19,7 @@ import Trackpoint, {
   Track,
   TrackpointsToClickHouseTSV
 } from '../domain/Trackpoint'
+import { SKContext } from '@chacal/signalk-ts'
 
 export default class SKClickHouse {
   constructor(readonly ch = new ClickHouse(config.clickhouse)) {}
@@ -35,14 +36,14 @@ export default class SKClickHouse {
   }
 
   getTrackPointsForVessel(
-    vesselId: string,
+    context: SKContext,
     bbox?: BBox
   ): Promise<Trackpoint[]> {
-    return getTrackPointsForVessel(this.ch, vesselId, bbox)
+    return getTrackPointsForVessel(this.ch, context, bbox)
   }
 
-  getVesselTracks(vesselId: string, bbox?: BBox): Promise<Track[]> {
-    return this.getTrackPointsForVessel(vesselId, bbox).then(pointsData =>
+  getVesselTracks(context: SKContext, bbox?: BBox): Promise<Track[]> {
+    return this.getTrackPointsForVessel(context, bbox).then(pointsData =>
       _.values(
         _.groupBy(pointsData, point =>
           point.timestamp.truncatedTo(ChronoUnit.DAYS).toEpochSecond()

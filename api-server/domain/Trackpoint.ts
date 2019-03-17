@@ -5,6 +5,7 @@ import { ChronoField, Instant, ZonedDateTime, ZoneId } from 'js-joda'
 import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
 import { BBox, Coords } from './Geo'
+import { SKContext } from '@chacal/signalk-ts'
 const debug = Debug('stash:skclickhouse')
 
 export default class Trackpoint {
@@ -113,7 +114,7 @@ function columnsToTrackpoint([
 
 export function getTrackPointsForVessel(
   ch: Clickhouse,
-  vesselId: string,
+  context: SKContext,
   bbox?: BBox
 ) {
   let bboxClause = ''
@@ -131,7 +132,7 @@ export function getTrackPointsForVessel(
   const query = `
         SELECT toUnixTimestamp(ts), millis, context, sourceRef, lat, lng
         FROM trackpoint
-        WHERE context = '${vesselId}' ${bboxClause}
+        WHERE context = '${context}' ${bboxClause}
         ORDER BY ts, millis`
   debug(query)
 
