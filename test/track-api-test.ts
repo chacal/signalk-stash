@@ -1,5 +1,6 @@
 import { expect } from 'chai'
 import {
+  assertValidationErrors,
   getJson,
   startTestApp,
   writeDeltasFromPositionFixture
@@ -43,5 +44,23 @@ describe('Track API', () => {
         expect(point1[0]).to.be.closeTo(21.8798941, 0.0001)
         expect(point1[1]).to.be.closeTo(59.900247, 0.0001)
       })
+  })
+  it('returns error if context is missing', () => {
+    return getJson(app, '/tracks')
+      .expect(500)
+      .expect(res => assertValidationErrors(res, '"context" is required'))
+  })
+  it('returns error if bounding box is invalid', () => {
+    return getJson(app, '/tracks')
+      .query({ context: 'self', nwLat: 59.5, seLat: 'abcdefg', seLng: 1500 })
+      .expect(500)
+      .expect(res =>
+        assertValidationErrors(
+          res,
+          '"nwLng" is required',
+          '"seLat" must be a number',
+          '"seLng" must be less than 180'
+        )
+      )
   })
 })
