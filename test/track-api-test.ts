@@ -60,4 +60,30 @@ describe('Track API', () => {
         )
       )
   })
+  it('returns track with zoom level 20', () => {
+    return getJson(app, '/tracks')
+      .query({
+        context: 'self',
+        zoomLevel: 20 // Use 2s time interval -> will return all 3 points
+      })
+      .expect(200)
+      .expect(res => {
+        expect(res.body.coordinates).to.have.lengthOf(1)
+        expect(res.body.coordinates[0]).to.have.lengthOf(3)
+      })
+  })
+  it('returns track with zoom level 11', () => {
+    return getJson(app, '/tracks')
+      .query({
+        context: 'self',
+        zoomLevel: 11 // Use 30s time interval -> will return only 2 points (two first are averaged)
+      })
+      .expect(200)
+      .expect(res => {
+        expect(res.body.coordinates).to.have.lengthOf(1)
+        expect(res.body.coordinates[0]).to.have.lengthOf(2)
+        assertCoords(res.body.coordinates[0][0], 59.75, 21.75)
+        assertCoords(res.body.coordinates[0][1], 59.9, 21.9)
+      })
+  })
 })
