@@ -5,7 +5,7 @@ import _ from 'lodash'
 import config from '../Config'
 import CountDownLatch from '../CountDownLatch'
 import DeltaSplittingStream from '../DeltaSplittingStream'
-import { BBox } from '../domain/Geo'
+import { BBox, ZoomLevel } from '../domain/Geo'
 import {
   createValuesTable,
   getValues,
@@ -37,18 +37,24 @@ export default class SKClickHouse {
 
   getTrackPointsForVessel(
     context: SKContext,
-    bbox?: BBox
+    bbox?: BBox,
+    zoomLevel?: ZoomLevel
   ): Promise<Trackpoint[]> {
-    return getTrackPointsForVessel(this.ch, context, bbox)
+    return getTrackPointsForVessel(this.ch, context, bbox, zoomLevel)
   }
 
-  getVesselTracks(context: SKContext, bbox?: BBox): Promise<Track[]> {
-    return this.getTrackPointsForVessel(context, bbox).then(pointsData =>
-      _.values(
-        _.groupBy(pointsData, point =>
-          point.timestamp.truncatedTo(ChronoUnit.DAYS).toEpochSecond()
+  getVesselTracks(
+    context: SKContext,
+    bbox?: BBox,
+    zoomLevel?: ZoomLevel
+  ): Promise<Track[]> {
+    return this.getTrackPointsForVessel(context, bbox, zoomLevel).then(
+      pointsData =>
+        _.values(
+          _.groupBy(pointsData, point =>
+            point.timestamp.truncatedTo(ChronoUnit.DAYS).toEpochSecond()
+          )
         )
-      )
     )
   }
 
@@ -80,5 +86,23 @@ export default class SKClickHouse {
     timeresolution: number
   ): any {
     return getValues(this.ch, context, path, from, to, timeresolution)
+  }
+}
+
+export function timeResolutionForZoom(zoom: ZoomLevel) {
+  if (zoom >= 20) {
+    return 2
+  } else if (zoom >= 16) {
+    return 5
+  } else if (zoom >= 14) {
+    return 10
+  } else if (zoom >= 11) {
+    return 30
+  } else if (zoom >= 9) {
+    return 2 * 60
+  } else if (zoom >= 7) {
+    return 4 * 60
+  } else {
+    return 10 * 60
   }
 }
