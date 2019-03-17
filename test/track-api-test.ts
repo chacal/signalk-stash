@@ -40,6 +40,20 @@ describe('Track API', () => {
         assertCoords(res.body.coordinates[0][1], 59.8, 21.8)
       })
   })
+  it('returns empty track with bounding box', () => {
+    return getJson(app, '/tracks')
+      .query({
+        context: 'self',
+        s: 40,
+        n: 50,
+        w: 21,
+        e: 22
+      })
+      .expect(res => {
+        expect(res.body.type).to.equal('MultiLineString')
+        expect(res.body.coordinates).to.have.lengthOf(0)
+      })
+  })
   it('returns error if context is missing', () => {
     return getJson(app, '/tracks', 500).expect(res =>
       assertValidationErrors(res, '"context" is required')
