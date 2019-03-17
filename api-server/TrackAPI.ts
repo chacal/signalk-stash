@@ -25,7 +25,7 @@ function tracks(req: Request, res: Response): void {
     const schema = {
       context: Joi.string().required()
     }
-    return validate(req.query, schema, { allowUnknown: true }).context
+    return validate(req.query, schema).context
   }
 
   function bboxFromQuery(req: Request): BBox | undefined {
@@ -37,7 +37,7 @@ function tracks(req: Request, res: Response): void {
         seLat: Schemas.lat,
         seLng: Schemas.lng
       }
-      validate(req.query, bboxSchema, { allowUnknown: true })
+      validate(req.query, bboxSchema)
       const nw = new Coords({ lat: q.nwLat, lng: q.nwLng })
       const se = new Coords({ lat: q.seLat, lng: q.seLng })
       return new BBox({ nw, se })

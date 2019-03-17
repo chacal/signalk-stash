@@ -17,7 +17,10 @@ export function validate<T>(
   schema: SchemaLike,
   opts?: ValidationOptions
 ): T {
-  const { error, value } = Joi.validate(obj, schema, opts)
+  const defaultOpts = { allowUnknown: true, abortEarly: false }
+  const usedOpts = { ...defaultOpts, ...opts }
+
+  const { error, value } = Joi.validate(obj, schema, usedOpts)
   if (error) {
     throw error
   } else {
