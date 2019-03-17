@@ -43,7 +43,10 @@ docker-stop:
 docker-down:
 	@docker-compose -f docker-compose.dev.yml -p signalk-stash down
 
-e2e-up:
+e2e-plugin-install:
+	cd e2e/dotsignalk; npm install --no-optional
+
+e2e-up: e2e-plugin-install
 	@docker-compose -f e2e/docker-compose.e2e.yml -p signalk-stash-e2e up -d
 
 e2e-stop:
@@ -54,7 +57,7 @@ e2e-down:
 
 e2e-mqtt-input: compile
 	ENVIRONMENT=e2e node built/delta-inputs/mqtt-runner.js
-
+	
 e2e-api: compile
 	ENVIRONMENT=e2e node $(API_SERVER_MAIN)
 
