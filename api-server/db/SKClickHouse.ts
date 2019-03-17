@@ -1,4 +1,5 @@
 import ClickHouse, { QueryCallback, QueryStream } from '@apla/clickhouse'
+import { SKContext } from '@chacal/signalk-ts'
 import { ChronoUnit, ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
 import config from '../Config'
@@ -19,7 +20,6 @@ import Trackpoint, {
   Track,
   TrackpointsToClickHouseTSV
 } from '../domain/Trackpoint'
-import { SKContext } from '@chacal/signalk-ts'
 
 export default class SKClickHouse {
   constructor(readonly ch = new ClickHouse(config.clickhouse)) {}

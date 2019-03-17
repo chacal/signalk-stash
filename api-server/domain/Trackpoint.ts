@@ -1,11 +1,11 @@
 import Clickhouse from '@apla/clickhouse'
+import { SKContext } from '@chacal/signalk-ts'
 import BinaryQuadkey from 'binaryquadkey'
 import Debug from 'debug'
 import { ChronoField, Instant, ZonedDateTime, ZoneId } from 'js-joda'
 import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
 import { BBox, Coords } from './Geo'
-import { SKContext } from '@chacal/signalk-ts'
 const debug = Debug('stash:skclickhouse')
 
 export default class Trackpoint {
