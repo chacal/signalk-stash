@@ -27,10 +27,10 @@ describe('Track API', () => {
     return getJson(app, '/tracks')
       .query({
         context: 'self',
-        nwLat: 60,
-        nwLng: 21,
-        seLat: 59,
-        seLng: 21.85
+        s: 59,
+        n: 60,
+        w: 21,
+        e: 21.85
       })
       .expect(res => {
         expect(res.body.type).to.equal('MultiLineString')
@@ -47,13 +47,13 @@ describe('Track API', () => {
   })
   it('returns error if bounding box is invalid', () => {
     return getJson(app, '/tracks', 500)
-      .query({ context: 'self', nwLat: 59.5, seLat: 'abcdefg', seLng: 1500 })
+      .query({ context: 'self', n: 59.5, s: 'abcdefg', e: 1500 })
       .expect(res =>
         assertValidationErrors(
           res,
-          '"nwLng" is required',
-          '"seLat" must be a number',
-          '"seLng" must be less than 180'
+          '"w" is required',
+          '"s" must be a number',
+          '"e" must be less than 180'
         )
       )
   })

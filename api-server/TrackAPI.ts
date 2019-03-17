@@ -34,16 +34,16 @@ function tracks(req: Request, res: Response): void {
 
   function bboxFromQuery(req: Request): BBox | undefined {
     const q = req.query
-    if (!!q.nwLat || !!q.nwLng || !!q.seLat || !!q.seLng) {
+    if (!!q.n || !!q.w || !!q.s || !!q.e) {
       const bboxSchema = {
-        nwLat: Schemas.lat,
-        nwLng: Schemas.lng,
-        seLat: Schemas.lat,
-        seLng: Schemas.lng
+        n: Schemas.lat,
+        w: Schemas.lng,
+        s: Schemas.lat,
+        e: Schemas.lng
       }
       validate(req.query, bboxSchema)
-      const nw = new Coords({ lat: q.nwLat, lng: q.nwLng })
-      const se = new Coords({ lat: q.seLat, lng: q.seLng })
+      const nw = new Coords({ lat: q.n, lng: q.w })
+      const se = new Coords({ lat: q.s, lng: q.e })
       return new BBox({ nw, se })
     } else {
       return undefined
