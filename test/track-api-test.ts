@@ -81,4 +81,18 @@ describe('Track API', () => {
         assertCoords(res.body.coordinates[0][1], 59.9, 21.9)
       })
   })
+  it('returns error with invalid zoom level', () => {
+    return getJson(app, '/tracks', 500)
+      .query({ context: 'self', zoomLevel: 'test' })
+      .expect(res =>
+        assertValidationErrors(res, '"zoomLevel" must be a number')
+      )
+  })
+  it('returns error with too small zoom level', () => {
+    return getJson(app, '/tracks', 500)
+      .query({ context: 'self', zoomLevel: 0 })
+      .expect(res =>
+        assertValidationErrors(res, '"zoomLevel" must be greater than 0')
+      )
+  })
 })
