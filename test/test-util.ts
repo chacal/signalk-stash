@@ -1,6 +1,7 @@
 import { SKDelta, SKDeltaJSON } from '@chacal/signalk-ts'
 import BPromise from 'bluebird'
 import { expect } from 'chai'
+import Debug from 'debug'
 import express from 'express'
 import { ZonedDateTime } from 'js-joda'
 import request, { Response } from 'supertest'
@@ -10,11 +11,11 @@ import config from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import { StashDB } from '../api-server/db/StashDB'
 import Trackpoint from '../api-server/domain/Trackpoint'
-import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import untypedMeasurementFixtures from './data/measurement-fixtures.json'
 import untypedPositionFixtures from './data/position-fixtures.json'
 import TestAccount from './TestAccount'
 
+const debug = Debug('stash:test-util')
 const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures
 const positionFixtures: SKDeltaJSON[] = untypedPositionFixtures
 export { measurementFixtures, positionFixtures }
@@ -41,12 +42,19 @@ export function waitFor<T>(
   })
 }
 
-export function writeDeltasFromPositionFixture(): Promise<void[][]> {
-  return Promise.all(
-    positionFixtures.map(delta =>
-      new SignalKDeltaWriter(DB).writeDelta(SKDelta.fromJSON(delta))
-    )
-  )
+export function writeDeltasFromPositionFixture(): Promise<void> {
+  debug('Inserting positions..')
+  return new Promise((resolve, reject) => {
+    const insert = DB.deltaWriteStream(err => {
+      if (err) {
+        return reject(err)
+      }
+      debug('Positions inserted')
+      resolve()
+    })
+    positionFixtures.forEach(delta => insert.write(SKDelta.fromJSON(delta)))
+    insert.end()
+  })
 }
 
 export function getJson(
