@@ -4,8 +4,6 @@ import { IConfig } from './Config'
 import setupTrackAPIRoutes from './TrackAPI'
 import bindWebpackMiddlewares from './WebpackMiddlewares'
 
-const isDeveloping =
-  process.env.ENVIRONMENT !== 'production' && process.env.ENVIRONMENT !== 'test'
 const publicPath = path.join(__dirname, '../../api-server/public')
 
 class API {
@@ -13,7 +11,7 @@ class API {
     private readonly config: IConfig,
     private readonly app = express()
   ) {
-    if (isDeveloping) {
+    if (config.isDeveloping) {
       bindWebpackMiddlewares(this.app)
     }
     setupTrackAPIRoutes(this.app)

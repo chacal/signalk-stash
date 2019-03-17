@@ -1,5 +1,8 @@
 import _ from 'lodash'
 
+const isDeveloping =
+  process.env.ENVIRONMENT !== 'production' && process.env.ENVIRONMENT !== 'test'
+
 export interface IConfig {
   db: {
     host: string
@@ -9,6 +12,7 @@ export interface IConfig {
     password: string
   }
   port: number
+  isDeveloping: boolean
 }
 
 interface IEnvironments {
@@ -27,7 +31,8 @@ const baseConfig = {
     host: 'localhost',
     port: 58123
   },
-  port: 3000
+  port: 3000,
+  isDeveloping
 }
 
 const environments: IEnvironments = {
