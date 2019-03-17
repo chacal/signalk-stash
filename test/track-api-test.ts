@@ -1,5 +1,6 @@
 import { expect } from 'chai'
 import {
+  assertCoords,
   assertValidationErrors,
   getJson,
   startTestApp,
@@ -27,22 +28,18 @@ describe('Track API', () => {
     return getJson(app, '/tracks')
       .query({
         context: 'self',
-        nwLat: 59.901,
-        nwLng: 21.879,
-        seLat: 59.9,
-        seLng: 21.881
+        nwLat: 60,
+        nwLng: 21,
+        seLat: 59,
+        seLng: 21.85
       })
       .expect(200)
       .expect(res => {
         expect(res.body.type).to.equal('MultiLineString')
         expect(res.body.coordinates).to.have.lengthOf(1)
         expect(res.body.coordinates[0]).to.have.lengthOf(2)
-        const point0 = res.body.coordinates[0][0]
-        const point1 = res.body.coordinates[0][1]
-        expect(point0[0]).to.be.closeTo(21.8792518, 0.0001)
-        expect(point0[1]).to.be.closeTo(59.9002565, 0.0001)
-        expect(point1[0]).to.be.closeTo(21.8798941, 0.0001)
-        expect(point1[1]).to.be.closeTo(59.900247, 0.0001)
+        assertCoords(res.body.coordinates[0][0], 59.7, 21.7)
+        assertCoords(res.body.coordinates[0][1], 59.8, 21.8)
       })
   })
   it('returns error if context is missing', () => {

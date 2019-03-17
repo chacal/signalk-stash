@@ -36,8 +36,8 @@ describe('StashDBB', () => {
         DB.getVesselTracks(
           'self',
           new BBox({
-            nw: new Coords({ lng: 21.879, lat: 59.901 }),
-            se: new Coords({ lng: 21.881, lat: 59.9 })
+            nw: new Coords({ lng: 21.75, lat: 60 }),
+            se: new Coords({ lng: 22, lat: 59 })
           })
         )
       )

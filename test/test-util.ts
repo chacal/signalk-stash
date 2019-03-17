@@ -116,3 +116,13 @@ export function assertValidationErrors(res: Response, ...messages: string[]) {
     expect(res.body).to.nested.include({ [key]: msg })
   })
 }
+
+export function assertCoords(
+  coords: [number, number],
+  lat: number,
+  lng: number,
+  delta: number = 0.0001
+): void {
+  expect(coords[0]).to.be.closeTo(lng, delta)
+  expect(coords[1]).to.be.closeTo(lat, delta)
+}
