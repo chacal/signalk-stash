@@ -49,11 +49,16 @@ export function writeDeltasFromPositionFixture(): Promise<void[][]> {
   )
 }
 
-export function getJson(app: express.Express, path: string): request.Test {
+export function getJson(
+  app: express.Express,
+  path: string,
+  statusCode: number = 200
+): request.Test {
   return request(app)
     .get(path)
     .set('Accept', 'application/json')
     .expect('Content-Type', /json/)
+    .expect(statusCode)
 }
 
 export function startTestApp(): express.Express {
