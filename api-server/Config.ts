@@ -15,8 +15,10 @@ export interface IConfig {
   isDeveloping: boolean
 }
 
+type DeepPartial<T> = { [P in keyof T]?: DeepPartial<T[P]> }
+
 interface IEnvironments {
-  [key: string]: {}
+  [key: string]: DeepPartial<IConfig>
 }
 
 const baseConfig = {
