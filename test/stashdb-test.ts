@@ -36,14 +36,14 @@ describe('StashDBB', () => {
         DB.getVesselTracks(
           'self',
           new BBox({
-            nw: new Coords({ lng: 21.877, lat: 59.901 }),
+            nw: new Coords({ lng: 21.879, lat: 59.901 }),
             se: new Coords({ lng: 21.881, lat: 59.9 })
           })
         )
       )
       .then(tracks => {
         expect(tracks).to.have.lengthOf(1)
-        expect(tracks[0]).to.have.lengthOf(3)
+        expect(tracks[0]).to.have.lengthOf(2)
       })
   })
 
