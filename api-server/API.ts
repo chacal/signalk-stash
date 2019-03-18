@@ -1,25 +1,39 @@
-import express from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import path from 'path'
 import { IConfig } from './Config'
+import setupTrackAPIRoutes from './TrackAPI'
 import bindWebpackMiddlewares from './WebpackMiddlewares'
 
-const isDeveloping = process.env.NODE_ENV !== 'production'
 const publicPath = path.join(__dirname, '../../api-server/public')
 
 class API {
   constructor(
     private readonly config: IConfig,
     private readonly app = express()
-  ) {}
-
-  start() {
-    if (isDeveloping) {
+  ) {
+    if (config.isDeveloping) {
       bindWebpackMiddlewares(this.app)
     }
+    setupTrackAPIRoutes(this.app)
     this.app.use(express.static(publicPath))
+    this.app.use(this.defaultErrorHandler)
+  }
+
+  start() {
     this.app.listen(this.config.port, () =>
       console.log(`Listening on port ${this.config.port}!`)
     )
+  }
+
+  private defaultErrorHandler(
+    err: any,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): any {
+    res.status(500).json({
+      error: typeof err === 'object' ? err : JSON.stringify(err)
+    })
   }
 }
 

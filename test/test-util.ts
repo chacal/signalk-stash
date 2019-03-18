@@ -1,6 +1,24 @@
+import { SKDelta, SKDeltaJSON } from '@chacal/signalk-ts'
 import BPromise from 'bluebird'
+import { expect } from 'chai'
+import Debug from 'debug'
+import express from 'express'
+import { ZonedDateTime } from 'js-joda'
+import request, { Response } from 'supertest'
 
+import API from '../api-server/API'
+import config from '../api-server/Config'
+import DB from '../api-server/db/StashDB'
+import { StashDB } from '../api-server/db/StashDB'
+import Trackpoint from '../api-server/domain/Trackpoint'
+import untypedMeasurementFixtures from './data/measurement-fixtures.json'
+import untypedPositionFixtures from './data/position-fixtures.json'
 import TestAccount from './TestAccount'
+
+const debug = Debug('stash:test-util')
+const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures
+const positionFixtures: SKDeltaJSON[] = untypedPositionFixtures
+export { measurementFixtures, positionFixtures }
 
 export const vesselUuid =
   'urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e'
@@ -10,19 +28,6 @@ export const testAccount = new TestAccount(
   'signalk',
   'PBKDF2$sha256$901$SsBHerbO7k6HXr3V$FK1Dcra1YV+kvqeV/LYaFZN4DslbgL6y' // "signalk"
 )
-
-import { SKDeltaJSON } from '@chacal/signalk-ts'
-import { expect } from 'chai'
-import { ZonedDateTime } from 'js-joda'
-import { StashDB } from '../api-server/db/StashDB'
-import Trackpoint from '../api-server/domain/Trackpoint'
-
-import untypedMeasurementFixtures from './data/measurement-fixtures.json'
-import untypedPositionFixtures from './data/position-fixtures.json'
-const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures
-const positionFixtures: SKDeltaJSON[] = untypedPositionFixtures
-
-export { measurementFixtures, positionFixtures }
 
 export function waitFor<T>(
   action: () => Promise<T>,
@@ -35,6 +40,41 @@ export function waitFor<T>(
       return BPromise.delay(100).then(() => waitFor(action, predicate))
     }
   })
+}
+
+export function writeDeltasFromPositionFixture(): Promise<void> {
+  debug('Inserting positions..')
+  return new Promise((resolve, reject) => {
+    const insert = DB.deltaWriteStream(err => {
+      if (err) {
+        return reject(err)
+      }
+      debug('Positions inserted')
+      resolve()
+    })
+    positionFixtures.forEach(delta => insert.write(SKDelta.fromJSON(delta)))
+    insert.end()
+  })
+}
+
+export function getJson(
+  app: express.Express,
+  path: string,
+  statusCode: number = 200
+): request.Test {
+  return request(app)
+    .get(path)
+    .set('Accept', 'application/json')
+    .expect('Content-Type', /json/)
+    .expect(statusCode)
+}
+
+export function startTestApp(): express.Express {
+  const testApp = express()
+  // @ts-ignore: Unused expression
+  // tslint:disable-next-line:no-unused-expression-chai
+  new API(config, testApp)
+  return testApp
 }
 
 // TODO: Better type for fixturePoint
@@ -81,4 +121,21 @@ export function assertFixtureValuesFound(DB: StashDB): Promise<void[]> {
     expect(result.data[0][1]).to.be.closeTo(3.58, 0.001)
     expect(result.data[0][0]).to.equal('2014-08-15 19:00:15')
   })
+}
+
+export function assertValidationErrors(res: Response, ...messages: string[]) {
+  messages.forEach((msg, i) => {
+    const key = `error.details[${i}].message`
+    expect(res.body).to.nested.include({ [key]: msg })
+  })
+}
+
+export function assertCoords(
+  coords: [number, number],
+  lat: number,
+  lng: number,
+  delta: number = 0.0001
+): void {
+  expect(coords[0]).to.be.closeTo(lng, delta)
+  expect(coords[1]).to.be.closeTo(lat, delta)
 }

@@ -1,9 +1,13 @@
 import Clickhouse from '@apla/clickhouse'
+import { SKContext } from '@chacal/signalk-ts'
 import BinaryQuadkey from 'binaryquadkey'
+import Debug from 'debug'
 import { ChronoField, Instant, ZonedDateTime, ZoneId } from 'js-joda'
 import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
-import { BBox, Coords } from './Geo'
+import { timeResolutionForZoom } from '../db/SKClickHouse'
+import { BBox, Coords, ZoomLevel } from './Geo'
+const debug = Debug('stash:skclickhouse')
 
 export default class Trackpoint {
   constructor(
@@ -111,10 +115,28 @@ function columnsToTrackpoint([
 
 export function getTrackPointsForVessel(
   ch: Clickhouse,
-  vesselId: string,
-  bbox?: BBox
+  context: SKContext,
+  bbox?: BBox,
+  zoomLevel?: ZoomLevel
 ) {
+  let selectFields =
+    'toUnixTimestamp(ts) as t, millis, context, sourceRef, lat, lng'
   let bboxClause = ''
+  let groupByClause = ''
+  let orderBy = 't, millis'
+
+  if (zoomLevel) {
+    const timeResolutionSeconds = timeResolutionForZoom(zoomLevel)
+    selectFields = `
+        (intDiv(toUInt32(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) * 1000 as t,
+        0,
+        '${context}',
+        '',
+        avg(lat),
+        avg(lng)`
+    groupByClause = 'GROUP BY t'
+    orderBy = 't'
+  }
 
   if (bbox) {
     const { nwKey, seKey } = bbox.toQuadKeys()
@@ -126,13 +148,20 @@ export function getTrackPointsForVessel(
     `
   }
 
+  const query = `
+    SELECT ${selectFields}
+    FROM trackpoint
+    WHERE context = '${context}' ${bboxClause}
+    ${groupByClause}
+    ORDER BY ${orderBy}`
+
+  debug(query)
+
   return ch
-    .querying(
-      `
-        SELECT toUnixTimestamp(ts), millis, context, sourceRef, lat, lng
-        FROM trackpoint
-        WHERE context = '${vesselId}' ${bboxClause}
-        ORDER BY ts, millis`
-    )
+    .querying(query)
+    .then(x => {
+      debug(JSON.stringify(x.statistics) + ' ' + x.data.length)
+      return x
+    })
     .then(x => x.data.map(columnsToTrackpoint))
 }
