@@ -10,18 +10,20 @@ const MQTT_BROKER =
 const MQTT_USERNAME = process.env.MQTT_USERNAME || config.mqtt.username
 const MQTT_PASSWORD = process.env.MQTT_PASSWORD || config.mqtt.password
 
-if (MQTT_USERNAME === undefined || MQTT_PASSWORD === undefined) {
-  console.error('Set MQTT_USERNAME and MQTT_PASSWORD env variables properly.')
-  process.exit(1)
-} else {
-  startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD).then(
-    mqttClient => {
-      const writer = new SignalKDeltaWriter(DB)
-      const deltaInput = new MqttDeltaInput(mqttClient, writer)
-      deltaInput.start()
-    }
-  )
-}
+DB.ensureTables().then(() => {
+  if (MQTT_USERNAME === undefined || MQTT_PASSWORD === undefined) {
+    console.error('Set MQTT_USERNAME and MQTT_PASSWORD env variables properly.')
+    process.exit(1)
+  } else {
+    startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD).then(
+      mqttClient => {
+        const writer = new SignalKDeltaWriter(DB)
+        const deltaInput = new MqttDeltaInput(mqttClient, writer)
+        deltaInput.start()
+      }
+    )
+  }
+})
 
 process.on('unhandledRejection', error => {
   console.error('Unhandled promise exception:', error)
