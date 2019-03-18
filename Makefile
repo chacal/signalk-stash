@@ -56,7 +56,7 @@ e2e-down:
 	@docker-compose -f e2e/docker-compose.e2e.yml -p signalk-stash-e2e down
 
 e2e-mqtt-account: e2e-up compile
-	ENVIRONMENT=e2e node e2e/insertTestAccount.js
+	ENVIRONMENT=e2e node built/e2e/insertTestAccount.js
 
 e2e-mqtt-input: compile
 	ENVIRONMENT=e2e node built/delta-inputs/mqtt-runner.js
