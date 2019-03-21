@@ -64,6 +64,9 @@ e2e-mqtt-input: compile
 e2e-api: compile
 	ENVIRONMENT=e2e node $(API_SERVER_MAIN)
 
+e2e-clickhouse-cli:
+	@docker exec -it signalk-stash-e2e_clickhouse_1  clickhouse-client
+
 dev: docker-up watch
 
 mqtt-input: compile docker-up
