@@ -38,7 +38,8 @@ services:
     image: signalk/signalk-server:latest
     entrypoint:
     - bin/signalk-server
-    - --sample-nmea0183-data
+    - --sample-n2k-data
+    - --override-timestamps
     environment:
     - DEBUG=signalk-mqtt-gw
     ports:
