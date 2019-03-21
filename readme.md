@@ -166,3 +166,7 @@ Tests for the project
 
 Support files for creating Docker containers and deploying them to both local (dev & test) and remote (prod) environments.
 
+# License
+
+Licensed under the Apache License, Version 2.0 (the "License").
+
