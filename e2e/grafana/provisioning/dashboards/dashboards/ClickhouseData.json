@@ -61,8 +61,8 @@
           "format": "time_series",
           "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
           "intervalFactor": 1,
-          "query": "SELECT\n    $timeSeries as t,\n    count() as Positions\nFROM $table\nWHERE $timeFilter\nGROUP BY t\nORDER BY t",
-          "rawQuery": "SELECT     (intDiv(toUInt32(ts), 120) * 120) * 1000 as t,     count() as Positions FROM default.trackpoint WHERE ts >= toDateTime(1552637079) GROUP BY t ORDER BY t",
+          "query": "SELECT\n    $timeSeries as t,\n    avg(msgs_per_second) as msgs_per_second\nFROM (select ts, count(*) as msgs_per_second  from  (select ts from trackpoint union all select ts from value) group by ts)\nWHERE $timeFilter\nGROUP BY t\nORDER BY t",
+          "rawQuery": "SELECT     (intDiv(toUInt32(ts), 1) * 1) * 1000 as t,     avg(msgs_per_second) as msgs_per_second FROM (select ts, count(*) as msgs_per_second  from  (select ts from trackpoint union all select ts from value) group by ts) WHERE ts BETWEEN toDateTime(1553185609) AND toDateTime(1553186717) GROUP BY t ORDER BY t",
           "refId": "A",
           "round": "0s",
           "table": "trackpoint",
@@ -73,7 +73,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Metrics Count",
+      "title": "Values Per Second",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -150,5 +150,5 @@
   "timezone": "",
   "title": "Clickhouse Data",
   "uid": "IZ3_1kqiz",
-  "version": 2
+  "version": 1
 }
