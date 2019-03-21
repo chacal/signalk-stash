@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+  clickhouse:
+    image: yandex/clickhouse-server
+    ports:
+     - 28123:8123
+     - 29000:9000
+  postgis:
+    image: mdillon/postgis:11-alpine
+    ports:
+     - 25432:5432
+    volumes:
+     - pgdata-e2e:/var/lib/postgresql/data
+    restart: always
+    environment:
+      POSTGRES_USER: signalk
+      POSTGRES_PASSWORD: signalk
+      POSTGRES_DB: signalk
+  mqtt:
+    image: jihartik/signalk-stash-mosquitto
+    ports:
+     - 21883:1883
+    volumes:
+      - mosquitto-data-e2e:/var/lib/mosquitto
+      - mosquitto-log-e2e:/var/log/mosquitto
+    restart: always
+  grafana:
+    image: "grafana/grafana"
+    ports:
+      - 3001:3000
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: klangis
+      GF_INSTALL_PLUGINS: vertamedia-clickhouse-datasource
+  signalk:
+    image: signalk/signalk-server:latest
+    entrypoint:
+    - bin/signalk-server
+    - --sample-n2k-data
+    - --override-timestamps
+    environment:
+    - DEBUG=signalk-mqtt-gw
+    ports:
+     - 3002:3000
+    volumes:
+     - ./dotsignalk:/home/signalk/.signalk
+    restart: always
+    privileged: true
+
+volumes:
+  pgdata-e2e:
+  mosquitto-data-e2e:
+  mosquitto-log-e2e:

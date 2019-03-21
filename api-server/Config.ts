@@ -11,8 +11,17 @@ export interface IConfig {
     user: string
     password: string
   }
+  clickhouse: {
+    host: string
+    port: number
+  }
   port: number
   isDeveloping: boolean
+  mqtt: {
+    username: string
+    password: string
+    broker: string
+  }
 }
 
 type DeepPartial<T> = { [P in keyof T]?: DeepPartial<T[P]> }
@@ -34,7 +43,12 @@ const baseConfig = {
     port: 58123
   },
   port: 3000,
-  isDeveloping
+  isDeveloping,
+  mqtt: {
+    username: 'signalk',
+    password: 'signalk',
+    broker: 'mqtt://localhost:1883'
+  }
 }
 
 const environments: IEnvironments = {
@@ -51,6 +65,21 @@ const environments: IEnvironments = {
       port: 50500
     },
     port: 3300
+  },
+  e2e: {
+    db: {
+      host: 'localhost',
+      port: 25432,
+      password: 'signalk'
+    },
+    clickhouse: {
+      host: 'localhost',
+      port: 28123
+    },
+    mqtt: {
+      broker: 'mqtt://localhost:21883'
+    },
+    port: 23000
   }
 }
 
