@@ -21,7 +21,11 @@ if (!program.bucket) {
   process.exit(-1)
 }
 const liner = new Liner({})
-const autodetect = new AutoDetect({ noThrottle: true, app: { signalk: {} } })
+const autodetect = new AutoDetect({
+  noThrottle: true,
+  // tslint:disable-next-line: no-empty
+  app: { signalk: {}, emit: () => {} }
+})
 
 const s3Stream = new S3Stream({
   bucket: program.bucket,
