@@ -44,9 +44,9 @@ docker-down:
 	@docker-compose -f docker-compose.dev.yml -p signalk-stash down
 
 e2e-plugin-install:
-	cd e2e/dotsignalk; npm install --no-optional
+	cd e2e/dotsignalk; npm install; rm -rf node_modules/mdns
 
-e2e-up: e2e-plugin-install
+e2e-up:
 	@docker-compose -f e2e/docker-compose.e2e.yml -p signalk-stash-e2e up -d
 
 e2e-stop:
