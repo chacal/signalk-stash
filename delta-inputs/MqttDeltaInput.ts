@@ -16,7 +16,9 @@ export default class MqttDeltaInput {
   _sendDeltaToWriter(topic: string, payload: Buffer, packet: mqtt.Packet) {
     try {
       const delta = SKDelta.fromJSON(payload.toString())
-      this.deltaWriter.writeDelta(delta)
+      this.deltaWriter.writeDelta(delta).catch(err => {
+        console.error(err)
+      })
     } catch (e) {
       console.error(`Invalid SignalK delta from MQTT: ${payload}`)
     }

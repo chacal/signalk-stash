@@ -47,8 +47,8 @@ function runImport(file: string, context: SKContext) {
       }
 
       importOneLine(line, context)
-        .catch(e => console.error(`Error: ${e.message}, line ${line}`))
         .then(() => callback())
+        .catch(e => console.error(`Error: ${e.message}, line ${line}`))
     }
   })
 
