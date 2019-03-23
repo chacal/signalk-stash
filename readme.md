@@ -4,17 +4,18 @@ Signal K Stash is a cloud deployed set of services that enable ingesting and sto
 
 ## Developing
 
-`make` is used to run Typescript compiling, setup development dependencies using `docker-compose` and for running test.
-Most important make targets are documented below. See all targets in [Makefile](Makefile).
+`make` is used for Typescript compiling, bundling frontend code, setting up development dependencies using `docker-compose` and for running test. Most important make targets are documented below. See all targets in [Makefile](Makefile). Run `npm i` to install Node dependencies before running any Make targets.
 
 ### Dependencies
 
-`docker-compose` is used to start local development and test environment dependencies. Dependencies consist of 4 containers:
+`docker-compose` is used to start local development and test environment dependencies. Dependencies consist of 6 containers:
 
 - `postgis` (Postgis development DB)
 - `postgis-test` (Postgis test DB)
 - `mqtt` (Mosquitto development MQTT broker)
 - `mqtt-test` (Mosquitto test MQTT broker)
+- `grafana` (Grafana development UI)
+- `clickhouse-dev` (ClickHouse development DB)
 
 `mqtt` container is configured to authenticate against `postgis` DB and `mqtt-test` against `postgis-test` DB.
 
@@ -27,7 +28,7 @@ To start all development dependencies run:
     make dev
 
 This starts development dependencies with `docker-compose` and runs development API server
-using Nodemon watch for hot-reloading code changes. 
+using Nodemon watch for hot-reloading code changes. Development server also contains middleware for dynamically building frontend code using Webpack.
 
 By default the development server listens on port 3000.
 
@@ -46,6 +47,10 @@ Connect to local development DB:
 Connect to local test DB:
 
     make psql-test
+
+Connect to local ClickHouse DB:
+
+    make clickhouse-dev
 
 Connect to remote (e.g. prod) DB:
 
@@ -119,6 +124,8 @@ The production deployment of SignalK Stash consists of the following Docker imag
     jihartik/signalk-stash-mqtt-input     # MQTT SignalK Delta input
     jihartik/signalk-stash-mosquitto      # Mosquitto MQTT broker (with custom configs)
     mdillon/postgis:10-alpine             # PostGIS DB
+    
+NOTE: ClickHouse is not included in the production deployment at the moment!
 
 ### Steps for production deployment:
 
@@ -154,13 +161,25 @@ Steps to provision a new server:
 
 Node.js backend server providing REST API for accessing data stored in SignalK Stash. Also contains database access and SignalK delta handling.
 
+## bin
+
+Misc helper binaries
+
 ## delta-inputs
 
 Different drivers for ingesting SignalK data (SignalK delta messages) into the SignalK Stash. At the moments contains only a driver that receives deltas from an MQTT broker.
 
+## e2e
+
+Docker compose file & configurations for settings up end-to-end test system.
+
 ## test
 
 Tests for the project
+
+## types
+
+Type declarations for 3rd party Javascript libraries
 
 ## Project root
 
