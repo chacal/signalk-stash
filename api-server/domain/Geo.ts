@@ -42,4 +42,9 @@ export class BBox {
   }
 }
 
+export interface TrackGeoJSON {
+  type: 'MultiLineString'
+  coordinates: number[][] | number[][][]
+}
+
 export type ZoomLevel = number

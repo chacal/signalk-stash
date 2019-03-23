@@ -6,7 +6,7 @@ import { ChronoField, Instant, ZonedDateTime, ZoneId } from 'js-joda'
 import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
 import { timeResolutionForZoom } from '../db/SKClickHouse'
-import { BBox, Coords, ZoomLevel } from './Geo'
+import { BBox, Coords, TrackGeoJSON, ZoomLevel } from './Geo'
 const debug = Debug('stash:skclickhouse')
 
 export default class Trackpoint {
@@ -20,6 +20,15 @@ export default class Trackpoint {
 
 // TODO: Move to a separate file?
 export type Track = Trackpoint[]
+
+export function tracksToGeoJSON(tracks: Track[]): TrackGeoJSON {
+  return {
+    type: 'MultiLineString',
+    coordinates: tracks.map(track =>
+      track.map(({ coords }) => [coords.lng, coords.lat])
+    )
+  }
+}
 
 type TrackpointRowColumns = [
   number,
