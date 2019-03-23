@@ -16,6 +16,7 @@ class API {
     }
     setupTrackAPIRoutes(this.app)
     this.app.use(express.static(publicPath))
+    this.app.use(this.validationErrorHandler)
     this.app.use(this.defaultErrorHandler)
   }
 
@@ -23,6 +24,19 @@ class API {
     this.app.listen(this.config.port, () =>
       console.log(`Listening on port ${this.config.port}!`)
     )
+  }
+
+  private validationErrorHandler(
+    err: any,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): any {
+    if (err && typeof err === 'object' && err.name === 'ValidationError') {
+      res.status(400).json({
+        error: err
+      })
+    }
   }
 
   private defaultErrorHandler(
