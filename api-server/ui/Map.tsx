@@ -31,6 +31,7 @@ const Map = ({ center, zoom, bounds, tracks }: Atomized<MapProps>) => {
       ref={updateBoundsFromMap}
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <TileLayer url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png" />
       {tracks.map(t => (
         <GeoJSON key={new Date().getTime()} data={t} /> // Use timestamp as key to force rendering of tracks
       ))}
