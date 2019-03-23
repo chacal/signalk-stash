@@ -5,8 +5,8 @@ import _ from 'lodash'
 import DB from '../api-server/db/StashDB'
 import { BBox, Coords } from '../api-server/domain/Geo'
 import {
-  assertFixturePositionsFound,
-  assertFixtureValuesFound,
+  assertFixturePositionsInDB,
+  assertFixtureValuesInDB,
   measurementFixtures,
   positionFixtures,
   vesselUuid,
@@ -17,9 +17,18 @@ import TestDB from './TestDB'
 describe('StashDBB', () => {
   beforeEach(() => TestDB.resetTables())
   it('writes positions', () => {
+    return writeDeltasFromPositionFixture().then(() =>
+      assertFixturePositionsInDB(DB)
+    )
+  })
+
+  it('returns tracks by zoomLevel', () => {
     return writeDeltasFromPositionFixture()
-      .then(() => DB.getTrackPointsForVessel(vesselUuid))
-      .then(() => assertFixturePositionsFound(DB))
+      .then(() => DB.getTrackPointsForVessel(vesselUuid, undefined, 10))
+      .then(points => {
+        expect(points).to.have.lengthOf(5)
+        expect(points[0].timestamp.toString()).to.equal('2014-08-15T19:00Z')
+      })
   })
 
   it('returns daily tracks', () => {
@@ -50,8 +59,8 @@ describe('StashDBB', () => {
   it('writes deltas via stream', done => {
     const chStream = DB.deltaWriteStream(err => {
       expect(err).to.be.undefined
-      assertFixturePositionsFound(DB)
-        .then(() => assertFixtureValuesFound(DB))
+      assertFixturePositionsInDB(DB)
+        .then(() => assertFixtureValuesInDB(DB))
         .then(() => {
           done()
         })

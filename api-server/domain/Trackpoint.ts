@@ -128,7 +128,7 @@ export function getTrackPointsForVessel(
   if (zoomLevel) {
     const timeResolutionSeconds = timeResolutionForZoom(zoomLevel)
     selectFields = `
-        (intDiv(toUInt32(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) * 1000 as t,
+        (intDiv(toUnixTimestamp(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) as t,
         0,
         '${context}',
         '',
