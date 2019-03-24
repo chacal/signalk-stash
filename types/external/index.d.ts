@@ -27,3 +27,24 @@ declare module 'kefir.atom' {
     view<V>(lens: any): Atom<V>
   }
 }
+
+declare module 'binaryquadkey' {
+  import { QuadKey } from 'quadkeytools'
+
+  export default class BinaryQuadkey {
+    static fromQuadkey(quadkey: QuadKey): BinaryQuadkey
+
+    toString(radix?: number): string
+  }
+}
+
+declare module 'quadkeytools' {
+  export type QuadKey = string
+
+  interface Location {
+    readonly lng: number
+    readonly lat: number
+  }
+
+  export function locationToQuadkey(location: Location, detail: number): QuadKey
+}
