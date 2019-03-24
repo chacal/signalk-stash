@@ -1,5 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express'
 import path from 'path'
+import setupTestAPIRoutes from '../test/TestAPI'
 import { IConfig } from './Config'
 import setupTrackAPIRoutes from './TrackAPI'
 import bindWebpackMiddlewares from './WebpackMiddlewares'
@@ -13,6 +14,7 @@ class API {
   ) {
     if (config.isDeveloping || config.isIntegrationTesting) {
       bindWebpackMiddlewares(this.app)
+      setupTestAPIRoutes(this.app)
     }
     setupTrackAPIRoutes(this.app)
     this.app.use(express.static(publicPath))
