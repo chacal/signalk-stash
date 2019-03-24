@@ -11,7 +11,7 @@ class API {
     private readonly config: IConfig,
     private readonly app = express()
   ) {
-    if (config.isDeveloping) {
+    if (config.isDeveloping || config.isIntegrationTesting) {
       bindWebpackMiddlewares(this.app)
     }
     setupTrackAPIRoutes(this.app)
