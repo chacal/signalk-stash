@@ -1,6 +1,6 @@
 import DB from '../api-server/db/StashDB'
-import { testAccount } from '../test/test-util'
 import { MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
+import { testAccount } from '../test/test-util'
 
 console.log(testAccount)
 

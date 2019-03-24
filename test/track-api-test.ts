@@ -55,12 +55,12 @@ describe('Track API', () => {
       })
   })
   it('returns error if context is missing', () => {
-    return getJson(app, '/tracks', 500).expect(res =>
+    return getJson(app, '/tracks', 400).expect(res =>
       assertValidationErrors(res, '"context" is required')
     )
   })
   it('returns error if bounding box is invalid', () => {
-    return getJson(app, '/tracks', 500)
+    return getJson(app, '/tracks', 400)
       .query({ context: 'self', n: 59.5, s: 'abcdefg', e: 1500 })
       .expect(res =>
         assertValidationErrors(
@@ -96,14 +96,14 @@ describe('Track API', () => {
       })
   })
   it('returns error with invalid zoom level', () => {
-    return getJson(app, '/tracks', 500)
+    return getJson(app, '/tracks', 400)
       .query({ context: 'self', zoomLevel: 'test' })
       .expect(res =>
         assertValidationErrors(res, '"zoomLevel" must be a number')
       )
   })
   it('returns error with too small zoom level', () => {
-    return getJson(app, '/tracks', 500)
+    return getJson(app, '/tracks', 400)
       .query({ context: 'self', zoomLevel: 0 })
       .expect(res =>
         assertValidationErrors(res, '"zoomLevel" must be greater than 0')

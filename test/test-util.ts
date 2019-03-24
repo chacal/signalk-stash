@@ -94,7 +94,7 @@ const vesselIds = [
   'self',
   'urn:mrn:signalk:uuid:7434c104-feae-48c8-ab3a-fd3bf4ad552f'
 ]
-export function assertFixturePositionsFound(DB: StashDB): Promise<void[]> {
+export function assertFixturePositionsInDB(DB: StashDB): Promise<void[]> {
   return Promise.all(vesselIds.map(id => DB.getTrackPointsForVessel(id))).then(
     positionsLists =>
       positionsLists.map((positions, i) => {
@@ -109,7 +109,7 @@ export function assertFixturePositionsFound(DB: StashDB): Promise<void[]> {
   )
 }
 
-export function assertFixtureValuesFound(DB: StashDB): Promise<void[]> {
+export function assertFixtureValuesInDB(DB: StashDB): Promise<void[]> {
   return DB.getValues(
     vesselUuid,
     'navigation.speedOverGround',
