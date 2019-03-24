@@ -4,6 +4,9 @@ export default class CountDownLatch {
     private capacity: number,
     readonly onCompletion: (err?: Error) => void
   ) {}
+  addCapacity(additionalCapacity: number) {
+    this.capacity += additionalCapacity
+  }
   signal(err?: Error): void {
     if (err) {
       this.err = err
