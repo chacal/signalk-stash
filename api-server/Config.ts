@@ -65,9 +65,16 @@ const environments: IEnvironments = {
   test: {
     db: {
       host: 'localhost',
-      port: 50500
+      port: 40500
     },
-    port: 3300
+    clickhouse: {
+      host: 'localhost',
+      port: 48123
+    },
+    mqtt: {
+      broker: 'mqtt://localhost:41883'
+    },
+    port: 43000
   },
   e2e: {
     db: {

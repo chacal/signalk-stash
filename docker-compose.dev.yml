@@ -17,15 +17,6 @@ services:
       POSTGRES_USER: signalk
       POSTGRES_PASSWORD: signalk
       POSTGRES_DB: signalk
-  postgis-test:
-    image: mdillon/postgis:10-alpine
-    ports:
-     - 50500:5432
-    restart: always
-    environment:
-      POSTGRES_USER: signalk
-      POSTGRES_PASSWORD: signalk
-      POSTGRES_DB: signalk
   mqtt:
     image: jihartik/signalk-stash-mosquitto
     build:
@@ -36,19 +27,6 @@ services:
     volumes:
       - mosquitto-data:/var/lib/mosquitto
       - mosquitto-log:/var/log/mosquitto
-    restart: always
-  mqtt-test:
-    image: jihartik/signalk-stash-mosquitto
-    build:
-      context: .
-      dockerfile: Dockerfile.mosquitto
-    ports:
-     - 21883:1883
-    volumes:
-      - mosquitto-data:/var/lib/mosquitto
-      - mosquitto-log:/var/log/mosquitto
-      # Overwrite mosquitto-auth.conf to authenticate against postgis-test DB
-      - ./mosquitto-auth.test.conf:/etc/mosquitto.d/mosquitto-auth.conf
     restart: always
   grafana:
     image: "grafana/grafana"

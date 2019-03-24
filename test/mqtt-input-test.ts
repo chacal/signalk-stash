@@ -3,6 +3,7 @@ import BPromise from 'bluebird'
 import { expect } from 'chai'
 import * as mqtt from 'mqtt'
 
+import Config from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import { MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
@@ -17,7 +18,7 @@ import {
 import testdb from './TestDB'
 
 const writer = new SignalKDeltaWriter(DB)
-const mqttBrokerUrl = 'mqtt://localhost:21883'
+const mqttBrokerUrl = Config.mqtt.broker
 
 describe('MQTT input', () => {
   before(() =>
