@@ -1,8 +1,10 @@
 import { Duration } from 'js-joda'
 import _ from 'lodash'
 
-const isDeveloping =
-  process.env.ENVIRONMENT !== 'production' && process.env.ENVIRONMENT !== 'test'
+const isDeveloping = process.env.ENVIRONMENT === undefined
+const isUnitTesting = process.env.ENVIRONMENT === 'unit-test'
+const isIntegrationTesting = process.env.ENVIRONMENT === 'integration-test'
+const isTesting = isUnitTesting || isIntegrationTesting
 
 export interface IConfig {
   db: {
@@ -18,6 +20,9 @@ export interface IConfig {
   }
   port: number
   isDeveloping: boolean
+  isTesting: boolean
+  isUnitTesting: boolean
+  isIntegrationTesting: boolean
   mqtt: {
     username: string
     password: string
@@ -46,12 +51,30 @@ const baseConfig = {
   },
   port: 3000,
   isDeveloping,
+  isTesting,
+  isUnitTesting,
+  isIntegrationTesting,
   mqtt: {
     username: 'signalk',
     password: 'signalk',
     broker: 'mqtt://localhost:1883'
   },
   deltaWriteStreamFlushPeriod: Duration.ofMillis(1000)
+}
+
+const testConfig = {
+  db: {
+    host: 'localhost',
+    port: 40500
+  },
+  clickhouse: {
+    host: 'localhost',
+    port: 48123
+  },
+  mqtt: {
+    broker: 'mqtt://localhost:41883'
+  },
+  port: 43000
 }
 
 const environments: IEnvironments = {
@@ -62,20 +85,8 @@ const environments: IEnvironments = {
       port: 5432
     }
   },
-  test: {
-    db: {
-      host: 'localhost',
-      port: 40500
-    },
-    clickhouse: {
-      host: 'localhost',
-      port: 48123
-    },
-    mqtt: {
-      broker: 'mqtt://localhost:41883'
-    },
-    port: 43000
-  },
+  'unit-test': testConfig,
+  'integration-test': testConfig,
   e2e: {
     db: {
       host: 'localhost',

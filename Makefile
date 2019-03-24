@@ -21,7 +21,7 @@ start: compile
 	@node $(API_SERVER_MAIN)
 
 start-test: compile
-	@ENVIRONMENT=test node $(API_SERVER_MAIN)
+	@ENVIRONMENT=integration-test node $(API_SERVER_MAIN)
 
 lint:
 	@node $(TSLINT) --project tsconfig.json
@@ -30,10 +30,10 @@ lint-fix:
 	@node $(TSLINT) --project tsconfig.json --fix
 
 test: compile docker-test-up lint
-	@ENVIRONMENT=test $(MOCHA) --require source-map-support/register --exit built/test/**/*test.js
+	@ENVIRONMENT=unit-test $(MOCHA) --require source-map-support/register --exit built/test/**/*test.js
 
 test-watch: compile docker-test-up lint
-	@ENVIRONMENT=test $(MOCHA) --require source-map-support/register --watch --reporter min built/test/**/*test.js
+	@ENVIRONMENT=unit-test $(MOCHA) --require source-map-support/register --watch --reporter min built/test/**/*test.js
 
 test-integration: cypress-run
 
