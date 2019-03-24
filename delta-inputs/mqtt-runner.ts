@@ -6,7 +6,7 @@ import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import MqttDeltaInput from './MqttDeltaInput'
 
 const MQTT_BROKER =
-  process.env.MQTT_BROKER || config.mqtt.broker || 'mqtt://localhost:11883'
+  process.env.MQTT_BROKER || config.mqtt.broker || 'mqtt://localhost:51883'
 const MQTT_USERNAME = process.env.MQTT_USERNAME || config.mqtt.username
 const MQTT_PASSWORD = process.env.MQTT_PASSWORD || config.mqtt.password
 

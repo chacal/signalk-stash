@@ -40,7 +40,7 @@ interface IEnvironments {
 const baseConfig = {
   db: {
     host: 'localhost',
-    port: 50400,
+    port: 55432,
     database: 'signalk',
     user: 'signalk',
     password: 'signalk'
@@ -65,7 +65,7 @@ const baseConfig = {
 const testConfig = {
   db: {
     host: 'localhost',
-    port: 40500
+    port: 45432
   },
   clickhouse: {
     host: 'localhost',

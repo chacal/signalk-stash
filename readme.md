@@ -68,7 +68,7 @@ Generate new PBKDF2 password hash for a new Mqtt user:
 
 Create a new Mqtt user and add ACL:
 
-    psql 'postgresql://signalk:signalk@localhost:50400/signalk'
+    psql 'postgresql://signalk:signalk@localhost:55432/signalk'
     
     INSERT INTO account (username, password, mosquitto_super) 
       VALUES ('<username>', '<pwhash>', false);
@@ -83,7 +83,7 @@ Start mqtt delta input:
 
 Publish a new SignalK delta message that is written to the Stash by mqtt delta input:
 
-    mosquitto_pub -t signalk/delta -p 11883 -u <username> -P <password> -m '
+    mosquitto_pub -t signalk/delta -p 51883 -u <username> -P <password> -m '
     {  
       "context":"vessels.urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e",
       "updates": [{  

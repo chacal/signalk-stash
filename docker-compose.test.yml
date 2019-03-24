@@ -9,7 +9,7 @@ services:
   postgis-test:
     image: mdillon/postgis:10-alpine
     ports:
-     - 40500:5432
+     - 45432:5432
     restart: always
     environment:
       POSTGRES_USER: signalk

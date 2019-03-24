@@ -84,10 +84,10 @@ mqtt-input: compile docker-dev-up
 	@node built/delta-inputs/mqtt-runner.js
 
 psql-dev:
-	@psql 'postgresql://signalk:signalk@localhost:50400/signalk'
+	@psql 'postgresql://signalk:signalk@localhost:55432/signalk'
 
 psql-test:
-	@psql 'postgresql://signalk:signalk@localhost:50500/signalk'
+	@psql 'postgresql://signalk:signalk@localhost:45432/signalk'
 
 clickhouse-client-%:
 	@docker exec -it signalk-stash-$*_clickhouse-$*_1 clickhouse-client

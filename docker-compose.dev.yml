@@ -9,7 +9,7 @@ services:
   postgis:
     image: mdillon/postgis:11-alpine
     ports:
-     - 50400:5432
+     - 55432:5432
     volumes:
      - pgdata:/var/lib/postgresql/data
     restart: always
@@ -23,7 +23,7 @@ services:
       context: .
       dockerfile: Dockerfile.mosquitto
     ports:
-     - 11883:1883
+     - 51883:1883
     volumes:
       - mosquitto-data:/var/lib/mosquitto
       - mosquitto-log:/var/log/mosquitto
