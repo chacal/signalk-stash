@@ -36,6 +36,8 @@ class API {
       res.status(400).json({
         error: err
       })
+    } else {
+      next(err)
     }
   }
 
@@ -45,8 +47,9 @@ class API {
     res: Response,
     next: NextFunction
   ): any {
+    console.error(err)
     res.status(500).json({
-      error: typeof err === 'object' ? err : JSON.stringify(err)
+      error: typeof err === 'object' ? err.toString() : JSON.stringify(err)
     })
   }
 }
