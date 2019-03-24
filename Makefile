@@ -4,6 +4,7 @@ MOCHA=$(NODE_BIN)/mocha
 NODEMON=$(NODE_BIN)/nodemon
 TSLINT=$(NODE_BIN)/tslint
 WEBPACK=$(NODE_BIN)/webpack
+CYPRESS=$(NODE_BIN)/cypress
 
 API_SERVER_MAIN=built/api-server/index.js
 
@@ -30,6 +31,16 @@ test: compile docker-up lint
 
 test-watch: compile docker-up lint
 	@ENVIRONMENT=test $(MOCHA) --require source-map-support/register --watch --reporter min built/test/**/*test.js
+
+test-integration: cypress-run
+
+test-all: test test-integration
+
+cypress-run:
+	@$(CYPRESS) run
+
+cypress-open:
+	@$(CYPRESS) open
 
 watch:
 	@$(NODEMON) $(API_SERVER_MAIN)
