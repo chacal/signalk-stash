@@ -12,7 +12,9 @@
     "strict": true,
     "noUnusedLocals": true,
     "baseUrl": "../node_modules",
-    "types": ["cypress"]
+    "jsx": "react",
+    "types": ["cypress", "external"],
+    "typeRoots" : ["../types"]
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*"]
 }
