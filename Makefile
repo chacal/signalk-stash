@@ -26,10 +26,10 @@ lint:
 lint-fix:
 	@node $(TSLINT) --project tsconfig.json --fix
 
-test: compile docker-up lint
+test: compile docker-test-up lint
 	@ENVIRONMENT=test $(MOCHA) --require source-map-support/register --exit built/test/**/*test.js
 
-test-watch: compile docker-up lint
+test-watch: compile docker-test-up lint
 	@ENVIRONMENT=test $(MOCHA) --require source-map-support/register --watch --reporter min built/test/**/*test.js
 
 test-integration: cypress-run
@@ -45,26 +45,23 @@ cypress-open:
 watch:
 	@$(NODEMON) $(API_SERVER_MAIN)
 
-docker-up:
-	@docker-compose -f docker-compose.dev.yml -p signalk-stash up -d
+docker-%-up:
+	@docker-compose -f docker-compose.$*.yml -p signalk-stash-$* up -d
 
-docker-stop:
-	@docker-compose -f docker-compose.dev.yml -p signalk-stash stop
+docker-%-stop:
+	@docker-compose -f docker-compose.$*.yml -p signalk-stash-$* stop
 
-docker-down:
-	@docker-compose -f docker-compose.dev.yml -p signalk-stash down
+docker-%-down:
+	@docker-compose -f docker-compose.$*.yml -p signalk-stash-$* down
 
 e2e-plugin-install:
 	cd e2e/dotsignalk; npm install; rm -rf node_modules/mdns
 
-e2e-up:
-	@docker-compose -f e2e/docker-compose.e2e.yml -p signalk-stash-e2e up -d
+e2e-up: docker-e2e-up
 
-e2e-stop:
-	@docker-compose -f e2e/docker-compose.e2e.yml -p signalk-stash-e2e stop
+e2e-stop: docker-e2e-stop
 
-e2e-down:
-	@docker-compose -f e2e/docker-compose.e2e.yml -p signalk-stash-e2e down
+e2e-down: docker-e2e-down
 
 e2e-mqtt-account: e2e-up compile
 	ENVIRONMENT=e2e node built/e2e/insertTestAccount.js
@@ -78,9 +75,9 @@ e2e-api: compile
 e2e-clickhouse-cli:
 	@docker exec -it signalk-stash-e2e_clickhouse_1  clickhouse-client
 
-dev: docker-up watch
+dev: docker-dev-up watch
 
-mqtt-input: compile docker-up
+mqtt-input: compile docker-dev-up
 	@node built/delta-inputs/mqtt-runner.js
 
 psql-dev:
