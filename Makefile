@@ -20,6 +20,9 @@ compile-watch:
 start: compile
 	@node $(API_SERVER_MAIN)
 
+start-test: compile
+	@ENVIRONMENT=test node $(API_SERVER_MAIN)
+
 lint:
 	@node $(TSLINT) --project tsconfig.json
 
