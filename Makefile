@@ -89,8 +89,12 @@ psql-dev:
 psql-test:
 	@psql 'postgresql://signalk:signalk@localhost:50500/signalk'
 
-clickhouse-dev:
-	@docker exec -it signalk-stash_clickhouse-dev_1 clickhouse-client
+clickhouse-client-%:
+	@docker exec -it signalk-stash-$*_clickhouse-$*_1 clickhouse-client
+
+clickhouse-dev: clickhouse-client-dev
+
+clickhouse-test: clickhouse-client-test
 
 webpack-prod:
 	@$(WEBPACK) -p
