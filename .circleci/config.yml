@@ -1,0 +1,18 @@
+version: 2
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-signal-k-stash-{{ checksum "package.json" }}
+            - v1-signal-k-stash-
+      - run:
+          command: npm install
+      - save_cache:
+          key: v1-signal-k-stash-{{ checksum "package.json" }}
+          paths:
+            - ~/node_modules
+      - run:
+          command: make test
