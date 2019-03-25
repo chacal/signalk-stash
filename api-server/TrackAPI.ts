@@ -1,5 +1,5 @@
 import Debug from 'debug'
-import { Express, Request, Response } from 'express'
+import { Express, NextFunction, Request, Response } from 'express'
 import * as Joi from 'joi'
 import stash from './db/StashDB'
 import { BBox, Coords, ZoomLevel } from './domain/Geo'
@@ -11,7 +11,7 @@ export default function setupTrackAPIRoutes(app: Express) {
   app.get('/tracks', tracks)
 }
 
-function tracks(req: Request, res: Response): void {
+function tracks(req: Request, res: Response, next: NextFunction): void {
   debug('Query: %o', req.query)
 
   const context = contextFromQuery(req)
@@ -20,6 +20,7 @@ function tracks(req: Request, res: Response): void {
   stash
     .getVesselTracks(context, bbox, zoomLevel)
     .then(tracks => res.json(tracksToGeoJSON(tracks)))
+    .catch(next)
 
   function contextFromQuery(req: Request): string {
     const schema = {

@@ -17,7 +17,8 @@
     "no-shadowed-variable": false,
     "no-console": false,
     "max-classes-per-file": false,
-    "interface-name": false
+    "interface-name": false,
+    "no-floating-promises": true
   },
   "linterOptions": {
     "exclude": [
