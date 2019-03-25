@@ -14,8 +14,8 @@ export default class MqttRunner {
       .then(mqttClient => {
         const writer = new SignalKDeltaWriter(DB)
         const deltaInput = new MqttDeltaInput(mqttClient, writer)
-        deltaInput.start()
         this.mqttClient = mqttClient
+        return deltaInput.start()
       })
       .catch(err => {
         console.error(err)
