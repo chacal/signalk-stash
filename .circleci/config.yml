@@ -7,12 +7,14 @@ jobs:
       - restore_cache:
           keys:
             - v1-signal-k-stash-{{ checksum "package.json" }}
-            - v1-signal-k-stash-
       - run:
           command: npm install
       - save_cache:
           key: v1-signal-k-stash-{{ checksum "package.json" }}
           paths:
-            - ~/node_modules
+            - ~/.cache
+            - ~/.npm
+      - run:
+          command: make docker-test-up
       - run:
           command: make test
