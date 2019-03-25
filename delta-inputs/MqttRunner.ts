@@ -1,49 +1,40 @@
 import BPromise from 'bluebird'
 import * as mqtt from 'mqtt'
-import config from '../api-server/Config'
+import { MqttClient } from 'mqtt'
+import config, { MqttConfig } from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import MqttDeltaInput from './MqttDeltaInput'
 
-const MQTT_BROKER =
-  process.env.MQTT_BROKER || config.mqtt.broker || 'mqtt://localhost:51883'
-const MQTT_USERNAME = process.env.MQTT_USERNAME || config.mqtt.username
-const MQTT_PASSWORD = process.env.MQTT_PASSWORD || config.mqtt.password
-
 export default class MqttRunner {
-  constructor() {
-    DB.ensureTables()
-      .then(() => {
-        if (MQTT_USERNAME === undefined || MQTT_PASSWORD === undefined) {
-          console.error(
-            'Set MQTT_USERNAME and MQTT_PASSWORD env variables properly.'
-          )
-          process.exit(1)
-        } else {
-          startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD).then(
-            mqttClient => {
-              const writer = new SignalKDeltaWriter(DB)
-              const deltaInput = new MqttDeltaInput(mqttClient, writer)
-              deltaInput.start()
-            }
-          )
-        }
+  mqttClient: MqttClient | void = undefined
+  start() {
+    return DB.ensureTables()
+      .then(() => startMqttClient(config.mqtt))
+      .then(mqttClient => {
+        const writer = new SignalKDeltaWriter(DB)
+        const deltaInput = new MqttDeltaInput(mqttClient, writer)
+        deltaInput.start()
+        this.mqttClient = mqttClient
       })
       .catch(err => {
         console.error(err)
         process.exit(-1)
       })
   }
+  stop() {
+    if (this.mqttClient) {
+      this.mqttClient.end()
+    } else {
+      throw Error('No mqttclient to stop')
+    }
+  }
 }
 
-function startMqttClient(
-  brokerUrl: string,
-  brokerUser: string,
-  brokerPw: string
-) {
-  const client = mqtt.connect(brokerUrl, {
-    username: brokerUser,
-    password: brokerPw
+export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
+  const client = mqtt.connect(config.broker, {
+    username: config.username,
+    password: config.password
   })
   client.on('connect', () => console.log('Connected to MQTT server'))
   client.on('offline', () => console.log('Disconnected from MQTT server'))

@@ -1,35 +1,41 @@
 /* eslint-env mocha */
-import BPromise from 'bluebird'
 import { expect } from 'chai'
-import * as mqtt from 'mqtt'
 
-import Config from '../api-server/Config'
+import config from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import { MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
-import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
-import MqttDeltaInput from '../delta-inputs/MqttDeltaInput'
+import MqttRunner, { startMqttClient } from '../delta-inputs/MqttRunner'
 import {
   assertTrackpoint,
   positionFixtures,
-  testAccount,
+  runnerAccount,
+  vesselAccount,
   vesselUuid,
   waitFor
 } from './test-util'
 import testdb from './TestDB'
 
-const writer = new SignalKDeltaWriter(DB)
-const mqttBrokerUrl = Config.mqtt.broker
-
 describe('MQTT input', () => {
-  before(() =>
+  let mqttRunner: MqttRunner
+  beforeEach(() =>
     initializeTestDb()
-      .then(getMqttClient)
-      .then(mqttClient => new MqttDeltaInput(mqttClient, writer).start())
+      .then(() => {
+        mqttRunner = new MqttRunner()
+        return mqttRunner.start()
+      })
+      .catch(err => {
+        throw err
+      })
   )
-  beforeEach(initializeTestDb)
+
+  afterEach(() => mqttRunner && mqttRunner.stop())
 
   it('writes position published to signalk/delta', () => {
-    return getMqttClient()
+    return startMqttClient({
+      broker: config.mqtt.broker,
+      username: vesselAccount.username,
+      password: vesselAccount.password
+    })
       .then(mqttClient =>
         mqttClient.publish('signalk/delta', JSON.stringify(positionFixtures[0]))
       )
@@ -49,20 +55,16 @@ describe('MQTT input', () => {
 function initializeTestDb() {
   return testdb
     .resetTables()
-    .then(() => DB.upsertAccount(testAccount))
+    .then(() => DB.upsertAccount(vesselAccount))
     .then(() =>
       DB.upsertAcl(
-        new MqttACL(testAccount.username, 'signalk/delta', MqttACLLevel.ALL)
+        new MqttACL(vesselAccount.username, 'signalk/delta', MqttACLLevel.ALL)
       )
     )
-}
-
-function getMqttClient(): BPromise<mqtt.MqttClient> {
-  const client = mqtt.connect(mqttBrokerUrl, {
-    username: testAccount.username,
-    password: testAccount.password
-  })
-  return BPromise.fromCallback(cb =>
-    client.once('connect', () => cb(null))
-  ).then(() => client)
+    .then(() => DB.upsertAccount(runnerAccount))
+    .then(() =>
+      DB.upsertAcl(
+        new MqttACL(runnerAccount.username, 'signalk/delta', MqttACLLevel.ALL)
+      )
+    )
 }

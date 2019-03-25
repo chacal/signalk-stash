@@ -5,5 +5,9 @@ process.on('unhandledRejection', error => {
   process.exit(1)
 })
 
-// tslint:disable-next-line: no-unused-expression-chai
 new MqttRunner()
+  .start()
+  .then(() => console.log('MqttRunner started'))
+  .catch(err => {
+    throw err
+  })

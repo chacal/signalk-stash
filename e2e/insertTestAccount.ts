@@ -1,14 +1,14 @@
 import DB from '../api-server/db/StashDB'
 import { MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
-import { testAccount } from '../test/test-util'
+import { vesselAccount } from '../test/test-util'
 
-console.log(testAccount)
+console.log(vesselAccount)
 
 DB.ensureTables()
-  .then(() => DB.upsertAccount(testAccount))
+  .then(() => DB.upsertAccount(vesselAccount))
   .then(() =>
     DB.upsertAcl(
-      new MqttACL(testAccount.username, 'signalk/delta', MqttACLLevel.ALL)
+      new MqttACL(vesselAccount.username, 'signalk/delta', MqttACLLevel.ALL)
     )
   )
   .then(() => {
