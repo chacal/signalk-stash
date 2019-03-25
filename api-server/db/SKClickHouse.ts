@@ -67,15 +67,46 @@ export default class SKClickHouse {
       pathValuesToTsv
     )
 
-    const streamDone = done !== undefined ? createLatchedCb(done) : undefined
-    pointsToTsv.pipe(insertTrackpointStream(this.ch, streamDone))
-    pathValuesToTsv.pipe(insertPathValueStream(this.ch, streamDone))
-    return deltaSplittingStream
+    const outputsDoneLatch = new CountDownLatch(
+      2,
+      // tslint:disable-next-line: no-empty
+      done !== undefined ? done : () => {}
+    )
 
-    function createLatchedCb(done: (err?: Error) => void) {
-      const streamsEndedLatch = new CountDownLatch(2, done)
-      return streamsEndedLatch.signal.bind(streamsEndedLatch)
-    }
+    let trackpointDbStream = insertTrackpointStream(
+      this.ch,
+      outputsDoneLatch.signal.bind(outputsDoneLatch)
+    )
+    pointsToTsv.pipe(trackpointDbStream)
+
+    let pathValueDbStream = insertPathValueStream(
+      this.ch,
+      outputsDoneLatch.signal.bind(outputsDoneLatch)
+    )
+    pathValuesToTsv.pipe(pathValueDbStream)
+
+    const interval = setInterval(() => {
+      outputsDoneLatch.addCapacity(2)
+      pointsToTsv.unpipe(trackpointDbStream)
+      trackpointDbStream.end()
+      trackpointDbStream = insertTrackpointStream(
+        this.ch,
+        outputsDoneLatch.signal.bind(outputsDoneLatch)
+      )
+      pointsToTsv.pipe(trackpointDbStream)
+
+      pathValuesToTsv.unpipe(pathValueDbStream)
+      pathValueDbStream.end()
+      pathValueDbStream = insertPathValueStream(
+        this.ch,
+        outputsDoneLatch.signal.bind(outputsDoneLatch)
+      )
+      pathValuesToTsv.pipe(pathValueDbStream)
+    }, config.deltaWriteStreamFlushPeriod.toMillis())
+    deltaSplittingStream.on('end', () => {
+      clearInterval(interval)
+    })
+    return deltaSplittingStream
   }
 
   getValues(
