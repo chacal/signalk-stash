@@ -1,3 +1,4 @@
+import { Duration } from 'js-joda'
 import _ from 'lodash'
 
 const isDeveloping =
@@ -22,6 +23,7 @@ export interface IConfig {
     password: string
     broker: string
   }
+  deltaWriteStreamFlushPeriod: Duration
 }
 
 type DeepPartial<T> = { [P in keyof T]?: DeepPartial<T[P]> }
@@ -48,7 +50,8 @@ const baseConfig = {
     username: 'signalk',
     password: 'signalk',
     broker: 'mqtt://localhost:1883'
-  }
+  },
+  deltaWriteStreamFlushPeriod: Duration.ofMillis(1000)
 }
 
 const environments: IEnvironments = {
