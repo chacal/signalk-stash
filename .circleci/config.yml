@@ -1,7 +1,7 @@
-version: 2
-jobs:
+version: 2.1
+commands:
   build:
-    machine: true
+    description: 'Builds project dependencies'
     steps:
       - checkout
       - restore_cache:
@@ -14,7 +14,34 @@ jobs:
           paths:
             - ~/.cache
             - ~/.npm
+
+jobs:
+  unit-test:
+    machine: true
+    steps:
+      - build
+      - run:
+          command: make test
+  integration-test:
+    machine: true
+    steps:
+      - build
       - run:
           command: make docker-test-up
       - run:
-          command: make test
+          command: make start-test
+          background: true
+      - run:
+          name: 'Wait for test server to start'
+          command: npx wait-on "http://localhost:43000/tracks?context=self"
+      - run:
+          command: make test-integration
+
+workflows:
+  version: 2
+  unit-test:
+    jobs:
+      - unit-test
+  integration-test:
+    jobs:
+      - integration-test
