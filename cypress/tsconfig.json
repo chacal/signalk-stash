@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "outDir": "../built",
+    "allowJs": false,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "target": "es6",
+    "module": "commonjs",
+    "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "baseUrl": "../node_modules",
+    "jsx": "react",
+    "types": ["cypress", "external"],
+    "typeRoots" : ["../types"]
+  },
+  "include": ["**/*"]
+}

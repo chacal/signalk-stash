@@ -4,3 +4,5 @@ node_modules/
 built/
 api-server/public/bundle.js
 .vscode
+cypress/screenshots/
+cypress/videos/

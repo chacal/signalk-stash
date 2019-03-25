@@ -1,3 +1,4 @@
+import Config from '../api-server/Config'
 import StashDB from '../api-server/db/StashDB'
 
 class TestDB {
@@ -5,8 +6,8 @@ class TestDB {
   private readonly pg = StashDB.postgis.db
 
   resetTables() {
-    if (process.env.ENVIRONMENT !== 'test') {
-      throw new Error('Can reset tables only in test environment!')
+    if (!Config.isTesting) {
+      throw new Error('Can reset tables only in test environments!')
     }
     return this.pg
       .query(

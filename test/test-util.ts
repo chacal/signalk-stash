@@ -43,16 +43,21 @@ export function waitFor<T>(
 }
 
 export function writeDeltasFromPositionFixture(): Promise<void> {
-  debug('Inserting positions..')
+  debug('Inserting positionFixtures..')
+  return writeDeltasFromJSONArray(positionFixtures)
+}
+
+export function writeDeltasFromJSONArray(deltas: SKDeltaJSON[]): Promise<void> {
+  debug(`Inserting ${deltas.length} deltas..`)
   return new Promise((resolve, reject) => {
     const insert = DB.deltaWriteStream(err => {
       if (err) {
         return reject(err)
       }
-      debug('Positions inserted')
+      debug('Deltas inserted')
       resolve()
     })
-    positionFixtures.forEach(delta => insert.write(SKDelta.fromJSON(delta)))
+    deltas.forEach(delta => insert.write(SKDelta.fromJSON(delta)))
     insert.end()
   })
 }

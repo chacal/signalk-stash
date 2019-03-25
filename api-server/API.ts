@@ -1,5 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express'
 import path from 'path'
+import setupTestAPIRoutes from '../test/TestAPI'
 import { IConfig } from './Config'
 import setupTrackAPIRoutes from './TrackAPI'
 import bindWebpackMiddlewares from './WebpackMiddlewares'
@@ -11,8 +12,9 @@ class API {
     private readonly config: IConfig,
     private readonly app = express()
   ) {
-    if (config.isDeveloping) {
+    if (config.isDeveloping || config.isIntegrationTesting) {
       bindWebpackMiddlewares(this.app)
+      setupTestAPIRoutes(this.app)
     }
     setupTrackAPIRoutes(this.app)
     this.app.use(express.static(publicPath))
@@ -36,6 +38,8 @@ class API {
       res.status(400).json({
         error: err
       })
+    } else {
+      next(err)
     }
   }
 
@@ -45,8 +49,9 @@ class API {
     res: Response,
     next: NextFunction
   ): any {
+    console.error(err)
     res.status(500).json({
-      error: typeof err === 'object' ? err : JSON.stringify(err)
+      error: typeof err === 'object' ? err.toString() : JSON.stringify(err)
     })
   }
 }
