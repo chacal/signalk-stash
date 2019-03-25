@@ -105,6 +105,9 @@ const environments: IEnvironments = {
 }
 
 const environment = process.env.ENVIRONMENT || 'development'
+if (!environments[environment]) {
+  throw new Error(`No such environment:${environment}`)
+}
 const config = _.merge(baseConfig, environments[environment])
 console.log(`Using ${environment} config:\n${JSON.stringify(config, null, 2)}`)
 export default config
