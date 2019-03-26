@@ -4,7 +4,11 @@ import { expect } from 'chai'
 import config from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import { MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
-import MqttRunner, { startMqttClient } from '../delta-inputs/MqttRunner'
+import { DELTABASETOPIC } from '../delta-inputs/MqttDeltaInput'
+import MqttRunner, {
+  insertRunnerAccount,
+  startMqttClient
+} from '../delta-inputs/MqttRunner'
 import {
   assertTrackpoint,
   positionFixtures,
@@ -37,7 +41,7 @@ describe('MQTT input', () => {
       password: vesselAccount.password
     })
       .then(mqttClient =>
-        mqttClient.publish('signalk/delta', JSON.stringify(positionFixtures[0]))
+        mqttClient.publish(DELTABASETOPIC, JSON.stringify(positionFixtures[0]))
       )
       .then(() =>
         waitFor(
@@ -55,16 +59,19 @@ describe('MQTT input', () => {
 function initializeTestDb() {
   return testdb
     .resetTables()
-    .then(() => DB.upsertAccount(vesselAccount))
-    .then(() =>
-      DB.upsertAcl(
-        new MqttACL(vesselAccount.username, 'signalk/delta', MqttACLLevel.ALL)
+    .then(insertVesselAccount)
+    .then(() => {
+      return insertRunnerAccount(
+        runnerAccount.username,
+        runnerAccount.passwordHash
       )
+    })
+}
+
+export function insertVesselAccount() {
+  return DB.upsertAccount(vesselAccount).then(() =>
+    DB.upsertAcl(
+      new MqttACL(vesselAccount.username, DELTABASETOPIC, MqttACLLevel.ALL)
     )
-    .then(() => DB.upsertAccount(runnerAccount))
-    .then(() =>
-      DB.upsertAcl(
-        new MqttACL(runnerAccount.username, 'signalk/delta', MqttACLLevel.ALL)
-      )
-    )
+  )
 }

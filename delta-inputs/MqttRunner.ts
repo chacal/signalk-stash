@@ -3,8 +3,9 @@ import * as mqtt from 'mqtt'
 import { MqttClient } from 'mqtt'
 import config, { MqttConfig } from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
+import { MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
-import MqttDeltaInput from './MqttDeltaInput'
+import MqttDeltaInput, { DELTABASETOPIC } from './MqttDeltaInput'
 
 export default class MqttRunner {
   mqttClient: MqttClient | void = undefined
@@ -43,4 +44,17 @@ export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
   return BPromise.fromCallback(cb =>
     client.once('connect', () => cb(null))
   ).then(() => client)
+}
+
+export function insertRunnerAccount(
+  username: string,
+  passwordHash: string
+): Promise<any> {
+  return DB.upsertAccount({
+    username,
+    passwordHash,
+    isMqttSuperUser: true
+  }).then(() =>
+    DB.upsertAcl(new MqttACL(username, DELTABASETOPIC, MqttACLLevel.ALL))
+  )
 }

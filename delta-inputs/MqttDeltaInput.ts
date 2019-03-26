@@ -3,6 +3,10 @@ import BPromise from 'bluebird'
 import * as mqtt from 'mqtt'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 
+export type MqttTopic = string
+
+export const DELTABASETOPIC: MqttTopic = 'signalk/delta'
+
 export default class MqttDeltaInput {
   constructor(
     private readonly mqttClient: mqtt.MqttClient,
@@ -12,7 +16,7 @@ export default class MqttDeltaInput {
   start() {
     this.mqttClient.on('message', this._sendDeltaToWriter.bind(this))
     return BPromise.fromCallback(cb =>
-      this.mqttClient.subscribe('signalk/delta', { qos: 1 }, cb)
+      this.mqttClient.subscribe(DELTABASETOPIC, { qos: 1 }, cb)
     )
   }
 

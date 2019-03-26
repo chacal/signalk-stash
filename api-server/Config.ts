@@ -57,8 +57,8 @@ const baseConfig = {
   isUnitTesting,
   isIntegrationTesting,
   mqtt: {
-    username: 'signalk',
-    password: 'signalk',
+    username: 'runner',
+    password: 'runnerpasswort',
     broker: 'mqtt://localhost:1883'
   },
   deltaWriteStreamFlushPeriod: Duration.ofMillis(1000)
