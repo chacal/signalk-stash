@@ -9,7 +9,8 @@ CYPRESS=$(NODE_BIN)/cypress
 API_SERVER_MAIN=built/api-server/index.js
 
 ifneq ($(CI),)
-MOCHA_REPORTER := --reporter=xunit --reporter-options output=test_reports/mocha/test_results.xml
+MOCHA_CI_PARAMS := --reporter=xunit --reporter-options output=test_reports/mocha/test_results.xml
+CYPRESS_CI_PARAMS := --record --reporter=junit --reporter-options mochaFile=test_reports/cypress/result-[hash].xml
 endif
 
 clean:
@@ -34,7 +35,7 @@ lint-fix:
 	@node $(TSLINT) --project tsconfig.json --fix
 
 test: compile docker-test-up lint
-	ENVIRONMENT=unit-test $(MOCHA) --require source-map-support/register --exit $(MOCHA_REPORTER) built/test/**/*test.js
+	ENVIRONMENT=unit-test $(MOCHA) --require source-map-support/register --exit $(MOCHA_CI_PARAMS) built/test/**/*test.js
 
 test-watch: compile docker-test-up lint
 	@ENVIRONMENT=unit-test $(MOCHA) --require source-map-support/register --watch --reporter min built/test/**/*test.js
@@ -44,7 +45,7 @@ test-integration: cypress-run
 test-all: test test-integration
 
 cypress-run:
-	@$(CYPRESS) run
+	@$(CYPRESS) run $(CYPRESS_CI_PARAMS)
 
 cypress-open:
 	@$(CYPRESS) open

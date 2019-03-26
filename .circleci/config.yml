@@ -39,6 +39,8 @@ jobs:
           command: npx wait-on "http://localhost:43000/tracks?context=self"
       - run:
           command: make test-integration
+      - store_test_results:
+          path: test_reports
 
 workflows:
   version: 2
