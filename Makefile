@@ -8,6 +8,10 @@ CYPRESS=$(NODE_BIN)/cypress
 
 API_SERVER_MAIN=built/api-server/index.js
 
+ifneq ($(CI),)
+MOCHA_REPORTER := --reporter=xunit --reporter-options output=test_reports/mocha/test_results.xml
+endif
+
 clean:
 	@rm -rf built
 
@@ -30,7 +34,7 @@ lint-fix:
 	@node $(TSLINT) --project tsconfig.json --fix
 
 test: compile docker-test-up lint
-	@ENVIRONMENT=unit-test $(MOCHA) --require source-map-support/register --exit built/test/**/*test.js
+	ENVIRONMENT=unit-test $(MOCHA) --require source-map-support/register --exit $(MOCHA_REPORTER) built/test/**/*test.js
 
 test-watch: compile docker-test-up lint
 	@ENVIRONMENT=unit-test $(MOCHA) --require source-map-support/register --watch --reporter min built/test/**/*test.js
