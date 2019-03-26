@@ -9,8 +9,8 @@ CYPRESS=$(NODE_BIN)/cypress
 API_SERVER_MAIN=built/api-server/index.js
 
 ifneq ($(CI),)
-MOCHA_CI_PARAMS := --reporter=xunit --reporter-options output=test_reports/mocha/test_results.xml
-CYPRESS_CI_PARAMS := --record --reporter=junit --reporter-options mochaFile=test_reports/cypress/result-[hash].xml
+MOCHA_CI_PARAMS :=--reporter=mocha-multi-reporters --reporter-options configFile=.circleci/unit_test_reporter_config.json
+CYPRESS_CI_PARAMS :=--record --reporter=mocha-multi-reporters --reporter-options configFile=.circleci/integration_test_reporter_config.json
 endif
 
 clean:
