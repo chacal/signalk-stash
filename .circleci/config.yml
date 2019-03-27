@@ -1,7 +1,7 @@
 version: 2.1
 commands:
   build:
-    description: 'Builds project dependencies'
+    description: 'Build & start project dependencies'
     steps:
       - checkout
       - restore_cache:
@@ -14,6 +14,11 @@ commands:
           paths:
             - ~/.cache
             - ~/.npm
+      - run:
+          command: make docker-test-up
+      - run:
+          name: 'Wait for dependencies to start up'
+          command: npx wait-on -w 2000 tcp:45432 && npx wait-on -w 2000 tcp:41883
 
 jobs:
   unit-test:
@@ -29,8 +34,6 @@ jobs:
     machine: true
     steps:
       - build
-      - run:
-          command: make docker-test-up
       - run:
           command: make start-test
           background: true
