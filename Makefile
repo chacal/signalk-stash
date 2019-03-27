@@ -34,7 +34,9 @@ lint:
 lint-fix:
 	@node $(TSLINT) --project tsconfig.json --fix
 
-test: compile docker-test-up lint
+test: compile docker-test-up lint test-only
+
+test-only:
 	ENVIRONMENT=unit-test $(MOCHA) --require source-map-support/register --exit $(MOCHA_CI_PARAMS) built/test/**/*test.js
 
 test-watch: compile docker-test-up lint
