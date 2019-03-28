@@ -31,24 +31,48 @@ describe('MQTT input', () => {
 
   afterEach(() => mqttRunner.stop())
 
-  it('writes position published to signalk/delta', () => {
+  it('writes position published only to signalk/delta/vesselUuid', () => {
     return startMqttClient({
       broker: config.mqtt.broker,
       username: vesselAccount.username,
       password: vesselAccount.password
     })
       .then(mqttClient =>
-        mqttClient.publish(DELTABASETOPIC, JSON.stringify(positionFixtures[0]))
+        mqttClient.publish(
+          vesselTopic(vesselUuid),
+          JSON.stringify(positionFixtures[0])
+        )
+      )
+      .then(mqttClient =>
+        mqttClient.publish(
+          vesselTopic(vesselUuid),
+          JSON.stringify(positionFixtures[0]).replace('f', 'a')
+        )
+      )
+      .then(mqttClient =>
+        mqttClient.publish(
+          vesselTopic(vesselUuid.replace('f', 'a')),
+          JSON.stringify(positionFixtures[0])
+        )
       )
       .then(() =>
         waitFor(
           () => DB.getTrackPointsForVessel(vesselUuid),
-          res => res.length === 1
+          res => res.length > 0
         )
       )
       .then(trackpoints => {
         expect(trackpoints).to.have.lengthOf(1)
         assertTrackpoint(trackpoints[0], positionFixtures[0])
+      })
+      .then(() =>
+        waitFor(
+          () => DB.getTrackPointsForVessel(vesselUuid.replace('f', 'a')),
+          res => res.length >= 0
+        )
+      )
+      .then(trackpoints => {
+        expect(trackpoints).to.have.lengthOf(0)
       })
   })
 })
@@ -68,7 +92,15 @@ function initializeTestDb() {
 export function insertVesselAccount() {
   return DB.upsertAccount(vesselAccount).then(() =>
     DB.upsertAcl(
-      new MqttACL(vesselAccount.username, DELTABASETOPIC, MqttACLLevel.ALL)
+      new MqttACL(
+        vesselAccount.username,
+        vesselTopic(vesselUuid),
+        MqttACLLevel.ALL
+      )
     )
   )
+}
+
+function vesselTopic(vesselUuid: string): string {
+  return `${DELTABASETOPIC}/${vesselUuid}`
 }

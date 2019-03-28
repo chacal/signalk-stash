@@ -86,7 +86,7 @@ e2e-clickhouse-cli:
 	@docker exec -it signalk-stash-e2e_clickhouse_1  clickhouse-client
 
 e2e-sub:
-	mosquitto_sub -h localhost -p 21883 -u signalk -P signalk -t signalk/delta
+	mosquitto_sub -h localhost -p 21883 -u runner -P runnerpasswort -t signalk/delta/+
 
 dev: docker-dev-up watch
 

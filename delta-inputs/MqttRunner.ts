@@ -5,7 +5,7 @@ import config, { MqttConfig } from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import { MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
-import MqttDeltaInput, { DELTABASETOPIC } from './MqttDeltaInput'
+import MqttDeltaInput, { DELTAWILDCARDTOPIC } from './MqttDeltaInput'
 
 export default class MqttRunner {
   private mqttClient: MqttClient | void = undefined
@@ -55,6 +55,6 @@ export function insertRunnerAccount(
     passwordHash,
     isMqttSuperUser: true
   }).then(() =>
-    DB.upsertAcl(new MqttACL(username, DELTABASETOPIC, MqttACLLevel.ALL))
+    DB.upsertAcl(new MqttACL(username, DELTAWILDCARDTOPIC, MqttACLLevel.ALL))
   )
 }
