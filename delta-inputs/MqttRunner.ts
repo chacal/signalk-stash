@@ -8,7 +8,7 @@ import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import MqttDeltaInput, { DELTABASETOPIC } from './MqttDeltaInput'
 
 export default class MqttRunner {
-  mqttClient: MqttClient | void = undefined
+  private mqttClient: MqttClient | void = undefined
   start() {
     return DB.ensureTables()
       .then(() => startMqttClient(config.mqtt))
