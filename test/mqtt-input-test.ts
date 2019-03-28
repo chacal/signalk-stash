@@ -46,6 +46,12 @@ describe('MQTT input', () => {
       .then(mqttClient =>
         mqttClient.publish(
           vesselTopic(vesselUuid),
+          JSON.stringify(positionFixtures[0]).replace(vesselUuid, 'self')
+        )
+      )
+      .then(mqttClient =>
+        mqttClient.publish(
+          vesselTopic(vesselUuid),
           JSON.stringify(positionFixtures[0]).replace('f', 'a')
         )
       )
@@ -62,7 +68,7 @@ describe('MQTT input', () => {
         )
       )
       .then(trackpoints => {
-        expect(trackpoints).to.have.lengthOf(1)
+        expect(trackpoints).to.have.lengthOf(2)
         assertTrackpoint(trackpoints[0], positionFixtures[0])
       })
       .then(() =>

@@ -8,7 +8,8 @@ export type MqttTopic = string
 export const DELTABASETOPIC: MqttTopic = 'signalk/delta'
 const TOPICPREFIXLENGTH: number = DELTABASETOPIC.length + 1
 export const DELTAWILDCARDTOPIC: MqttTopic = DELTABASETOPIC + '/+'
-const VESSELSPREFIXLENGTH: number = 'vessels.'.length
+const VESSELSPREFIX: string = 'vessels.'
+const VESSELSPREFIXLENGTH: number = VESSELSPREFIX.length
 
 export default class MqttDeltaInput {
   constructor(
@@ -25,8 +26,14 @@ export default class MqttDeltaInput {
 
   _sendDeltaToWriter(topic: string, payload: Buffer, packet: mqtt.Packet) {
     try {
-      const delta = SKDelta.fromJSON(payload.toString())
-      if (contextMatchesTopic(topic, delta) || delta.context === 'self') {
+      let delta = SKDelta.fromJSON(payload.toString())
+      if (delta.context === 'self' || delta.context === 'vessels.self') {
+        delta = new SKDelta(
+          VESSELSPREFIX + topic.substring(TOPICPREFIXLENGTH, topic.length),
+          delta.updates
+        )
+      }
+      if (contextMatchesTopic(topic, delta)) {
         this.deltaWriter.writeDelta(delta).catch(err => {
           console.error(err)
         })
