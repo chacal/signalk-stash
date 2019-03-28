@@ -49,7 +49,7 @@ export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
 export function insertRunnerAccount(
   username: string,
   passwordHash: string
-): Promise<any> {
+): Promise<void> {
   return DB.upsertAccount({
     username,
     passwordHash,
