@@ -8,6 +8,11 @@ CYPRESS=$(NODE_BIN)/cypress
 
 API_SERVER_MAIN=built/api-server/index.js
 
+ifneq ($(CI),)
+MOCHA_CI_PARAMS :=--reporter=mocha-multi-reporters --reporter-options configFile=.circleci/unit_test_reporter_config.json
+CYPRESS_CI_PARAMS :=--record --reporter=mocha-multi-reporters --reporter-options configFile=.circleci/integration_test_reporter_config.json
+endif
+
 clean:
 	@rm -rf built
 
@@ -29,8 +34,10 @@ lint:
 lint-fix:
 	@node $(TSLINT) --project tsconfig.json --fix
 
-test: compile docker-test-up lint
-	@ENVIRONMENT=unit-test $(MOCHA) --require source-map-support/register --exit built/test/**/*test.js
+test: compile docker-test-up lint test-only
+
+test-only:
+	ENVIRONMENT=unit-test $(MOCHA) --require source-map-support/register --exit $(MOCHA_CI_PARAMS) built/test/**/*test.js
 
 test-watch: compile docker-test-up lint
 	@ENVIRONMENT=unit-test $(MOCHA) --require source-map-support/register --watch --reporter min built/test/**/*test.js
@@ -40,7 +47,7 @@ test-integration: cypress-run
 test-all: test test-integration
 
 cypress-run:
-	@$(CYPRESS) run
+	@$(CYPRESS) run $(CYPRESS_CI_PARAMS)
 
 cypress-open:
 	@$(CYPRESS) open

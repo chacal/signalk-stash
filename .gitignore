@@ -6,3 +6,4 @@ api-server/public/bundle.js
 .vscode
 cypress/screenshots/
 cypress/videos/
+test_reports

@@ -1,0 +1,55 @@
+version: 2.1
+commands:
+  build:
+    description: 'Build & start project dependencies'
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-signal-k-stash-{{ checksum "package.json" }}
+      - run:
+          command: npm install
+      - save_cache:
+          key: v1-signal-k-stash-{{ checksum "package.json" }}
+          paths:
+            - ~/.cache
+            - ~/.npm
+      - run:
+          command: make docker-test-up
+      - run:
+          name: 'Wait for dependencies to start up'
+          command: npx wait-on -w 2000 tcp:45432 && npx wait-on -w 2000 tcp:41883
+
+jobs:
+  unit-test:
+    machine: true
+    steps:
+      - build
+      - run:
+          command: make test
+      - store_test_results:
+          path: test_reports
+
+  integration-test:
+    machine: true
+    steps:
+      - build
+      - run:
+          command: make start-test
+          background: true
+      - run:
+          name: 'Wait for test server to start'
+          command: npx wait-on "http://localhost:43000/tracks?context=self"
+      - run:
+          command: make test-integration
+      - store_test_results:
+          path: test_reports
+
+workflows:
+  version: 2
+  unit-test:
+    jobs:
+      - unit-test
+  integration-test:
+    jobs:
+      - integration-test
