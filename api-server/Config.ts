@@ -6,6 +6,12 @@ const isUnitTesting = process.env.ENVIRONMENT === 'unit-test'
 const isIntegrationTesting = process.env.ENVIRONMENT === 'integration-test'
 const isTesting = isUnitTesting || isIntegrationTesting
 
+export interface MqttConfig {
+  username: string
+  password: string
+  broker: string
+}
+
 export interface IConfig {
   db: {
     host: string
@@ -23,11 +29,7 @@ export interface IConfig {
   isTesting: boolean
   isUnitTesting: boolean
   isIntegrationTesting: boolean
-  mqtt: {
-    username: string
-    password: string
-    broker: string
-  }
+  mqtt: MqttConfig
   deltaWriteStreamFlushPeriod: Duration
 }
 
@@ -55,8 +57,8 @@ const baseConfig = {
   isUnitTesting,
   isIntegrationTesting,
   mqtt: {
-    username: 'signalk',
-    password: 'signalk',
+    username: 'runner',
+    password: 'runnerpasswort',
     broker: 'mqtt://localhost:1883'
   },
   deltaWriteStreamFlushPeriod: Duration.ofMillis(1000)
@@ -105,6 +107,9 @@ const environments: IEnvironments = {
 }
 
 const environment = process.env.ENVIRONMENT || 'development'
+if (!environments[environment]) {
+  throw new Error(`No such environment:${environment}`)
+}
 const config = _.merge(baseConfig, environments[environment])
 console.log(`Using ${environment} config:\n${JSON.stringify(config, null, 2)}`)
 export default config

@@ -1,47 +1,84 @@
 /* eslint-env mocha */
-import BPromise from 'bluebird'
 import { expect } from 'chai'
-import * as mqtt from 'mqtt'
 
-import Config from '../api-server/Config'
+import config from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import { MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
-import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
-import MqttDeltaInput from '../delta-inputs/MqttDeltaInput'
+import { DELTABASETOPIC } from '../delta-inputs/MqttDeltaInput'
+import MqttRunner, {
+  insertRunnerAccount,
+  startMqttClient
+} from '../delta-inputs/MqttRunner'
 import {
   assertTrackpoint,
   positionFixtures,
-  testAccount,
+  runnerAccount,
+  vesselAccount,
   vesselUuid,
   waitFor
 } from './test-util'
 import testdb from './TestDB'
 
-const writer = new SignalKDeltaWriter(DB)
-const mqttBrokerUrl = Config.mqtt.broker
-
 describe('MQTT input', () => {
-  before(() =>
+  const mqttRunner = new MqttRunner()
+  beforeEach(() =>
     initializeTestDb()
-      .then(getMqttClient)
-      .then(mqttClient => new MqttDeltaInput(mqttClient, writer).start())
+      .then(() => mqttRunner.start())
+      .catch(err => {
+        throw err
+      })
   )
-  beforeEach(initializeTestDb)
 
-  it('writes position published to signalk/delta', () => {
-    return getMqttClient()
+  afterEach(() => mqttRunner.stop())
+
+  it('writes position published only to signalk/delta/vesselUuid', () => {
+    return startMqttClient({
+      broker: config.mqtt.broker,
+      username: vesselAccount.username,
+      password: vesselAccount.password
+    })
       .then(mqttClient =>
-        mqttClient.publish('signalk/delta', JSON.stringify(positionFixtures[0]))
+        mqttClient.publish(
+          vesselTopic(vesselUuid),
+          JSON.stringify(positionFixtures[0])
+        )
+      )
+      .then(mqttClient =>
+        mqttClient.publish(
+          vesselTopic(vesselUuid),
+          JSON.stringify(positionFixtures[0]).replace(vesselUuid, 'self')
+        )
+      )
+      .then(mqttClient =>
+        mqttClient.publish(
+          vesselTopic(vesselUuid),
+          JSON.stringify(positionFixtures[0]).replace('f', 'a')
+        )
+      )
+      .then(mqttClient =>
+        mqttClient.publish(
+          vesselTopic(vesselUuid.replace('f', 'a')),
+          JSON.stringify(positionFixtures[0])
+        )
       )
       .then(() =>
         waitFor(
           () => DB.getTrackPointsForVessel(vesselUuid),
-          res => res.length === 1
+          res => res.length > 0
         )
       )
       .then(trackpoints => {
-        expect(trackpoints).to.have.lengthOf(1)
+        expect(trackpoints).to.have.lengthOf(2)
         assertTrackpoint(trackpoints[0], positionFixtures[0])
+      })
+      .then(() =>
+        waitFor(
+          () => DB.getTrackPointsForVessel(vesselUuid.replace('f', 'a')),
+          res => res.length >= 0
+        )
+      )
+      .then(trackpoints => {
+        expect(trackpoints).to.have.lengthOf(0)
       })
   })
 })
@@ -49,20 +86,27 @@ describe('MQTT input', () => {
 function initializeTestDb() {
   return testdb
     .resetTables()
-    .then(() => DB.upsertAccount(testAccount))
-    .then(() =>
-      DB.upsertAcl(
-        new MqttACL(testAccount.username, 'signalk/delta', MqttACLLevel.ALL)
+    .then(insertVesselAccount)
+    .then(() => {
+      return insertRunnerAccount(
+        runnerAccount.username,
+        runnerAccount.passwordHash
       )
-    )
+    })
 }
 
-function getMqttClient(): BPromise<mqtt.MqttClient> {
-  const client = mqtt.connect(mqttBrokerUrl, {
-    username: testAccount.username,
-    password: testAccount.password
-  })
-  return BPromise.fromCallback(cb =>
-    client.once('connect', () => cb(null))
-  ).then(() => client)
+export function insertVesselAccount() {
+  return DB.upsertAccount(vesselAccount).then(() =>
+    DB.upsertAcl(
+      new MqttACL(
+        vesselAccount.username,
+        vesselTopic(vesselUuid),
+        MqttACLLevel.ALL
+      )
+    )
+  )
+}
+
+function vesselTopic(vesselUuid: string): string {
+  return `${DELTABASETOPIC}/${vesselUuid}`
 }

@@ -23,10 +23,16 @@ export { measurementFixtures, positionFixtures }
 export const vesselUuid =
   'urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e'
 
-export const testAccount = new TestAccount(
-  'signalk',
+export const vesselAccount = new TestAccount(
+  'vessel',
   'signalk',
   'PBKDF2$sha256$901$SsBHerbO7k6HXr3V$FK1Dcra1YV+kvqeV/LYaFZN4DslbgL6y' // "signalk"
+)
+
+export const runnerAccount = new TestAccount(
+  'runner',
+  'runnerpasswort',
+  'PBKDF2$sha256$901$AnGxxkFiNnngJRxd$gBezoDi94FpVE/a3z0p6y7uUw2ahFDmL' // "runnerpasswort"
 )
 
 export function waitFor<T>(
