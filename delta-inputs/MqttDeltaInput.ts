@@ -6,8 +6,9 @@ import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 export type MqttTopic = string
 
 export const DELTABASETOPIC: MqttTopic = 'signalk/delta'
-export const TOPICPREFIXLENGTH: number = DELTABASETOPIC.length + 1
+const TOPICPREFIXLENGTH: number = DELTABASETOPIC.length + 1
 export const DELTAWILDCARDTOPIC: MqttTopic = DELTABASETOPIC + '/+'
+const VESSELSPREFIXLENGTH: number = 'vessels.'.length
 
 export default class MqttDeltaInput {
   constructor(
@@ -25,11 +26,7 @@ export default class MqttDeltaInput {
   _sendDeltaToWriter(topic: string, payload: Buffer, packet: mqtt.Packet) {
     try {
       const delta = SKDelta.fromJSON(payload.toString())
-      if (
-        topic.substring(TOPICPREFIXLENGTH, topic.length) ===
-          delta.context.substring(8, delta.context.length) ||
-        delta.context === 'self'
-      ) {
+      if (contextMatchesTopic(topic, delta) || delta.context === 'self') {
         this.deltaWriter.writeDelta(delta).catch(err => {
           console.error(err)
         })
@@ -38,4 +35,11 @@ export default class MqttDeltaInput {
       console.error(`Invalid SignalK delta from MQTT: ${payload}`)
     }
   }
+}
+
+function contextMatchesTopic(topic: string, delta: SKDelta): boolean {
+  return (
+    topic.substring(TOPICPREFIXLENGTH, topic.length) ===
+    delta.context.substring(VESSELSPREFIXLENGTH, delta.context.length)
+  )
 }
