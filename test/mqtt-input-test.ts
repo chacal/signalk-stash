@@ -20,19 +20,16 @@ import {
 import testdb from './TestDB'
 
 describe('MQTT input', () => {
-  let mqttRunner: MqttRunner
+  const mqttRunner = new MqttRunner()
   beforeEach(() =>
     initializeTestDb()
-      .then(() => {
-        mqttRunner = new MqttRunner()
-        return mqttRunner.start()
-      })
+      .then(() => mqttRunner.start())
       .catch(err => {
         throw err
       })
   )
 
-  afterEach(() => mqttRunner && mqttRunner.stop())
+  afterEach(() => mqttRunner.stop())
 
   it('writes position published to signalk/delta', () => {
     return startMqttClient({
