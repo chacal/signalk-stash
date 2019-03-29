@@ -13,6 +13,8 @@ MOCHA_CI_PARAMS :=--reporter=mocha-multi-reporters --reporter-options configFile
 CYPRESS_CI_PARAMS :=--record --reporter=mocha-multi-reporters --reporter-options configFile=.circleci/integration_test_reporter_config.json
 endif
 
+PROD_SSH_KEY=./ansible/id_rsa_stash
+
 clean:
 	@rm -rf built
 
@@ -108,3 +110,16 @@ clickhouse-test: clickhouse-client-test
 
 webpack-prod:
 	@$(WEBPACK) -p
+
+ansible-initialize-prod:
+	@echo You must have passwordless SSH \& sudo to the destination host for this to work properly..
+	@ansible-playbook -i ./ansible/inventory ./ansible/initialize-server.yml
+
+ansible-provision-prod: .check-private-key
+	@ansible-playbook --private-key $(PROD_SSH_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
+
+ssh-prod: .check-private-key
+	@ssh -i $(PROD_SSH_KEY) stash@$$(cat ./ansible/inventory)
+
+.check-private-key:
+	@if [ ! -f $(PROD_SSH_KEY) ]; then echo ./ansible/id_rsa_stash missing!; exit 1; fi

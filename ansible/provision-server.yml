@@ -1,0 +1,56 @@
+---
+- hosts: all
+  remote_user: stash
+  become: yes
+
+  vars:
+    hostname: signalk-stash
+
+  tasks:
+  - hostname:
+      name: '{{ hostname }}'
+
+  - name: Add hostname to /etc/hosts
+    lineinfile:
+      dest: /etc/hosts
+      regexp: '^127\.0\.1\.1'
+      line: '127.0.1.1 {{ hostname }}'
+      state: present
+
+  - name: Install/update packages
+    apt:
+      name:
+        - git
+        - curl
+        - htop
+        - tmux
+        - telnet
+        - apt-transport-https
+        - zsh
+        - sshguard
+      state: latest
+
+  - name: Add Docker Apt key
+    apt_key:
+      url: https://download.docker.com/linux/debian/gpg
+
+  - name: Add Docker Apt repository
+    apt_repository:
+      repo: "deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+      update_cache: yes
+
+  - name: Install Docker
+    apt: pkg=docker-ce state=latest update_cache=yes
+
+  - name: Enable and start Docker
+    service:
+      name: docker
+      enabled: yes
+      state: started
+
+  - name: Add stash user to docker group
+    user:
+      name: stash
+      groups:
+        - docker
+      append: yes

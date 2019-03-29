@@ -1,0 +1,28 @@
+---
+- hosts: all
+  become: yes
+
+  vars:
+    username: stash
+    hostname: signalk-stash
+
+  tasks:
+  - name: Add stash user
+    user:
+      name: '{{ username }}'
+      shell: /bin/bash
+      groups:
+        - sudo
+      append: yes
+
+  - name: Add SSH key for stash user
+    authorized_key:
+      user: '{{ username }}'
+      state: present
+      key: "{{ lookup('file', 'id_rsa_stash.pub') }}"
+
+  - name: Add passwordless sudo for stash user
+    lineinfile:
+      dest: /etc/sudoers
+      line: '{{ username }} ALL=(ALL) NOPASSWD:ALL'
+      state: present
