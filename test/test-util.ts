@@ -4,6 +4,7 @@ import { expect } from 'chai'
 import Debug from 'debug'
 import express from 'express'
 import { ZonedDateTime } from 'js-joda'
+import _ from 'lodash'
 import request, { Response } from 'supertest'
 
 import API from '../api-server/API'
@@ -84,7 +85,7 @@ export function startTestApp(): express.Express {
   const testApp = express()
   // @ts-ignore: Unused expression
   // tslint:disable-next-line:no-unused-expression-chai
-  new API(config, testApp)
+  new API(config, _.noop, testApp)
   return testApp
 }
 

@@ -1,21 +1,18 @@
 import express, { NextFunction, Request, Response } from 'express'
 import path from 'path'
-import setupTestAPIRoutes from '../test/TestAPI'
+import { ExpressAppCustomizer } from './APIServerMain'
 import { IConfig } from './Config'
 import setupTrackAPIRoutes from './TrackAPI'
-import bindWebpackMiddlewares from './WebpackMiddlewares'
 
 const publicPath = path.join(__dirname, '../../api-server/public')
 
 class API {
   constructor(
     private readonly config: IConfig,
+    private readonly customizer: ExpressAppCustomizer,
     private readonly app = express()
   ) {
-    if (config.isDeveloping || config.isIntegrationTesting) {
-      bindWebpackMiddlewares(this.app)
-      setupTestAPIRoutes(this.app)
-    }
+    this.customizer(this.app)
     setupTrackAPIRoutes(this.app)
     this.app.use(express.static(publicPath))
     this.app.use(this.validationErrorHandler)

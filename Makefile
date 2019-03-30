@@ -6,7 +6,7 @@ TSLINT=$(NODE_BIN)/tslint
 WEBPACK=$(NODE_BIN)/webpack
 CYPRESS=$(NODE_BIN)/cypress
 
-API_SERVER_MAIN=built/api-server/index.js
+API_SERVER_DEV_MAIN=built/test/test-api-server.js
 
 ifneq ($(CI),)
 MOCHA_CI_PARAMS :=--reporter=mocha-multi-reporters --reporter-options configFile=.circleci/unit_test_reporter_config.json
@@ -25,10 +25,10 @@ compile-watch:
 	@$(TSC) --watch
 
 start: compile
-	@node $(API_SERVER_MAIN)
+	@node $(API_SERVER_DEV_MAIN)
 
 start-test: compile
-	@ENVIRONMENT=integration-test node $(API_SERVER_MAIN)
+	@ENVIRONMENT=integration-test node $(API_SERVER_DEV_MAIN)
 
 lint:
 	@node $(TSLINT) --project tsconfig.json
@@ -55,7 +55,7 @@ cypress-open:
 	@$(CYPRESS) open
 
 watch:
-	@$(NODEMON) $(API_SERVER_MAIN)
+	@$(NODEMON) $(API_SERVER_DEV_MAIN)
 
 docker-%-up:
 	@docker-compose -f docker-compose.$*.yml -p signalk-stash-$* up -d
@@ -82,7 +82,7 @@ e2e-mqtt-input: compile
 	ENVIRONMENT=e2e node built/delta-inputs/mqtt-runner.js
 	
 e2e-api: compile
-	ENVIRONMENT=e2e node $(API_SERVER_MAIN)
+	ENVIRONMENT=e2e node $(API_SERVER_DEV_MAIN)
 
 e2e-clickhouse-cli:
 	@docker exec -it signalk-stash-e2e_clickhouse_1  clickhouse-client
