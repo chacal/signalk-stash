@@ -1,0 +1,22 @@
+---
+- hosts: all
+  remote_user: stash
+
+  tasks:
+    - name: Copy Docker compose file to remote
+      copy:
+        src: ../docker-compose.prod.yml
+        dest: docker-compose.prod.yml
+
+    - name: Copy Docker environment file to remote
+      copy:
+        src: ../docker-prod.env
+        dest: docker-prod.env
+
+    - name: Setup production Docker containers
+      docker_service:
+        project_name: signalk-stash-prod
+        project_src: .
+        pull: true
+        files:
+          - docker-compose.prod.yml

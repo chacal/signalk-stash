@@ -28,7 +28,15 @@
         - apt-transport-https
         - zsh
         - sshguard
+        - python-setuptools
+        - python-pip
       state: latest
+
+  - name: Install Python dependencies
+    pip:
+      name:
+        - docker
+        - docker-compose
 
   - name: Add Docker Apt key
     apt_key:

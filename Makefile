@@ -115,6 +115,9 @@ ansible-initialize-prod:
 ansible-provision-prod: .check-private-key
 	@ansible-playbook --private-key $(PROD_SSH_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
 
+ansible-deploy-prod:
+	@ansible-playbook --private-key $(PROD_SSH_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
+
 ssh-prod: .check-private-key
 	@ssh -i $(PROD_SSH_KEY) stash@$$(cat ./ansible/inventory)
 
