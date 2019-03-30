@@ -1,12 +1,12 @@
 version: '3'
 
 services:
-  clickhouse-test:
+  clickhouse:
     image: yandex/clickhouse-server
     ports:
      - 48123:8123
      - 49000:9000
-  postgis-test:
+  postgis:
     image: mdillon/postgis:10-alpine
     ports:
      - 45432:5432
@@ -15,7 +15,7 @@ services:
       POSTGRES_USER: signalk
       POSTGRES_PASSWORD: signalk
       POSTGRES_DB: signalk
-  mqtt-test:
+  mqtt:
     image: jihartik/signalk-stash-mosquitto
     build:
       context: .
@@ -25,8 +25,6 @@ services:
     volumes:
       - mosquitto-data-test:/var/lib/mosquitto
       - mosquitto-log-test:/var/log/mosquitto
-      # Overwrite mosquitto-auth.conf to authenticate against postgis-test DB
-      - ./mosquitto-auth.test.conf:/etc/mosquitto.d/mosquitto-auth.conf
     restart: always
 
 volumes:
