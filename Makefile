@@ -121,5 +121,17 @@ ansible-provision-prod: .check-private-key
 ssh-prod: .check-private-key
 	@ssh -i $(PROD_SSH_KEY) stash@$$(cat ./ansible/inventory)
 
+docker-build-apiserver:
+	@docker build -t jihartik/signalk-stash-api-server:latest -f Dockerfile.api-server .
+
+docker-push-apiserver:
+	@docker push jihartik/signalk-stash-api-server:latest
+
+docker-build-mqtt-input:
+	@docker build -t jihartik/signalk-stash-mqtt-input:latest -f Dockerfile.mqtt-input .
+
+docker-push-mqtt-input:
+	@docker push jihartik/signalk-stash-mqtt-input:latest
+
 .check-private-key:
 	@if [ ! -f $(PROD_SSH_KEY) ]; then echo ./ansible/id_rsa_stash missing!; exit 1; fi
