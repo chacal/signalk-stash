@@ -50,3 +50,7 @@ function contextMatchesTopic(topic: string, delta: SKDelta): boolean {
     delta.context.substring(VESSELSPREFIXLENGTH, delta.context.length)
   )
 }
+
+export function vesselTopic(vesselUuid: string): string {
+  return `${DELTABASETOPIC}/${vesselUuid}`
+}
