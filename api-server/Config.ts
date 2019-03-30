@@ -87,6 +87,13 @@ const environments: IEnvironments = {
     db: {
       host: 'postgis',
       port: 5432
+    },
+    clickhouse: {
+      host: 'clickhouse',
+      port: 8123
+    },
+    mqtt: {
+      broker: 'mqtt://mqtt'
     }
   },
   'unit-test': testConfig,
