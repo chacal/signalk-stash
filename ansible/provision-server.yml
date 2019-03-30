@@ -30,6 +30,7 @@
         - sshguard
         - python-setuptools
         - python-pip
+        - nginx
       state: latest
 
   - name: Install Python dependencies
@@ -62,3 +63,15 @@
       groups:
         - docker
       append: yes
+
+  - name: Remove default Nginx site
+    file: path=/etc/nginx/sites-enabled/default state=absent
+    register: nginx_default_site
+
+  - name: Add custom Nginx configuration
+    copy: src=./prod_nginx.conf dest=/etc/nginx/conf.d/signalk_stash_nginx.conf
+    register: nginx_custom_site
+
+  - name: Enable & start Nginx
+    systemd: name=nginx state=restarted enabled=yes daemon_reload=yes
+    when: nginx_default_site.changed or nginx_custom_site.changed
