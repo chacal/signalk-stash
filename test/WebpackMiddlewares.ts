@@ -6,7 +6,9 @@ import webpackHotMiddleware from 'webpack-hot-middleware'
 export default function bindWebpackMiddlewares(app: Express) {
   console.log('Starting Webpack middleware..')
 
-  const webpackConfig = require('../../webpack.config.js')
+  const webpackConfig = require('../../webpack.config.js')(
+    process.env.ENVIRONMENT
+  )
   webpackConfig.mode = 'development'
   webpackConfig.devtool = 'inline-source-map'
 
