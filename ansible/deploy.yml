@@ -3,6 +3,14 @@
   remote_user: stash
 
   tasks:
+    - name: Check that docker-prod.env exists
+      local_action: stat path=../docker-prod.env
+      register: env_file
+
+    - name: Fail if docker-prod.env doesn't exist
+      fail: msg="docker-prod.env doesn't exist on local machine. It is required for prod deployment."
+      when: not env_file.stat.exists
+
     - name: Copy Docker compose file to remote
       copy:
         src: ../docker-compose.prod.yml
