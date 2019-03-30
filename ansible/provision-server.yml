@@ -31,6 +31,7 @@
         - python-setuptools
         - python-pip
         - nginx
+        - certbot
       state: latest
 
   - name: Install Python dependencies
@@ -68,10 +69,21 @@
     file: path=/etc/nginx/sites-enabled/default state=absent
     register: nginx_default_site
 
+  #  Run manually 'certbot certonly --standalone -d signalk-stash.chacal.fi' to generate Let's encrypt certificates
+  - name: Add custom Nginx SSL snippet
+    copy: src=./nginx_ssl_snippet.conf dest=/etc/nginx/snippets/ssl-signalk-stash.conf
+    register: nginx_custom_ssl_conf
+
+  - name: Create Diffie-Hellman group for Nginx TLS
+    shell: /usr/bin/openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
+    args:
+      creates: /etc/ssl/certs/dhparam.pem
+
   - name: Add custom Nginx configuration
     copy: src=./prod_nginx.conf dest=/etc/nginx/conf.d/signalk_stash_nginx.conf
     register: nginx_custom_site
 
   - name: Enable & start Nginx
     systemd: name=nginx state=restarted enabled=yes daemon_reload=yes
-    when: nginx_default_site.changed or nginx_custom_site.changed
+    when: nginx_default_site.changed or nginx_custom_site.changed or nginx_custom_ssl_conf.changed
+
