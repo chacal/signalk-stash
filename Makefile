@@ -108,9 +108,6 @@ clickhouse-dev: clickhouse-client-dev
 
 clickhouse-test: clickhouse-client-test
 
-webpack-prod:
-	@$(WEBPACK) -p
-
 ansible-initialize-prod:
 	@echo You must have passwordless SSH \& sudo to the destination host for this to work properly..
 	@ansible-playbook -i ./ansible/inventory ./ansible/initialize-server.yml
