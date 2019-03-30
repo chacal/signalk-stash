@@ -1,0 +1,16 @@
+{
+  "vessels": {
+    "self": {
+      "uuid": "urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e",
+      "name": "Stash e2e test",
+      "design": {
+        "aisShipType": {
+          "value": {
+            "name": "Sailing",
+            "id": 36
+          }
+        }
+      }
+    }
+  }
+}
