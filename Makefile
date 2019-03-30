@@ -101,6 +101,9 @@ psql-dev:
 psql-test:
 	@psql 'postgresql://signalk:signalk@localhost:45432/signalk'
 
+psql-prod:
+	@ssh -i $(PROD_SSH_KEY) -t stash@$$(cat ./ansible/inventory) "docker exec -it signalk-stash-prod_postgis_1 /usr/local/bin/psql -U signalk"
+
 clickhouse-client-%:
 	@docker exec -it signalk-stash-$*_clickhouse-$*_1 clickhouse-client
 
