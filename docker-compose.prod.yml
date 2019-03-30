@@ -6,6 +6,8 @@ services:
     ports:
       - 3000:3000
     restart: always
+    env_file:
+      - docker-prod.env
     environment:
       ENVIRONMENT: production
   mqtt-input:
@@ -16,20 +18,23 @@ services:
     environment:
       ENVIRONMENT: production
       MQTT_BROKER: mqtt://mqtt
-
   postgis:
     image: mdillon/postgis:11-alpine
     volumes:
-     - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     restart: always
     environment:
       POSTGRES_USER: signalk
       POSTGRES_PASSWORD: signalk
       POSTGRES_DB: signalk
+  clickhouse:
+    image: yandex/clickhouse-server
+    volumes:
+      - clickhousedata:/var/lib/clickhouse
   mqtt:
     image: jihartik/signalk-stash-mosquitto
     ports:
-     - 1883:1883
+      - 1883:1883
     volumes:
       - mosquitto-data:/var/lib/mosquitto
       - mosquitto-log:/var/log/mosquitto
@@ -37,5 +42,6 @@ services:
 
 volumes:
   pgdata:
+  clickhousedata:
   mosquitto-data:
   mosquitto-log:
