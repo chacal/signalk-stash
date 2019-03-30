@@ -12,7 +12,7 @@ COPY tsconfig.json webpack.config.js ./
 COPY ./api-server ./api-server
 COPY ./delta-inputs ./delta-inputs
 COPY ./types ./types
-RUN ./node_modules/.bin/tsc --outDir ./built --sourceMap false
+RUN ./node_modules/.bin/tsc --sourceMap false
 RUN ./node_modules/.bin/webpack -p --env=production
 
 CMD ["node", "./built/api-server/index.js"]
