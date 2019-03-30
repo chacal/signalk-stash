@@ -45,7 +45,7 @@ services:
     ports:
      - 3002:3000
     volumes:
-     - ./dotsignalk:/home/signalk/.signalk
+     - ./e2e/dotsignalk:/home/signalk/.signalk
     restart: always
     privileged: true
 
