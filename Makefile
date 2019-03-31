@@ -119,8 +119,8 @@ ansible-initialize-prod: .check-ansible-vault-passwd
 ansible-provision-prod: .ensure-prod-ssh-keypair .check-ansible-vault-passwd
 	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
 
-ansible-deploy-prod: .check-ansible-vault-passwd
-	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
+ansible-deploy-prod: .check-ansible-vault-passwd .check-tag-set
+	@ansible-playbook -e docker_tag=$(TAG) --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
 
 ansible-vault-edit:
 	@ansible-vault edit --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) ./ansible/secrets.yml

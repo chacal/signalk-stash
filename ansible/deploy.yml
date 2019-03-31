@@ -25,3 +25,6 @@
         pull: true
         files:
           - docker-compose.prod.yml
+      environment:
+        # This will be given as -e command line parameter
+        TAG: "{{ docker_tag }}"
