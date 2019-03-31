@@ -16,7 +16,7 @@ services:
       POSTGRES_PASSWORD: signalk
       POSTGRES_DB: signalk
   mqtt:
-    image: jihartik/signalk-stash-mosquitto
+    image: signalkstash/mosquitto
     build:
       context: .
       dockerfile: Dockerfile.mosquitto

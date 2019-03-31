@@ -2,7 +2,7 @@ version: '3'
 
 services:
   api-server:
-    image: jihartik/signalk-stash-api-server
+    image: signalkstash/api-server:${TAG}
     ports:
       - 3000:3000
     restart: always
@@ -11,7 +11,7 @@ services:
     environment:
       ENVIRONMENT: production
   mqtt-input:
-    image: jihartik/signalk-stash-mqtt-input
+    image: signalkstash/mqtt-input:${TAG}
     restart: always
     env_file:
       - docker-prod.env
@@ -32,7 +32,7 @@ services:
     volumes:
       - clickhousedata:/var/lib/clickhouse
   mqtt:
-    image: jihartik/signalk-stash-mosquitto
+    image: signalkstash/mosquitto:prod
     ports:
       - 1883:1883
     volumes:

@@ -132,16 +132,25 @@ ssh-prod: .ensure-prod-ssh-keypair
 	@ssh -i $(PROD_SSH_PRIVATE_KEY) stash@$$(cat ./ansible/inventory)
 
 docker-build-apiserver:
-	@docker build -t jihartik/signalk-stash-api-server:latest -f Dockerfile.api-server .
+	@docker build -t signalkstash/api-server:latest -f Dockerfile.api-server .
 
-docker-push-apiserver:
-	@docker push jihartik/signalk-stash-api-server:latest
+docker-tag-and-push-apiserver: .check-tag-set
+	@docker tag signalkstash/api-server:latest signalkstash/api-server:$(TAG)
+	@docker push signalkstash/api-server:$(TAG)
 
 docker-build-mqtt-input:
-	@docker build -t jihartik/signalk-stash-mqtt-input:latest -f Dockerfile.mqtt-input .
+	@docker build -t signalkstash/mqtt-input:latest -f Dockerfile.mqtt-input .
 
-docker-push-mqtt-input:
-	@docker push jihartik/signalk-stash-mqtt-input:latest
+docker-tag-and-push-mqtt-input: .check-tag-set
+	@docker tag signalkstash/mqtt-input:latest signalkstash/mqtt-input:$(TAG)
+	@docker push signalkstash/mqtt-input:$(TAG)
+
+docker-build-mosquitto:
+	@docker build -t signalkstash/mosquitto:latest -f Dockerfile.mosquitto .
+
+docker-tag-and-push-mosquitto:
+	@docker tag signalkstash/mosquitto:latest signalkstash/mosquitto:prod
+	@docker push signalkstash/mosquitto:prod
 
 .ensure-prod-ssh-keypair:
 	@if [ ! -f $(PROD_SSH_PRIVATE_KEY) -o ! -f $(PROD_SSH_PRIVATE_KEY).pub ]; then \
@@ -152,3 +161,6 @@ docker-push-mqtt-input:
 
 .check-ansible-vault-passwd:
 	@if [ ! -f $(ANSIBLE_VAULT_PASSWD_FILE) ]; then echo $(ANSIBLE_VAULT_PASSWD_FILE) missing!; exit 1; fi
+
+.check-tag-set:
+	@if [ -z "$(TAG)" ]; then echo TAG environment variable is not set!; exit 1; fi
