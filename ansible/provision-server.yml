@@ -91,8 +91,8 @@
   - name: Set credentials for basic auth access
     htpasswd:
       path: /etc/nginx/passwdfile
-      name: "{{ secrets.nginx.basic_auth.username }}"
-      password: "{{ secrets.nginx.basic_auth.password }}"
+      name: "{{ secrets.prod.nginx.basic_auth.username }}"
+      password: "{{ secrets.prod.nginx.basic_auth.password }}"
       owner: root
       group: www-data
       mode: 0640
