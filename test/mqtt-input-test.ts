@@ -3,10 +3,10 @@ import { expect } from 'chai'
 
 import config from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
-import { MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
-import { DELTABASETOPIC } from '../delta-inputs/MqttDeltaInput'
+import { vesselTopic } from '../delta-inputs/MqttDeltaInput'
 import MqttRunner, {
   insertRunnerAccount,
+  insertVesselAccount,
   startMqttClient
 } from '../delta-inputs/MqttRunner'
 import {
@@ -86,27 +86,11 @@ describe('MQTT input', () => {
 function initializeTestDb() {
   return testdb
     .resetTables()
-    .then(insertVesselAccount)
+    .then(() => insertVesselAccount(vesselAccount, vesselUuid))
     .then(() => {
       return insertRunnerAccount(
         runnerAccount.username,
         runnerAccount.passwordHash
       )
     })
-}
-
-export function insertVesselAccount() {
-  return DB.upsertAccount(vesselAccount).then(() =>
-    DB.upsertAcl(
-      new MqttACL(
-        vesselAccount.username,
-        vesselTopic(vesselUuid),
-        MqttACLLevel.ALL
-      )
-    )
-  )
-}
-
-function vesselTopic(vesselUuid: string): string {
-  return `${DELTABASETOPIC}/${vesselUuid}`
 }

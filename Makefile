@@ -74,7 +74,7 @@ e2e-stop: docker-e2e-stop
 e2e-down: docker-e2e-down
 
 e2e-mqtt-account: e2e-up compile
-	ENVIRONMENT=e2e node built/e2e/insertTestAccount.js
+	ENVIRONMENT=e2e node built/e2e/insertTestAccounts.js
 
 e2e-mqtt-input: compile
 	ENVIRONMENT=e2e node built/delta-inputs/mqtt-runner.js

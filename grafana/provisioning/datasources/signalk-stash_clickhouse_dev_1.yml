@@ -1,17 +1,17 @@
 apiVersion: 1
 
 deleteDatasources:
-  - name: ClickHouse-Dev
+  - name: ClickHouse-e2e
     orgId: 1
 
 datasources:
-- name: ClickHouse-Dev
+- name: ClickHouse-e2e
   id: 1
   orgId: 1
   type: vertamedia-clickhouse-datasource
   typeLogoUrl: ''
   access: proxy
-  url: http://signalk-stash_clickhouse-dev_1:8123
+  url: http://signalk-stash-e2e_clickhouse_1:8123
   password: ''
   user: ''
   database: ''
