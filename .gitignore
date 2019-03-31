@@ -7,6 +7,6 @@ api-server/public/bundle.js
 cypress/screenshots/
 cypress/videos/
 test_reports
-ansible/id_rsa_stash
+ansible/id_rsa_stash*
 ansible/vault_passwd
 *.retry
