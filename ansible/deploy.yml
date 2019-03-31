@@ -18,6 +18,11 @@
           SIGNALK_STASH_MQTT_USERNAME={{ secrets.prod.mqtt_runner.username }}
           SIGNALK_STASH_MQTT_PASSWORD={{ secrets.prod.mqtt_runner.password }}
 
+    - name: Copy Mosquitto TLS configuration file
+      copy:
+        src: mosquitto_tls.conf
+        dest: mosquitto_tls.conf
+
     - name: Setup production Docker containers
       docker_service:
         project_name: signalk-stash-prod
