@@ -45,11 +45,22 @@ jobs:
       - store_test_results:
           path: test_reports
 
+  build-containers:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          command: make docker-build-apiserver
+      - run:
+          command: make docker-build-mqtt-input
+
 workflows:
   version: 2
-  unit-test:
+  test-and-build:
     jobs:
       - unit-test
-  integration-test:
-    jobs:
       - integration-test
+      - build-containers:
+          requires:
+            - unit-test
+            - integration-test
