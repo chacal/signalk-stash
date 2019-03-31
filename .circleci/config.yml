@@ -48,6 +48,9 @@ jobs:
   build-containers:
     machine: true
     steps:
+      - run:
+          name: Export TAG variable
+          command: echo 'export TAG=build-${CIRCLE_BUILD_NUM}' >> $BASH_ENV
       - checkout
       - run:
           name: Build api-server container
@@ -59,8 +62,31 @@ jobs:
           name: Push containers to Docker Hub
           command: |
             echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin
-            TAG=build-${CIRCLE_BUILD_NUM} make docker-tag-and-push-apiserver
-            TAG=build-${CIRCLE_BUILD_NUM} make docker-tag-and-push-mqtt-input
+            make docker-tag-and-push-apiserver
+            make docker-tag-and-push-mqtt-input
+      - run:
+          name: Save used tag to a file
+          command: mkdir /tmp/workspace && echo ${TAG} > /tmp/workspace/tag
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - workspace
+
+  deploy:
+    docker:
+      - image: williamyeh/ansible:debian9
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - checkout
+      - run:
+          name: Install dependencies
+          command: apt update && apt install -y make python-cryptography
+      - run:
+          name: Setup Vault password
+          command: echo ${ANSIBLE_VAULT_PASSWORD} > ./ansible/vault_passwd
+      - run:
+          command: TAG=$(cat /tmp/workspace/tag) make ansible-deploy-prod
 
 workflows:
   version: 2
@@ -72,6 +98,12 @@ workflows:
           requires:
             - unit-test
             - integration-test
+          filters:
+            branches:
+              only: prod
+      - deploy:
+          requires:
+            - build-containers
           filters:
             branches:
               only: prod
