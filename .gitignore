@@ -8,3 +8,5 @@ cypress/screenshots/
 cypress/videos/
 test_reports
 ansible/id_rsa_stash
+ansible/vault_passwd
+*.retry

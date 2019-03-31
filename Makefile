@@ -14,6 +14,7 @@ CYPRESS_CI_PARAMS :=--record --reporter=mocha-multi-reporters --reporter-options
 endif
 
 PROD_SSH_KEY=./ansible/id_rsa_stash
+ANSIBLE_VAULT_PASSWD_FILE=./ansible/vault_passwd
 
 clean:
 	@rm -rf built
@@ -111,15 +112,15 @@ clickhouse-dev: clickhouse-client-dev
 
 clickhouse-test: clickhouse-client-test
 
-ansible-initialize-prod:
+ansible-initialize-prod: .check-ansible-vault-passwd
 	@echo You must have passwordless SSH \& sudo to the destination host for this to work properly..
-	@ansible-playbook -i ./ansible/inventory ./ansible/initialize-server.yml
+	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) -i ./ansible/inventory ./ansible/initialize-server.yml
 
-ansible-provision-prod: .check-private-key
-	@ansible-playbook --private-key $(PROD_SSH_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
+ansible-provision-prod: .check-private-key .check-ansible-vault-passwd
+	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
 
-ansible-deploy-prod:
-	@ansible-playbook --private-key $(PROD_SSH_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
+ansible-deploy-prod: .check-ansible-vault-passwd
+	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
 
 ssh-prod: .check-private-key
 	@ssh -i $(PROD_SSH_KEY) stash@$$(cat ./ansible/inventory)
@@ -137,4 +138,7 @@ docker-push-mqtt-input:
 	@docker push jihartik/signalk-stash-mqtt-input:latest
 
 .check-private-key:
-	@if [ ! -f $(PROD_SSH_KEY) ]; then echo ./ansible/id_rsa_stash missing!; exit 1; fi
+	@if [ ! -f $(PROD_SSH_KEY) ]; then echo $(PROD_SSH_KEY) missing!; exit 1; fi
+
+.check-ansible-vault-passwd:
+	@if [ ! -f $(ANSIBLE_VAULT_PASSWD_FILE) ]; then echo $(ANSIBLE_VAULT_PASSWD_FILE) missing!; exit 1; fi
