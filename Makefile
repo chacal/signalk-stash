@@ -122,6 +122,12 @@ ansible-provision-prod: .ensure-prod-ssh-keypair .check-ansible-vault-passwd
 ansible-deploy-prod: .check-ansible-vault-passwd
 	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
 
+ansible-vault-edit:
+	@ansible-vault edit --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) ./ansible/secrets.yml
+
+ansible-vault-view:
+	@ansible-vault view --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) ./ansible/secrets.yml
+
 ssh-prod: .ensure-prod-ssh-keypair
 	@ssh -i $(PROD_SSH_PRIVATE_KEY) stash@$$(cat ./ansible/inventory)
 
