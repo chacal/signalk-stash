@@ -116,13 +116,13 @@ ansible-initialize-prod: .check-ansible-vault-passwd
 	@echo You must have passwordless SSH \& sudo to the destination host for this to work properly..
 	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) -i ./ansible/inventory ./ansible/initialize-server.yml
 
-ansible-provision-prod: .check-private-key .check-ansible-vault-passwd
+ansible-provision-prod: .ensure-prod-ssh-keypair .check-ansible-vault-passwd
 	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
 
 ansible-deploy-prod: .check-ansible-vault-passwd
 	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
 
-ssh-prod: .check-private-key
+ssh-prod: .ensure-prod-ssh-keypair
 	@ssh -i $(PROD_SSH_KEY) stash@$$(cat ./ansible/inventory)
 
 docker-build-apiserver:
@@ -137,8 +137,12 @@ docker-build-mqtt-input:
 docker-push-mqtt-input:
 	@docker push jihartik/signalk-stash-mqtt-input:latest
 
-.check-private-key:
-	@if [ ! -f $(PROD_SSH_KEY) ]; then echo $(PROD_SSH_KEY) missing!; exit 1; fi
+.ensure-prod-ssh-keypair:
+	@if [ ! -f $(PROD_SSH_KEY) -o ! -f $(PROD_SSH_KEY).pub ]; then \
+		ansible localhost -i localhost, -m copy -a "content='{{ secrets.prod.ssh.private_key }}' dest=$(PROD_SSH_KEY) mode=0600" -e @./ansible/secrets.yml --connection=local --vault-id $(ANSIBLE_VAULT_PASSWD_FILE); \
+		ssh-keygen -y -f $(PROD_SSH_KEY) > $(PROD_SSH_KEY).pub; \
+		ssh-keygen -c -f $(PROD_SSH_KEY) -C "Signal K Stash user"; \
+	fi
 
 .check-ansible-vault-passwd:
 	@if [ ! -f $(ANSIBLE_VAULT_PASSWD_FILE) ]; then echo $(ANSIBLE_VAULT_PASSWD_FILE) missing!; exit 1; fi
