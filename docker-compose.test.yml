@@ -23,8 +23,8 @@ services:
     ports:
      - 41883:1883
     volumes:
-      - mosquitto-data-test:/var/lib/mosquitto
+      - mosquitto-data:/var/lib/mosquitto
     restart: always
 
 volumes:
-  mosquitto-data-test:
+  mosquitto-data:
