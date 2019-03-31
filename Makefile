@@ -13,7 +13,7 @@ MOCHA_CI_PARAMS :=--reporter=mocha-multi-reporters --reporter-options configFile
 CYPRESS_CI_PARAMS :=--record --reporter=mocha-multi-reporters --reporter-options configFile=.circleci/integration_test_reporter_config.json
 endif
 
-PROD_SSH_KEY=./ansible/id_rsa_stash
+PROD_SSH_PRIVATE_KEY=./ansible/id_rsa_stash
 ANSIBLE_VAULT_PASSWD_FILE=./ansible/vault_passwd
 
 clean:
@@ -103,7 +103,7 @@ psql-test:
 	@psql 'postgresql://signalk:signalk@localhost:45432/signalk'
 
 psql-prod:
-	@ssh -i $(PROD_SSH_KEY) -t stash@$$(cat ./ansible/inventory) "docker exec -it signalk-stash-prod_postgis_1 /usr/local/bin/psql -U signalk"
+	@ssh -i $(PROD_SSH_PRIVATE_KEY) -t stash@$$(cat ./ansible/inventory) "docker exec -it signalk-stash-prod_postgis_1 /usr/local/bin/psql -U signalk"
 
 clickhouse-client-%:
 	@docker exec -it signalk-stash-$*_clickhouse-$*_1 clickhouse-client
@@ -117,13 +117,13 @@ ansible-initialize-prod: .check-ansible-vault-passwd
 	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) -i ./ansible/inventory ./ansible/initialize-server.yml
 
 ansible-provision-prod: .ensure-prod-ssh-keypair .check-ansible-vault-passwd
-	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
+	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
 
 ansible-deploy-prod: .check-ansible-vault-passwd
-	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
+	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
 
 ssh-prod: .ensure-prod-ssh-keypair
-	@ssh -i $(PROD_SSH_KEY) stash@$$(cat ./ansible/inventory)
+	@ssh -i $(PROD_SSH_PRIVATE_KEY) stash@$$(cat ./ansible/inventory)
 
 docker-build-apiserver:
 	@docker build -t jihartik/signalk-stash-api-server:latest -f Dockerfile.api-server .
@@ -138,10 +138,10 @@ docker-push-mqtt-input:
 	@docker push jihartik/signalk-stash-mqtt-input:latest
 
 .ensure-prod-ssh-keypair:
-	@if [ ! -f $(PROD_SSH_KEY) -o ! -f $(PROD_SSH_KEY).pub ]; then \
-		ansible localhost -i localhost, -m copy -a "content='{{ secrets.prod.ssh.private_key }}' dest=$(PROD_SSH_KEY) mode=0600" -e @./ansible/secrets.yml --connection=local --vault-id $(ANSIBLE_VAULT_PASSWD_FILE); \
-		ssh-keygen -y -f $(PROD_SSH_KEY) > $(PROD_SSH_KEY).pub; \
-		ssh-keygen -c -f $(PROD_SSH_KEY) -C "Signal K Stash user"; \
+	@if [ ! -f $(PROD_SSH_PRIVATE_KEY) -o ! -f $(PROD_SSH_PRIVATE_KEY).pub ]; then \
+		ansible localhost -i localhost, -m copy -a "content='{{ secrets.prod.ssh.private_key }}' dest=$(PROD_SSH_PRIVATE_KEY) mode=0600" -e @./ansible/secrets.yml --connection=local --vault-id $(ANSIBLE_VAULT_PASSWD_FILE); \
+		ssh-keygen -y -f $(PROD_SSH_PRIVATE_KEY) > $(PROD_SSH_PRIVATE_KEY).pub; \
+		ssh-keygen -c -f $(PROD_SSH_PRIVATE_KEY) -C "Signal K Stash user"; \
 	fi
 
 .check-ansible-vault-passwd:
