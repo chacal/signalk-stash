@@ -50,9 +50,17 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Build api-server container
           command: make docker-build-apiserver
       - run:
+          name: Build mqtt-input container
           command: make docker-build-mqtt-input
+      - run:
+          name: Push containers to Docker Hub
+          command: |
+            echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin
+            TAG=build-${CIRCLE_BUILD_NUM} make docker-tag-and-push-apiserver
+            TAG=build-${CIRCLE_BUILD_NUM} make docker-tag-and-push-mqtt-input
 
 workflows:
   version: 2
@@ -64,3 +72,6 @@ workflows:
           requires:
             - unit-test
             - integration-test
+          filters:
+            branches:
+              only: prod
