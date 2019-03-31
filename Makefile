@@ -129,7 +129,7 @@ ansible-vault-view:
 	@ansible-vault view --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) ./ansible/secrets.yml
 
 ssh-prod: .ensure-prod-ssh-keypair
-	@ssh -i $(PROD_SSH_PRIVATE_KEY) stash@$$(cat ./ansible/inventory)
+	@ssh -i $(PROD_SSH_PRIVATE_KEY) stash@$$(cat ./ansible/inventory | cut -d' ' -f1)
 
 docker-build-apiserver:
 	@docker build -t signalkstash/api-server:latest -f Dockerfile.api-server .
