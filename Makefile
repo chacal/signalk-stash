@@ -116,10 +116,10 @@ ansible-initialize-prod: .check-ansible-vault-passwd
 	@echo You must have passwordless SSH \& sudo to the destination host for this to work properly..
 	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) -i ./ansible/inventory ./ansible/initialize-server.yml
 
-ansible-provision-prod: .ensure-prod-ssh-keypair .check-ansible-vault-passwd
+ansible-provision-prod: .ensure-prod-ssh-keypair
 	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
 
-ansible-deploy-prod: .check-ansible-vault-passwd .check-tag-set
+ansible-deploy-prod: .ensure-prod-ssh-keypair .check-tag-set
 	@ansible-playbook -e docker_tag=$(TAG) --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
 
 ansible-vault-edit:
@@ -152,7 +152,7 @@ docker-tag-and-push-mosquitto:
 	@docker tag signalkstash/mosquitto:latest signalkstash/mosquitto:prod
 	@docker push signalkstash/mosquitto:prod
 
-.ensure-prod-ssh-keypair:
+.ensure-prod-ssh-keypair: .check-ansible-vault-passwd
 	@if [ ! -f $(PROD_SSH_PRIVATE_KEY) -o ! -f $(PROD_SSH_PRIVATE_KEY).pub ]; then \
 		ansible localhost -i localhost, -m copy -a "content='{{ secrets.prod.ssh.private_key }}' dest=$(PROD_SSH_PRIVATE_KEY) mode=0600" -e @./ansible/secrets.yml --connection=local --vault-id $(ANSIBLE_VAULT_PASSWD_FILE); \
 		ssh-keygen -y -f $(PROD_SSH_PRIVATE_KEY) > $(PROD_SSH_PRIVATE_KEY).pub; \
