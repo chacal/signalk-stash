@@ -156,7 +156,6 @@ docker-tag-and-push-mosquitto:
 	@if [ ! -f $(PROD_SSH_PRIVATE_KEY) -o ! -f $(PROD_SSH_PRIVATE_KEY).pub ]; then \
 		ansible localhost -i localhost, -m copy -a "content='{{ secrets.prod.ssh.private_key }}' dest=$(PROD_SSH_PRIVATE_KEY) mode=0600" -e @./ansible/secrets.yml --connection=local --vault-id $(ANSIBLE_VAULT_PASSWD_FILE); \
 		ssh-keygen -y -f $(PROD_SSH_PRIVATE_KEY) > $(PROD_SSH_PRIVATE_KEY).pub; \
-		ssh-keygen -c -f $(PROD_SSH_PRIVATE_KEY) -C "Signal K Stash user"; \
 	fi
 
 .check-ansible-vault-passwd:
