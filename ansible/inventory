@@ -1,1 +1,1 @@
-signalk-stash.chacal.fi
+signalk-stash.chacal.fi ansible_ssh_common_args='-o StrictHostKeyChecking=no'
