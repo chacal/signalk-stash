@@ -26,7 +26,6 @@ services:
      - 51883:1883
     volumes:
       - mosquitto-data:/var/lib/mosquitto
-      - mosquitto-log:/var/log/mosquitto
     restart: always
   grafana:
     image: "grafana/grafana"
@@ -43,4 +42,3 @@ services:
 volumes:
   pgdata:
   mosquitto-data:
-  mosquitto-log:
