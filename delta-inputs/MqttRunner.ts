@@ -78,12 +78,21 @@ export function insertVesselAccount(
   vesselUuid: string
 ) {
   return DB.upsertAccount(vesselAccount).then(() =>
-    DB.upsertAcl(
-      new MqttACL(
-        vesselAccount.username,
-        vesselTopic(vesselUuid),
-        MqttACLLevel.ALL
+    Promise.all([
+      DB.upsertAcl(
+        new MqttACL(
+          vesselAccount.username,
+          vesselTopic(vesselUuid),
+          MqttACLLevel.ALL
+        )
+      ),
+      DB.upsertAcl(
+        new MqttACL(
+          vesselAccount.username,
+          vesselTopic(vesselUuid) + '/stats',
+          MqttACLLevel.ALL
+        )
       )
-    )
+    ])
   )
 }
