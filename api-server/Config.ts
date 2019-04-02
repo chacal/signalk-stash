@@ -6,15 +6,17 @@ const isUnitTesting = process.env.ENVIRONMENT === 'unit-test'
 const isIntegrationTesting = process.env.ENVIRONMENT === 'integration-test'
 const isTesting = isUnitTesting || isIntegrationTesting
 
+interface StringIndexable {
+  [propName: string]: string | number | boolean | {}
+}
+
 export interface MqttConfig {
   username: string
   password: string
   broker: string
 }
 
-export interface IConfig {
-  [propName: string]: string | object | number | boolean
-
+export interface IConfig extends StringIndexable {
   db: {
     host: string
     port: number
@@ -126,29 +128,15 @@ console.log(`Using ${environment} config:\n${JSON.stringify(config, null, 2)}`)
 export default config
 
 export function overrideFromEnvironment(
-  values: IConfig,
+  values: StringIndexable,
   prefix: string = 'SIGNALK_STASH_'
 ) {
-  const manifest = values
-
-  Object.keys(manifest).forEach(key => {
-    const value = manifest[key]
+  Object.keys(values).forEach(key => {
+    const value = values[key]
     let keyPrefix = (prefix + key).toUpperCase()
 
-    // Replace hyphens.
-    keyPrefix = keyPrefix.replace(/-/g, '_')
-
-    // Replace local references.
-    keyPrefix = keyPrefix.replace(/\.\//g, '_')
-
-    // Replace dots.
-    keyPrefix = keyPrefix.replace(/\./g, '_')
-
-    // Replace double underscores.
-    keyPrefix = keyPrefix.replace(/__/g, '_')
-
-    // Replace slashes.
-    keyPrefix = keyPrefix.replace(/\//g, '_')
+    // Replace hyphens, local references, dots, double underscores and slashes.
+    keyPrefix = keyPrefix.replace(/-|\.\/|\.|__|\//g, '_')
 
     if (process.env[keyPrefix] !== undefined) {
       let newValue
@@ -161,12 +149,12 @@ export function overrideFromEnvironment(
       }
       console.log(
         `Using ${keyPrefix} to override config. Old value: ${
-          manifest[key]
+          values[key]
         } New value: ${newValue}`
       )
-      manifest[key] = newValue
+      values[key] = newValue
     } else if (typeof value === 'object') {
-      overrideFromEnvironment(value as IConfig, `${keyPrefix}_`)
+      overrideFromEnvironment(value, `${keyPrefix}_`)
     }
   })
 }
