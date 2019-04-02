@@ -8,5 +8,6 @@ cypress/videos/
 test_reports
 ansible/id_rsa_stash*
 ansible/vault_passwd
+ansible/inventory
 *.retry
 env

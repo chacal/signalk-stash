@@ -103,7 +103,7 @@ psql-dev:
 psql-test:
 	@psql 'postgresql://signalk:signalk@localhost:45432/signalk'
 
-psql-prod:
+psql-prod: .ensure-inventory
 	@ssh -i $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -t stash@$$(cat ./ansible/inventory) "docker exec -it signalk-stash-prod_postgis_1 /usr/local/bin/psql -U signalk"
 
 clickhouse-client-%:
@@ -113,14 +113,14 @@ clickhouse-dev: clickhouse-client-dev
 
 clickhouse-test: clickhouse-client-test
 
-ansible-initialize-prod: .check-ansible-vault-passwd
+ansible-initialize-prod: .check-ansible-vault-passwd  .ensure-inventory
 	@echo You must have passwordless SSH \& sudo to the destination host for this to work properly..
 	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) -i ./ansible/inventory ./ansible/initialize-server.yml
 
-ansible-provision-prod: .ensure-prod-ssh-keypair
+ansible-provision-prod: .ensure-prod-ssh-keypair  .ensure-inventory
 	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
 
-ansible-deploy-prod: .ensure-prod-ssh-keypair .check-tag-set
+ansible-deploy-prod: .ensure-prod-ssh-keypair .check-tag-set  .ensure-inventory
 	@ansible-playbook -e docker_tag=$(TAG) --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
 
 ansible-vault-edit:
@@ -129,7 +129,7 @@ ansible-vault-edit:
 ansible-vault-view:
 	@ansible-vault view --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) ./ansible/secrets.yml
 
-ssh-prod: .ensure-prod-ssh-keypair
+ssh-prod: .ensure-prod-ssh-keypair  .ensure-inventory
 	@ssh -i $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) stash@$$(cat ./ansible/inventory | cut -d' ' -f1)
 
 docker-build-apiserver:
@@ -168,5 +168,13 @@ docker-tag-and-push-mosquitto:
 .check-tag-set:
 	@if [ -z "$(TAG)" ]; then echo TAG environment variable is not set!; exit 1; fi
 
+.ensure-inventory: .check-prod-host-set
+	@if ! $$(grep -q "^$(SIGNALK_STASH_PROD_HOST) .*$$" ansible/inventory); then \
+		echo "$(SIGNALK_STASH_PROD_HOST) ansible_ssh_common_args='-o StrictHostKeyChecking=no'" > ansible/inventory; \
+	fi
+
 .check-prod-ssh-key-set:
 	@if [ -z "$(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY)" ]; then echo SIGNALK_STASH_PROD_SSH_PRIVATE_KEY environment variable is not set!; exit 1; fi
+
+.check-prod-host-set:
+	@if [ -z "$(SIGNALK_STASH_PROD_HOST)" ]; then echo SIGNALK_STASH_PROD_HOST environment variable is not set!; exit 1; fi
