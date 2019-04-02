@@ -50,11 +50,11 @@
 
   - name: Add Docker Apt key
     apt_key:
-      url: https://download.docker.com/linux/debian/gpg
+      url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
 
   - name: Add Docker Apt repository
     apt_repository:
-      repo: "deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+      repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
       update_cache: yes
 
   - name: Install Docker
