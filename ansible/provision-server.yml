@@ -8,6 +8,9 @@
 
   vars:
     hostname: "{{ lookup('env','SIGNALK_STASH_PROD_HOST') }}"
+    nginx:
+      username: "{{ lookup('env','SIGNALK_STASH_NGINX_AUTH_USERNAME') }}"
+      password: "{{ lookup('env','SIGNALK_STASH_NGINX_AUTH_PASSWORD') }}"
 
   handlers:
     - name: restart-nginx
@@ -88,11 +91,16 @@
       creates: /etc/ssl/certs/dhparam.pem
     notify: restart-nginx
 
+  - name: Fail if Nginx basic auth credentials are missing
+    fail:
+      msg: "Nginx basic auth credentials are missing. Set SIGNALK_STASH_NGINX_AUTH_USERNAME and SIGNALK_STASH_NGINX_AUTH_PASSWORD variables."
+    when: nginx.username == "" or nginx.password == ""
+
   - name: Set credentials for basic auth access
     htpasswd:
       path: /etc/nginx/passwdfile
-      name: "{{ secrets.prod.nginx.basic_auth.username }}"
-      password: "{{ secrets.prod.nginx.basic_auth.password }}"
+      name: "{{ nginx.username }}"
+      password: "{{ nginx.password }}"
       owner: root
       group: www-data
       mode: 0640
