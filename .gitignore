@@ -9,3 +9,4 @@ test_reports
 ansible/id_rsa_stash*
 ansible/vault_passwd
 *.retry
+env

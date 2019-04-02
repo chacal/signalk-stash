@@ -13,8 +13,9 @@ MOCHA_CI_PARAMS :=--reporter=mocha-multi-reporters --reporter-options configFile
 CYPRESS_CI_PARAMS :=--record --reporter=mocha-multi-reporters --reporter-options configFile=.circleci/integration_test_reporter_config.json
 endif
 
-SIGNALK_STASH_PROD_SSH_PRIVATE_KEY ?= ./ansible/id_rsa_stash
 ANSIBLE_VAULT_PASSWD_FILE=./ansible/vault_passwd
+
+-include env
 
 clean:
 	@rm -rf built
@@ -152,7 +153,7 @@ docker-tag-and-push-mosquitto:
 	@docker tag signalkstash/mosquitto:latest signalkstash/mosquitto:prod
 	@docker push signalkstash/mosquitto:prod
 
-.ensure-prod-ssh-keypair:
+.ensure-prod-ssh-keypair: .check-prod-ssh-key-set
 	@if [ ! -f $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) ]; then \
 		echo 'SSH key for prod missing! Looked for "$(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY)". Set SIGNALK_STASH_PROD_SSH_PRIVATE_KEY to use different file.'; \
 		exit 1; \
@@ -166,3 +167,6 @@ docker-tag-and-push-mosquitto:
 
 .check-tag-set:
 	@if [ -z "$(TAG)" ]; then echo TAG environment variable is not set!; exit 1; fi
+
+.check-prod-ssh-key-set:
+	@if [ -z "$(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY)" ]; then echo SIGNALK_STASH_PROD_SSH_PRIVATE_KEY environment variable is not set!; exit 1; fi
