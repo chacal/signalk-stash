@@ -4,7 +4,6 @@
 
   vars:
     username: stash
-    hostname: signalk-stash
 
   tasks:
   - name: Add stash user
