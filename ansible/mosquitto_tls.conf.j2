@@ -1,0 +1,7 @@
+listener 8883
+
+# /etc/letsencrypt is mounted from host
+cafile /etc/letsencrypt/live/{{ hostname }}/chain.pem
+certfile /etc/letsencrypt/live/{{ hostname }}/cert.pem
+keyfile /etc/letsencrypt/live/{{ hostname }}/privkey.pem
+tls_version tlsv1.2

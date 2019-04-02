@@ -14,12 +14,12 @@ server {
   listen 443 ssl default_server;
   listen [::]:443 ssl default_server;
 
-  server_name signalk-stash.chacal.fi;
+  server_name {{ hostname }};
 
   include snippets/ssl-signalk-stash.conf;
 
-  ssl_certificate /etc/letsencrypt/live/signalk-stash.chacal.fi/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/signalk-stash.chacal.fi/privkey.pem;
+  ssl_certificate /etc/letsencrypt/live/{{ hostname }}/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/{{ hostname }}/privkey.pem;
 
   location / {
     proxy_pass http://api-server;

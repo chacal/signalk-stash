@@ -5,6 +5,9 @@
   vars_files:
     - secrets.yml
 
+  vars:
+    hostname: "{{ lookup('env','SIGNALK_STASH_PROD_HOST') }}"
+
   tasks:
     - name: Copy Docker compose file to remote
       copy:
@@ -19,8 +22,8 @@
           SIGNALK_STASH_MQTT_PASSWORD={{ secrets.prod.mqtt_runner.password }}
 
     - name: Copy Mosquitto TLS configuration file
-      copy:
-        src: mosquitto_tls.conf
+      template:
+        src: mosquitto_tls.conf.j2
         dest: mosquitto_tls.conf
 
     - name: Setup production Docker containers

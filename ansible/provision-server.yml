@@ -7,7 +7,7 @@
     - secrets.yml
 
   vars:
-    hostname: signalk-stash
+    hostname: "{{ lookup('env','SIGNALK_STASH_PROD_HOST') }}"
 
   handlers:
     - name: restart-nginx
@@ -77,7 +77,7 @@
     file: path=/etc/nginx/sites-enabled/default state=absent
     notify: restart-nginx
 
-  #  Run manually 'certbot certonly --standalone -d signalk-stash.chacal.fi' to generate Let's encrypt certificates
+  #  Run manually 'certbot certonly --standalone -d <prod fqdn>' to generate Let's encrypt certificates
   - name: Add custom Nginx SSL snippet
     copy: src=./nginx_ssl_snippet.conf dest=/etc/nginx/snippets/ssl-signalk-stash.conf
     notify: restart-nginx
@@ -99,7 +99,7 @@
     notify: restart-nginx
 
   - name: Add custom Nginx configuration
-    copy: src=./prod_nginx.conf dest=/etc/nginx/conf.d/signalk_stash_nginx.conf
+    template: src=./prod_nginx.conf.j2 dest=/etc/nginx/conf.d/signalk_stash_nginx.conf
     notify: restart-nginx
 
   - name: Enable & start Nginx

@@ -16,6 +16,7 @@ endif
 ANSIBLE_VAULT_PASSWD_FILE=./ansible/vault_passwd
 
 -include env
+export
 
 clean:
 	@rm -rf built
