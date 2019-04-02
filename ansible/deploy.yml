@@ -2,9 +2,6 @@
 - hosts: all
   remote_user: stash
 
-  vars_files:
-    - secrets.yml
-
   vars:
     hostname: "{{ lookup('env','SIGNALK_STASH_PROD_HOST') }}"
     mqtt_runner:

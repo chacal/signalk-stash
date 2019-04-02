@@ -3,9 +3,6 @@
   remote_user: stash
   become: yes
 
-  vars_files:
-    - secrets.yml
-
   vars:
     hostname: "{{ lookup('env','SIGNALK_STASH_PROD_HOST') }}"
     nginx:

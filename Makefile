@@ -13,8 +13,6 @@ MOCHA_CI_PARAMS :=--reporter=mocha-multi-reporters --reporter-options configFile
 CYPRESS_CI_PARAMS :=--record --reporter=mocha-multi-reporters --reporter-options configFile=.circleci/integration_test_reporter_config.json
 endif
 
-ANSIBLE_VAULT_PASSWD_FILE=./ansible/vault_passwd
-
 -include env
 export
 
@@ -114,21 +112,15 @@ clickhouse-dev: clickhouse-client-dev
 
 clickhouse-test: clickhouse-client-test
 
-ansible-initialize-prod: .check-ansible-vault-passwd  .ensure-inventory
+ansible-initialize-prod: .ensure-inventory
 	@echo You must have passwordless SSH \& sudo to the destination host for this to work properly..
-	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) -i ./ansible/inventory ./ansible/initialize-server.yml
+	@ansible-playbook -i ./ansible/inventory ./ansible/initialize-server.yml
 
 ansible-provision-prod: .ensure-prod-ssh-keypair  .ensure-inventory
-	@ansible-playbook --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
+	@ansible-playbook --private-key $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
 
 ansible-deploy-prod: .ensure-prod-ssh-keypair .check-tag-set  .ensure-inventory
-	@ansible-playbook -e docker_tag=$(TAG) --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) --private-key $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
-
-ansible-vault-edit:
-	@ansible-vault edit --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) ./ansible/secrets.yml
-
-ansible-vault-view:
-	@ansible-vault view --vault-id $(ANSIBLE_VAULT_PASSWD_FILE) ./ansible/secrets.yml
+	@ansible-playbook -e docker_tag=$(TAG) --private-key $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
 
 ssh-prod: .ensure-prod-ssh-keypair  .ensure-inventory
 	@ssh -i $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) stash@$$(cat ./ansible/inventory | cut -d' ' -f1)
@@ -162,9 +154,6 @@ docker-tag-and-push-mosquitto:
 	@if [ ! -f $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY).pub ]; then \
 		ssh-keygen -y -f $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) > $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY).pub; \
 	fi
-
-.check-ansible-vault-passwd:
-	@if [ ! -f $(ANSIBLE_VAULT_PASSWD_FILE) ]; then echo $(ANSIBLE_VAULT_PASSWD_FILE) missing!; exit 1; fi
 
 .check-tag-set:
 	@if [ -z "$(TAG)" ]; then echo TAG environment variable is not set!; exit 1; fi
