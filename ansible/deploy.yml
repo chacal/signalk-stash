@@ -5,8 +5,8 @@
   vars:
     hostname: "{{ lookup('env','SIGNALK_STASH_PROD_HOST') }}"
     mqtt_runner:
-      username: "{{ lookup('env','SIGNALK_STASH_MQTT_USERNAME') }}"
-      password: "{{ lookup('env','SIGNALK_STASH_MQTT_PASSWORD') }}"
+      username: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_USERNAME') }}"
+      password: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_PASSWORD') }}"
 
   tasks:
     - name: Copy Docker compose file to remote
@@ -16,15 +16,15 @@
 
     - name: Fail if MQTT runner credentials are missing
       fail:
-        msg: "Mqtt runner credentials are missing. Set SIGNALK_STASH_MQTT_USERNAME and SIGNALK_STASH_MQTT_PASSWORD variables."
+        msg: "Mqtt runner credentials are missing. Set SIGNALK_STASH_PROD_MQTT_USERNAME and SIGNALK_STASH_PROD_MQTT_PASSWORD variables."
       when: mqtt_runner.username == "" or mqtt_runner.password == ""
 
     - name: Generate Docker environment file
       copy:
         dest: docker-prod.env
         content: |
-          SIGNALK_STASH_MQTT_USERNAME={{ mqtt_runner.username }}
-          SIGNALK_STASH_MQTT_PASSWORD={{ mqtt_runner.password }}
+          SIGNALK_STASH_PROD_MQTT_USERNAME={{ mqtt_runner.username }}
+          SIGNALK_STASH_PROD_MQTT_PASSWORD={{ mqtt_runner.password }}
 
     - name: Copy Mosquitto TLS configuration file
       template:
