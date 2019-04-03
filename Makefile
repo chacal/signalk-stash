@@ -8,9 +8,13 @@ CYPRESS=$(NODE_BIN)/cypress
 
 API_SERVER_DEV_MAIN=built/test/test-api-server.js
 
-ifneq ($(CI),)
+ifeq ($(CI),)
+ANSIBLE_WITH_AUTH = ansible-playbook --private-key $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY)
+else
 MOCHA_CI_PARAMS :=--reporter=mocha-multi-reporters --reporter-options configFile=.circleci/unit_test_reporter_config.json
 CYPRESS_CI_PARAMS :=--record --reporter=mocha-multi-reporters --reporter-options configFile=.circleci/integration_test_reporter_config.json
+# ssh-agent is used in CI -> no need to pass private key as commandline parameter
+ANSIBLE_WITH_AUTH = ansible-playbook
 endif
 
 -include env
@@ -117,10 +121,10 @@ ansible-initialize-prod: .ensure-inventory
 	@ansible-playbook -i ./ansible/inventory ./ansible/initialize-server.yml
 
 ansible-provision-prod: .ensure-prod-ssh-keypair  .ensure-inventory
-	@ansible-playbook --private-key $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/provision-server.yml -D
+	@$(ANSIBLE_WITH_AUTH) -i ./ansible/inventory ./ansible/provision-server.yml -D
 
 ansible-deploy-prod: .ensure-prod-ssh-keypair .check-tag-set  .ensure-inventory
-	@ansible-playbook -e docker_tag=$(TAG) --private-key $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -i ./ansible/inventory ./ansible/deploy.yml -D
+	@$(ANSIBLE_WITH_AUTH) -e docker_tag=$(TAG) -i ./ansible/inventory ./ansible/deploy.yml -D
 
 ssh-prod: .ensure-prod-ssh-keypair  .ensure-inventory
 	@ssh -i $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) stash@$$(cat ./ansible/inventory | cut -d' ' -f1)
@@ -146,6 +150,19 @@ docker-tag-and-push-mosquitto:
 	@docker tag signalkstash/mosquitto:latest signalkstash/mosquitto:prod
 	@docker push signalkstash/mosquitto:prod
 
+.check-tag-set:
+	@if [ -z "$(TAG)" ]; then echo TAG environment variable is not set!; exit 1; fi
+
+.ensure-inventory: .check-prod-host-set
+	@if ! $$(grep -q "^$(SIGNALK_STASH_PROD_HOST) .*$$" ansible/inventory); then \
+		echo "$(SIGNALK_STASH_PROD_HOST) ansible_ssh_common_args='-o StrictHostKeyChecking=no'" > ansible/inventory; \
+	fi
+
+.check-prod-host-set:
+	@if [ -z "$(SIGNALK_STASH_PROD_HOST)" ]; then echo SIGNALK_STASH_PROD_HOST environment variable is not set!; exit 1; fi
+
+# Check prod SSH key only outside CI. CI has the private key installed in the ssh-agent and thus the key file is not needed.
+ifeq ($(CI),)
 .ensure-prod-ssh-keypair: .check-prod-ssh-key-set
 	@if [ ! -f $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) ]; then \
 		echo 'SSH key for prod missing! Looked for "$(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY)". Set SIGNALK_STASH_PROD_SSH_PRIVATE_KEY to use different file.'; \
@@ -155,16 +172,9 @@ docker-tag-and-push-mosquitto:
 		ssh-keygen -y -f $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) > $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY).pub; \
 	fi
 
-.check-tag-set:
-	@if [ -z "$(TAG)" ]; then echo TAG environment variable is not set!; exit 1; fi
-
-.ensure-inventory: .check-prod-host-set
-	@if ! $$(grep -q "^$(SIGNALK_STASH_PROD_HOST) .*$$" ansible/inventory); then \
-		echo "$(SIGNALK_STASH_PROD_HOST) ansible_ssh_common_args='-o StrictHostKeyChecking=no'" > ansible/inventory; \
-	fi
-
 .check-prod-ssh-key-set:
 	@if [ -z "$(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY)" ]; then echo SIGNALK_STASH_PROD_SSH_PRIVATE_KEY environment variable is not set!; exit 1; fi
-
-.check-prod-host-set:
-	@if [ -z "$(SIGNALK_STASH_PROD_HOST)" ]; then echo SIGNALK_STASH_PROD_HOST environment variable is not set!; exit 1; fi
+else
+.ensure-prod-ssh-keypair:
+.check-prod-ssh-key-set:
+endif
