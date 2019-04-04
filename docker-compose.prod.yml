@@ -41,8 +41,21 @@ services:
       - ./mosquitto_tls.conf:/etc/mosquitto.d/mosquitto_tls.conf
       - /etc/letsencrypt:/etc/letsencrypt
     restart: always
+  grafana:
+    image: "grafana/grafana"
+    ports:
+      - 3001:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_INSTALL_PLUGINS: vertamedia-clickhouse-datasource
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL}
+      COMPOSE_ENV_NAME: prod
 
 volumes:
   pgdata:
   clickhousedata:
   mosquitto-data:
+  grafana-data:

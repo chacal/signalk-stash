@@ -3,6 +3,11 @@ upstream api-server {
   keepalive 60;
 }
 
+upstream grafana {
+  server 127.0.0.1:3001;
+  keepalive 60;
+}
+
 server {
   listen 80 default_server;
   listen [::]:80 default_server;
@@ -20,6 +25,13 @@ server {
 
   ssl_certificate /etc/letsencrypt/live/{{ hostname }}/fullchain.pem;
   ssl_certificate_key /etc/letsencrypt/live/{{ hostname }}/privkey.pem;
+
+  location /grafana/ {
+    proxy_pass http://grafana/;
+    proxy_http_version 1.1;
+    proxy_set_header Connection "Keep-Alive";
+    proxy_set_header Proxy-Connection "Keep-Alive";
+  }
 
   location / {
     proxy_pass http://api-server;

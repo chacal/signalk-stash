@@ -7,6 +7,8 @@
     mqtt_runner:
       username: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_USERNAME') }}"
       password: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_PASSWORD') }}"
+    grafana:
+      password: "{{ lookup('env','SIGNALK_STASH_PROD_GRAFANA_PASSWORD') }}"
 
   tasks:
     - name: Copy Docker compose file to remote
@@ -31,6 +33,26 @@
         src: mosquitto_tls.conf.j2
         dest: mosquitto_tls.conf
 
+    - name: Fail if Grafana admin password is missing
+      fail:
+        msg: "Grafana admin password is missing. Set SIGNALK_STASH_PROD_GRAFANA_PASSWORD variable."
+      when: grafana.password == ""
+
+    - name: Create Grafana configuration directory
+      file:
+        path: "grafana/provisioning"
+        state: directory
+
+    - name: Copy Grafana configuration files
+      synchronize:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        delete: yes
+        recursive: yes
+      with_items:
+        - { src: "../grafana/provisioning/dashboards", dest: "grafana/provisioning" }
+        - { src: "../grafana/provisioning/datasources/prod/", dest: "grafana/provisioning/datasources/" }
+
     - name: Setup production Docker containers
       docker_service:
         project_name: signalk-stash-prod
@@ -41,3 +63,5 @@
       environment:
         # This will be given as -e command line parameter
         TAG: "{{ docker_tag }}"
+        GRAFANA_PASSWORD: "{{ grafana.password }}"
+        GRAFANA_ROOT_URL: "/grafana"
