@@ -50,7 +50,12 @@ jobs:
     steps:
       - run:
           name: Export TAG variable
-          command: echo 'export TAG=build-${CIRCLE_BUILD_NUM}' >> $BASH_ENV
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ];
+              echo 'export TAG=latest' >> $BASH_ENV
+            else
+              echo 'export TAG=build-${CIRCLE_BUILD_NUM}' >> $BASH_ENV
+            fi
       - checkout
       - run:
           name: Build api-server container
@@ -97,7 +102,9 @@ workflows:
             - integration-test
           filters:
             branches:
-              only: prod
+              only:
+                - master
+                - prod
       - deploy:
           requires:
             - build-containers
