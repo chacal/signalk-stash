@@ -116,6 +116,9 @@ clickhouse-dev: clickhouse-client-dev
 
 clickhouse-test: clickhouse-client-test
 
+clickhouse-prod: .ensure-inventory
+	@ssh -i $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -t stash@$$(cat ./ansible/inventory) "docker exec -it signalk-stash-prod_clickhouse_1 clickhouse-client"
+
 ansible-initialize-prod: .ensure-inventory
 	@echo You must have passwordless SSH \& sudo to the destination host for this to work properly..
 	@ansible-playbook -i ./ansible/inventory ./ansible/initialize-server.yml
