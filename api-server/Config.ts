@@ -5,6 +5,7 @@ const isDeveloping = process.env.ENVIRONMENT === undefined
 const isUnitTesting = process.env.ENVIRONMENT === 'unit-test'
 const isIntegrationTesting = process.env.ENVIRONMENT === 'integration-test'
 const isTesting = isUnitTesting || isIntegrationTesting
+const isProduction = process.env.ENVIRONMENT === 'production'
 
 interface StringIndexable {
   [propName: string]: string | number | boolean | {}
@@ -33,6 +34,7 @@ export interface IConfig extends StringIndexable {
   isTesting: boolean
   isUnitTesting: boolean
   isIntegrationTesting: boolean
+  isProduction: boolean
   mqtt: MqttConfig
   deltaWriteStreamFlushPeriod: Duration
 }
@@ -60,6 +62,7 @@ const baseConfig = {
   isTesting,
   isUnitTesting,
   isIntegrationTesting,
+  isProduction,
   mqtt: {
     username: 'runner',
     password: 'runnerpasswort',
@@ -122,7 +125,9 @@ if (!environments[environment]) {
   throw new Error(`No such environment:${environment}`)
 }
 const config = _.merge(baseConfig, environments[environment])
-overrideFromEnvironment(config)
+if (config.isProduction) {
+  overrideFromEnvironment(config)
+}
 console.log(`Using ${environment} config:\n${JSON.stringify(config, null, 2)}`)
 
 export default config
