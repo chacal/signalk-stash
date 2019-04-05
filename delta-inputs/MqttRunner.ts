@@ -3,7 +3,12 @@ import * as mqtt from 'mqtt'
 import { MqttClient } from 'mqtt'
 import config, { MqttConfig } from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
-import { Account, MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
+import {
+  Account,
+  MqttACL,
+  MqttACLLevel,
+  passwordHash
+} from '../api-server/domain/Auth'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import MqttDeltaInput, {
   DELTAWILDCARDTOPIC,
@@ -14,6 +19,7 @@ export default class MqttRunner {
   private mqttClient: MqttClient | void = undefined
   start() {
     return DB.ensureTables()
+      .then(() => this.insertRunnerAccountIfNeeded())
       .then(() => startMqttClient(config.mqtt))
       .then(mqttClient => {
         const writer = new SignalKDeltaWriter(DB)
@@ -31,6 +37,16 @@ export default class MqttRunner {
       this.mqttClient.end()
     } else {
       throw Error('No mqttclient to stop')
+    }
+  }
+
+  private insertRunnerAccountIfNeeded() {
+    if (!config.isTesting) {
+      return insertRunnerAccount(
+        new Account(config.mqtt.username, passwordHash(config.mqtt.password))
+      )
+    } else {
+      return Promise.resolve()
     }
   }
 }
