@@ -87,10 +87,5 @@ function initializeTestDb() {
   return testdb
     .resetTables()
     .then(() => insertVesselAccount(vesselAccount, vesselUuid))
-    .then(() => {
-      return insertRunnerAccount(
-        runnerAccount.username,
-        runnerAccount.passwordHash
-      )
-    })
+    .then(() => insertRunnerAccount(runnerAccount))
 }

@@ -49,16 +49,11 @@ export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
   ).then(() => client)
 }
 
-export function insertRunnerAccount(
-  username: string,
-  passwordHash: string
-): Promise<void> {
-  return DB.upsertAccount({
-    username,
-    passwordHash,
-    isMqttSuperUser: true
-  }).then(() =>
-    DB.upsertAcl(new MqttACL(username, DELTAWILDCARDTOPIC, MqttACLLevel.ALL))
+export function insertRunnerAccount(account: Account): Promise<void> {
+  return DB.upsertAccount(account).then(() =>
+    DB.upsertAcl(
+      new MqttACL(account.username, DELTAWILDCARDTOPIC, MqttACLLevel.ALL)
+    )
   )
 }
 

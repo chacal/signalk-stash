@@ -7,9 +7,7 @@ import { runnerAccount, vesselAccount, vesselUuid } from '../test/test-util'
 
 DB.ensureTables()
   .then(() => insertVesselAccount(vesselAccount, vesselUuid))
-  .then(() =>
-    insertRunnerAccount(runnerAccount.username, runnerAccount.passwordHash)
-  )
+  .then(() => insertRunnerAccount(runnerAccount))
   .then(() => {
     process.exit(0)
   })
