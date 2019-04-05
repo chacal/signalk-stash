@@ -129,7 +129,7 @@ export default config
 
 export function overrideFromEnvironment(
   values: StringIndexable,
-  prefix: string = 'SIGNALK_STASH_'
+  prefix: string = 'SIGNALK_STASH_PROD_'
 ) {
   Object.keys(values).forEach(key => {
     const value = values[key]
