@@ -8,7 +8,7 @@ CYPRESS=$(NODE_BIN)/cypress
 
 API_SERVER_DEV_MAIN=built/test/test-api-server.js
 
-ifeq ($(CI),)
+ifeq ($(CI)$(TF_BUILD),)
 ANSIBLE_WITH_AUTH = ansible-playbook --private-key $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY)
 else
 MOCHA_CI_PARAMS :=--reporter=mocha-multi-reporters --reporter-options configFile=.circleci/unit_test_reporter_config.json
