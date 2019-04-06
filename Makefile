@@ -8,13 +8,16 @@ CYPRESS=$(NODE_BIN)/cypress
 
 API_SERVER_DEV_MAIN=built/test/test-api-server.js
 
-ifeq ($(CI)$(TF_BUILD),)
-ANSIBLE_WITH_AUTH = ansible-playbook --private-key $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY)
-else
+ifneq ($(CI)$(TF_BUILD),)
 MOCHA_CI_PARAMS :=--reporter=mocha-multi-reporters --reporter-options configFile=.circleci/unit_test_reporter_config.json
 CYPRESS_CI_PARAMS :=--record --reporter=mocha-multi-reporters --reporter-options configFile=.circleci/integration_test_reporter_config.json
-# ssh-agent is used in CI -> no need to pass private key as commandline parameter
+endif
+
+ifneq ($(CI),)
+# ssh-agent is used in Circle CI -> no need to pass private key as commandline parameter
 ANSIBLE_WITH_AUTH = ansible-playbook
+else
+ANSIBLE_WITH_AUTH = ansible-playbook --private-key $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY)
 endif
 
 -include env
@@ -166,8 +169,11 @@ docker-tag-and-push-mosquitto:
 .check-prod-host-set:
 	@if [ -z "$(SIGNALK_STASH_PROD_HOST)" ]; then echo SIGNALK_STASH_PROD_HOST environment variable is not set!; exit 1; fi
 
-# Check prod SSH key only outside CI. CI has the private key installed in the ssh-agent and thus the key file is not needed.
-ifeq ($(CI),)
+# Check prod SSH key only outside Circle CI. Circle has the private key installed in the ssh-agent and thus the key file is not needed.
+ifneq ($(CI),)
+.ensure-prod-ssh-keypair:
+.check-prod-ssh-key-set:
+else
 .ensure-prod-ssh-keypair: .check-prod-ssh-key-set
 	@if [ ! -f $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) ]; then \
 		echo 'SSH key for prod missing! Looked for "$(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY)". Set SIGNALK_STASH_PROD_SSH_PRIVATE_KEY to use different file.'; \
@@ -179,7 +185,4 @@ ifeq ($(CI),)
 
 .check-prod-ssh-key-set:
 	@if [ -z "$(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY)" ]; then echo SIGNALK_STASH_PROD_SSH_PRIVATE_KEY environment variable is not set!; exit 1; fi
-else
-.ensure-prod-ssh-keypair:
-.check-prod-ssh-key-set:
 endif
