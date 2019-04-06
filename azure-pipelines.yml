@@ -47,6 +47,7 @@ jobs:
     dependsOn:
       - unit_test
       - integration_test
+    condition: and(succeeded(), in(variables['Build.SourceBranchName'], 'master', 'prod'))
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
@@ -78,6 +79,7 @@ jobs:
   - job: deploy
     displayName: Deploy to production
     dependsOn: build_containers
+    condition: and(succeeded(), in(variables['Build.SourceBranchName'], 'prod'))
     pool:
       vmImage: 'Ubuntu-16.04'
     variables:
