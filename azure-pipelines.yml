@@ -1,27 +1,111 @@
-pool:
-  vmImage: 'Ubuntu-16.04'
+jobs:
+  - job: unit_test
+    displayName: Unit tests
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+      - template: .azure_pipelines/build_steps.yml
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '11.x'
-  displayName: 'Install Node.js'
+      - script: make test
+        displayName: 'make test'
 
-- script: npm install
-  displayName: 'npm install'
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: 'test_reports/**/*.xml'
+          failTaskOnFailedTests: true
+          testRunTitle: 'Unit tests'
 
-- script: make docker-test-up
-  displayName: 'make docker-test-up'
+  - job: integration_test
+    displayName: Integration tests
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+      - template: .azure_pipelines/build_steps.yml
 
-- script: npx wait-on -w 2000 tcp:45432 && npx wait-on -w 2000 tcp:41883
-  displayName: 'Wait for dependencies to start up'
+      - script: make start-test &
+        displayName: 'make start-test'
 
-- script: make test
-  displayName: 'make test'
+      - script: npx wait-on "http://localhost:43000/tracks?context=self"
+        displayName: 'Wait for test server to start'
 
-- task: PublishTestResults@2
-  condition: succeededOrFailed()
-  inputs:
-    testResultsFiles: 'test_reports/**/*.xml'
-    failTaskOnFailedTests: true
-    testRunTitle: 'Unit tests'
+      - script: make test-integration
+        displayName: 'make test-integration'
+        env:
+          CYPRESS_RECORD_KEY: $(CYPRESS_RECORD_KEY)
+
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: 'test_reports/**/*.xml'
+          failTaskOnFailedTests: true
+          testRunTitle: 'Integration tests'
+          mergeTestResults: true
+
+  - job: build_containers
+    displayName: Build containers
+    dependsOn:
+      - unit_test
+      - integration_test
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+      - script: |
+          if [ "${BUILD_SOURCEBRANCHNAME}" == "master" ]; then
+            echo "##vso[task.setvariable variable=tag;isOutput=true]latest"
+          else
+            echo "##vso[task.setvariable variable=tag;isOutput=true]build-${BUILD_BUILDID}"
+          fi
+        displayName: 'Set tag variable'
+        name: setTagStep
+
+      - script: make docker-build-apiserver
+        displayName: 'Build api-server container'
+
+      - script: make docker-build-mqtt-input
+        displayName: 'Build mqtt-input container'
+
+      - script: |
+          echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin
+          make docker-tag-and-push-apiserver
+          make docker-tag-and-push-mqtt-input
+        displayName: 'Push containers to Docker Hub'
+        env:
+          DOCKERHUB_USERNAME: $(DOCKERHUB_USERNAME)
+          DOCKERHUB_PASSWORD: $(DOCKERHUB_PASSWORD)
+          TAG: $(setTagStep.tag)
+
+  - job: deploy
+    displayName: Deploy to production
+    dependsOn: build_containers
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    variables:
+      tag: $[ dependencies.build_containers.outputs['setTagStep.tag'] ]
+    steps:
+      - task: DownloadSecureFile@1
+        name: env_file
+        displayName: Fetch env secure file
+        inputs:
+          secureFile: env
+
+      - script: cp $(env_file.secureFilePath) .
+        displayName: Copy env file to project dir
+
+      - task: DownloadSecureFile@1
+        name: ssh_key_file
+        displayName: Fetch prod SSH key secure file
+        inputs:
+          secureFile: id_rsa_stash
+
+      - script: cp $(ssh_key_file.secureFilePath) ./ansible && chmod 400 ./ansible/id_rsa_stash
+        displayName: Copy SSH private key to project dir
+
+      - script: |
+          sudo apt-add-repository ppa:ansible/ansible
+          sudo apt-get update
+          sudo apt-get install -y make python-cryptography rsync ansible
+        displayName: 'Install dependencies'
+
+      - script: make ansible-deploy-prod
+        displayName: 'make ansible-deploy-prod'
