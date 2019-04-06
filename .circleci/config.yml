@@ -51,10 +51,10 @@ jobs:
       - run:
           name: Export TAG variable
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ];
-              echo 'export TAG=latest' >> $BASH_ENV
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              echo "export TAG=latest" >> "${BASH_ENV}"
             else
-              echo 'export TAG=build-${CIRCLE_BUILD_NUM}' >> $BASH_ENV
+              echo "export TAG=build-${CIRCLE_BUILD_NUM}" >> "${BASH_ENV}"
             fi
       - checkout
       - run:
@@ -86,7 +86,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: apt update && apt install -y make python-cryptography
+          command: apt update && apt install -y make python-cryptography rsync
       - run:
           command: TAG=$(cat /tmp/workspace/tag) make ansible-deploy-prod
 
