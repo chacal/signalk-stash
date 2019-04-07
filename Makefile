@@ -119,8 +119,10 @@ clickhouse-test: clickhouse-client-test
 clickhouse-prod: .ensure-inventory
 	@ssh -i $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -t stash@$$(cat ./ansible/inventory) "docker exec -it signalk-stash-prod_clickhouse_1 clickhouse-client"
 
-ansible-initialize-prod: .ensure-inventory
-	@echo You must have passwordless SSH \& sudo to the destination host for this to work properly..
+ansible-initialize-prod: .ensure-inventory .ensure-prod-ssh-keypair
+	@echo You must have passwordless SSH \& sudo to the destination host for this to work properly.
+	@echo Set ANSIBLE_REMOTE_USER to change the username for remote SSH connection.
+	@echo Set ANSIBLE_PRIVATE_KEY_FILE to use specific private key file.
 	@ansible-playbook -i ./ansible/inventory ./ansible/initialize-server.yml
 
 ansible-provision-prod: .ensure-prod-ssh-keypair  .ensure-inventory
