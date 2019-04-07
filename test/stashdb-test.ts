@@ -73,7 +73,7 @@ describe('StashDBB', () => {
     const fixtures = _.shuffle(positionFixtures.concat(measurementFixtures))
     fixtures.forEach(delta => chStream.write(SKDelta.fromJSON(delta)))
     chStream.end()
-  })
+  }).timeout(10000)
 
   const waitForTrackpointsInserted = () =>
     waitFor(
