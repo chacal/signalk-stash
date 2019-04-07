@@ -33,6 +33,12 @@ class TestDB {
       .then(() => this.waitForClickHouseTables())
   }
 
+  getRowCountForTable(tableName: string): Promise<number> {
+    return this.ch
+      .querying(`SELECT count() FROM ${tableName}`)
+      .then(res => parseInt(res.data[0][0], 10))
+  }
+
   private waitForClickHouseTables() {
     return Promise.all([
       waitFor(
