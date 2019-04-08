@@ -1,0 +1,48 @@
+---
+- hosts: all
+  become: yes
+
+  vars:
+    username: stash
+    ssh_private_key_file: "{{ lookup('env','SIGNALK_STASH_PROD_SSH_PRIVATE_KEY') }}"
+
+  tasks:
+  - name: Add stash user
+    user:
+      name: '{{ username }}'
+      shell: /bin/bash
+      groups:
+        - sudo
+      append: yes
+
+  - name: Look for SSH public key assuming relative path from project dir
+    local_action: stat path="../{{ ssh_private_key_file }}.pub"
+    become: false
+    register: public_key_relative
+
+  - name: Look for SSH public key assuming absolute path
+    local_action: stat path="{{ ssh_private_key_file }}.pub"
+    become: false
+    register: public_key_absolute
+
+  - name: Set public key filename using relative path
+    set_fact:
+      ssh_public_key_file: "{{ public_key_relative.stat.path }}"
+    when: public_key_relative.stat.exists
+
+  - name: Set public key filename using absolute path
+    set_fact:
+      ssh_public_key_file: "{{ public_key_absolute.stat.path }}"
+    when: public_key_absolute.stat.exists
+
+  - name: Add SSH key for stash user
+    authorized_key:
+      user: '{{ username }}'
+      state: present
+      key: "{{ lookup('file', ssh_public_key_file) }}"
+
+  - name: Add passwordless sudo for stash user
+    lineinfile:
+      dest: /etc/sudoers
+      line: '{{ username }} ALL=(ALL) NOPASSWD:ALL'
+      state: present

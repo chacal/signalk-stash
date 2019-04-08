@@ -1,0 +1,67 @@
+---
+- hosts: all
+  remote_user: stash
+
+  vars:
+    hostname: "{{ lookup('env','SIGNALK_STASH_PROD_HOST') }}"
+    mqtt_runner:
+      username: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_USERNAME') }}"
+      password: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_PASSWORD') }}"
+    grafana:
+      password: "{{ lookup('env','SIGNALK_STASH_PROD_GRAFANA_PASSWORD') }}"
+
+  tasks:
+    - name: Copy Docker compose file to remote
+      copy:
+        src: ../docker-compose.prod.yml
+        dest: docker-compose.prod.yml
+
+    - name: Fail if MQTT runner credentials are missing
+      fail:
+        msg: "Mqtt runner credentials are missing. Set SIGNALK_STASH_PROD_MQTT_USERNAME and SIGNALK_STASH_PROD_MQTT_PASSWORD variables."
+      when: mqtt_runner.username == "" or mqtt_runner.password == ""
+
+    - name: Generate Docker environment file
+      copy:
+        dest: docker-prod.env
+        content: |
+          SIGNALK_STASH_PROD_MQTT_USERNAME={{ mqtt_runner.username }}
+          SIGNALK_STASH_PROD_MQTT_PASSWORD={{ mqtt_runner.password }}
+
+    - name: Copy Mosquitto TLS configuration file
+      template:
+        src: mosquitto_tls.conf.j2
+        dest: mosquitto_tls.conf
+
+    - name: Fail if Grafana admin password is missing
+      fail:
+        msg: "Grafana admin password is missing. Set SIGNALK_STASH_PROD_GRAFANA_PASSWORD variable."
+      when: grafana.password == ""
+
+    - name: Create Grafana configuration directory
+      file:
+        path: "grafana/provisioning"
+        state: directory
+
+    - name: Copy Grafana configuration files
+      synchronize:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        delete: yes
+        recursive: yes
+      with_items:
+        - { src: "../grafana/provisioning/dashboards", dest: "grafana/provisioning" }
+        - { src: "../grafana/provisioning/datasources/prod/", dest: "grafana/provisioning/datasources/" }
+
+    - name: Setup production Docker containers
+      docker_service:
+        project_name: signalk-stash-prod
+        project_src: .
+        pull: true
+        files:
+          - docker-compose.prod.yml
+      environment:
+        # This will be given as -e command line parameter
+        TAG: "{{ docker_tag }}"
+        GRAFANA_PASSWORD: "{{ grafana.password }}"
+        GRAFANA_ROOT_URL: "/grafana"

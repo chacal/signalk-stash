@@ -3,7 +3,12 @@ import * as mqtt from 'mqtt'
 import { MqttClient } from 'mqtt'
 import config, { MqttConfig } from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
-import { Account, MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
+import {
+  Account,
+  MqttACL,
+  MqttACLLevel,
+  passwordHash
+} from '../api-server/domain/Auth'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import MqttDeltaInput, {
   DELTAWILDCARDTOPIC,
@@ -14,6 +19,7 @@ export default class MqttRunner {
   private mqttClient: MqttClient | void = undefined
   start() {
     return DB.ensureTables()
+      .then(() => this.insertRunnerAccountIfNeeded())
       .then(() => startMqttClient(config.mqtt))
       .then(mqttClient => {
         const writer = new SignalKDeltaWriter(DB)
@@ -33,6 +39,16 @@ export default class MqttRunner {
       throw Error('No mqttclient to stop')
     }
   }
+
+  private insertRunnerAccountIfNeeded() {
+    if (!config.isTesting) {
+      return insertRunnerAccount(
+        new Account(config.mqtt.username, passwordHash(config.mqtt.password))
+      )
+    } else {
+      return Promise.resolve()
+    }
+  }
 }
 
 export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
@@ -49,16 +65,11 @@ export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
   ).then(() => client)
 }
 
-export function insertRunnerAccount(
-  username: string,
-  passwordHash: string
-): Promise<void> {
-  return DB.upsertAccount({
-    username,
-    passwordHash,
-    isMqttSuperUser: true
-  }).then(() =>
-    DB.upsertAcl(new MqttACL(username, DELTAWILDCARDTOPIC, MqttACLLevel.ALL))
+export function insertRunnerAccount(account: Account): Promise<void> {
+  return DB.upsertAccount(account).then(() =>
+    DB.upsertAcl(
+      new MqttACL(account.username, DELTAWILDCARDTOPIC, MqttACLLevel.ALL)
+    )
   )
 }
 

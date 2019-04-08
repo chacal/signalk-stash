@@ -1,3 +1,5 @@
+import crypto from 'crypto'
+
 export class Account {
   constructor(
     readonly username: string,
@@ -21,4 +23,15 @@ export enum MqttACLLevel {
   WRITE = 2,
   SUBSCRIBE = 4,
   ALL = 7
+}
+
+export function passwordHash(plainTextPassword: string): string {
+  const iterations = 901
+  const keylen = 24
+  const hashAlgorithm = 'sha256'
+  const salt = crypto.randomBytes(12).toString('base64')
+  const hashedPassword = crypto
+    .pbkdf2Sync(plainTextPassword, salt, iterations, keylen, hashAlgorithm)
+    .toString('base64')
+  return `PBKDF2$${hashAlgorithm}$${iterations}$${salt}$${hashedPassword}`
 }

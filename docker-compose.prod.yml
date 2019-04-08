@@ -2,40 +2,60 @@ version: '3'
 
 services:
   api-server:
-    image: jihartik/signalk-stash-api-server
+    image: signalkstash/api-server:${TAG}
     ports:
       - 3000:3000
     restart: always
+    env_file:
+      - docker-prod.env
     environment:
       ENVIRONMENT: production
   mqtt-input:
-    image: jihartik/signalk-stash-mqtt-input
+    image: signalkstash/mqtt-input:${TAG}
     restart: always
     env_file:
       - docker-prod.env
     environment:
       ENVIRONMENT: production
       MQTT_BROKER: mqtt://mqtt
-
   postgis:
     image: mdillon/postgis:11-alpine
     volumes:
-     - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     restart: always
     environment:
       POSTGRES_USER: signalk
       POSTGRES_PASSWORD: signalk
       POSTGRES_DB: signalk
+  clickhouse:
+    image: yandex/clickhouse-server
+    volumes:
+      - clickhousedata:/var/lib/clickhouse
   mqtt:
-    image: jihartik/signalk-stash-mosquitto
+    image: signalkstash/mosquitto:prod
     ports:
-     - 1883:1883
+      - 1883:1883
+      - 8883:8883
     volumes:
       - mosquitto-data:/var/lib/mosquitto
-      - mosquitto-log:/var/log/mosquitto
+      - ./mosquitto_tls.conf:/etc/mosquitto.d/mosquitto_tls.conf
+      - /etc/letsencrypt:/etc/letsencrypt
     restart: always
+  grafana:
+    image: "grafana/grafana"
+    ports:
+      - 3001:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_INSTALL_PLUGINS: vertamedia-clickhouse-datasource
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL}
+      COMPOSE_ENV_NAME: prod
 
 volumes:
   pgdata:
+  clickhousedata:
   mosquitto-data:
-  mosquitto-log:
+  grafana-data:

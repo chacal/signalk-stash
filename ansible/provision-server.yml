@@ -1,0 +1,111 @@
+---
+- hosts: all
+  remote_user: stash
+  become: yes
+
+  vars:
+    hostname: "{{ lookup('env','SIGNALK_STASH_PROD_HOST') }}"
+    nginx:
+      username: "{{ lookup('env','SIGNALK_STASH_PROD_NGINX_AUTH_USERNAME') }}"
+      password: "{{ lookup('env','SIGNALK_STASH_PROD_NGINX_AUTH_PASSWORD') }}"
+
+  handlers:
+    - name: restart-nginx
+      service: name=nginx state=restarted
+
+  tasks:
+  - hostname:
+      name: '{{ hostname }}'
+
+  - name: Add hostname to /etc/hosts
+    lineinfile:
+      dest: /etc/hosts
+      regexp: '^127\.0\.1\.1'
+      line: '127.0.1.1 {{ hostname }}'
+      state: present
+
+  - name: Install/update packages
+    apt:
+      name:
+        - git
+        - curl
+        - htop
+        - tmux
+        - telnet
+        - apt-transport-https
+        - zsh
+        - sshguard
+        - python-setuptools
+        - python-pip
+        - nginx
+        - certbot
+        - python-passlib
+      state: latest
+
+  - name: Install Python dependencies
+    pip:
+      name:
+        - docker
+        - docker-compose
+
+  - name: Add Docker Apt key
+    apt_key:
+      url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+
+  - name: Add Docker Apt repository
+    apt_repository:
+      repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+      update_cache: yes
+
+  - name: Install Docker
+    apt: pkg=docker-ce state=latest update_cache=yes
+
+  - name: Enable and start Docker
+    service:
+      name: docker
+      enabled: yes
+      state: started
+
+  - name: Add stash user to docker group
+    user:
+      name: stash
+      groups:
+        - docker
+      append: yes
+
+  - name: Remove default Nginx site
+    file: path=/etc/nginx/sites-enabled/default state=absent
+    notify: restart-nginx
+
+  #  Run manually 'certbot certonly --standalone -d <prod fqdn>' to generate Let's encrypt certificates
+  - name: Add custom Nginx SSL snippet
+    copy: src=./nginx_ssl_snippet.conf dest=/etc/nginx/snippets/ssl-signalk-stash.conf
+    notify: restart-nginx
+
+  - name: Create Diffie-Hellman group for Nginx TLS
+    shell: /usr/bin/openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
+    args:
+      creates: /etc/ssl/certs/dhparam.pem
+    notify: restart-nginx
+
+  - name: Fail if Nginx basic auth credentials are missing
+    fail:
+      msg: "Nginx basic auth credentials are missing. Set SIGNALK_STASH_PROD_NGINX_AUTH_USERNAME and SIGNALK_STASH_PROD_NGINX_AUTH_PASSWORD variables."
+    when: nginx.username == "" or nginx.password == ""
+
+  - name: Set credentials for basic auth access
+    htpasswd:
+      path: /etc/nginx/passwdfile
+      name: "{{ nginx.username }}"
+      password: "{{ nginx.password }}"
+      owner: root
+      group: www-data
+      mode: 0640
+    notify: restart-nginx
+
+  - name: Add custom Nginx configuration
+    template: src=./prod_nginx.conf.j2 dest=/etc/nginx/conf.d/signalk_stash_nginx.conf
+    notify: restart-nginx
+
+  - name: Enable & start Nginx
+    systemd: name=nginx state=started enabled=yes daemon_reload=yes

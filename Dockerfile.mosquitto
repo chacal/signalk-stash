@@ -1,7 +1,6 @@
 FROM jllopis/mosquitto
 
 COPY mosquitto.conf /etc/mosquitto/mosquitto.conf
-COPY mosquitto-auth.conf /etc/mosquitto.d/mosquitto-auth.conf
 
 RUN mkdir -p /var/log/mosquitto
 RUN chown mosquitto:mosquitto -R /var/log/mosquitto

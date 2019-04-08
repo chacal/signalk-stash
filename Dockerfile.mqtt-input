@@ -2,6 +2,8 @@ FROM node:alpine
 ENV NODE_ENV=production
 WORKDIR /opt/app
 
+RUN apk add git
+
 COPY package.json package-lock.json ./
 RUN npm install
 
@@ -9,7 +11,8 @@ COPY tsconfig.json ./
 
 COPY ./api-server ./api-server
 COPY ./delta-inputs ./delta-inputs
-RUN ./node_modules/.bin/tsc
+COPY ./types ./types
+RUN ./node_modules/.bin/tsc --sourceMap false
 
 CMD ["node", "./built/delta-inputs/mqtt-runner.js"]
 

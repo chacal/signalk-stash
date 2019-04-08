@@ -18,7 +18,7 @@ services:
       POSTGRES_PASSWORD: signalk
       POSTGRES_DB: signalk
   mqtt:
-    image: jihartik/signalk-stash-mosquitto
+    image: signalkstash/mosquitto
     build:
       context: .
       dockerfile: Dockerfile.mosquitto
@@ -26,21 +26,19 @@ services:
      - 51883:1883
     volumes:
       - mosquitto-data:/var/lib/mosquitto
-      - mosquitto-log:/var/log/mosquitto
     restart: always
   grafana:
     image: "grafana/grafana"
     ports:
       - "3001:3000"
     volumes:
-      # - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/datasources/dev:/etc/grafana/provisioning/datasources
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=klangis
-      - GF_INSTALL_PLUGINS=vertamedia-clickhouse-datasource
+      GF_SECURITY_ADMIN_PASSWORD: klangis
+      GF_INSTALL_PLUGINS: vertamedia-clickhouse-datasource
 
 
 volumes:
   pgdata:
   mosquitto-data:
-  mosquitto-log:

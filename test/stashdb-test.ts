@@ -2,6 +2,7 @@
 import { SKDelta } from '@chacal/signalk-ts'
 import { expect } from 'chai'
 import _ from 'lodash'
+import * as L from 'partial.lenses'
 import DB from '../api-server/db/StashDB'
 import { BBox, Coords } from '../api-server/domain/Geo'
 import {
@@ -10,6 +11,7 @@ import {
   measurementFixtures,
   positionFixtures,
   vesselUuid,
+  waitFor,
   writeDeltasFromPositionFixture
 } from './test-util'
 import TestDB from './TestDB'
@@ -59,7 +61,9 @@ describe('StashDBB', () => {
   it('writes deltas via stream', done => {
     const chStream = DB.deltaWriteStream(err => {
       expect(err).to.be.undefined
-      assertFixturePositionsInDB(DB)
+      waitForTrackpointsInserted()
+        .then(() => waitForValuesInserted())
+        .then(() => assertFixturePositionsInDB(DB))
         .then(() => assertFixtureValuesInDB(DB))
         .then(() => {
           done()
@@ -69,5 +73,29 @@ describe('StashDBB', () => {
     const fixtures = _.shuffle(positionFixtures.concat(measurementFixtures))
     fixtures.forEach(delta => chStream.write(SKDelta.fromJSON(delta)))
     chStream.end()
-  })
+  }).timeout(10000)
+
+  const waitForTrackpointsInserted = () =>
+    waitFor(
+      () => TestDB.getRowCountForTable('trackpoint'),
+      rowCount => rowCount === positionFixtures.length
+    )
+
+  const numericValuesLens = L.flat(
+    'updates',
+    'values',
+    'value',
+    L.when((v: any) => typeof v === 'number')
+  )
+  const waitForValuesInserted = () =>
+    waitFor(
+      () => TestDB.getRowCountForTable('value'),
+      rowCount => {
+        const countOfNumericValues = L.count(
+          numericValuesLens,
+          measurementFixtures
+        )
+        return rowCount === countOfNumericValues
+      }
+    )
 })

@@ -5,6 +5,11 @@ const isDeveloping = process.env.ENVIRONMENT === undefined
 const isUnitTesting = process.env.ENVIRONMENT === 'unit-test'
 const isIntegrationTesting = process.env.ENVIRONMENT === 'integration-test'
 const isTesting = isUnitTesting || isIntegrationTesting
+const isProduction = process.env.ENVIRONMENT === 'production'
+
+interface StringIndexable {
+  [propName: string]: string | number | boolean | {}
+}
 
 export interface MqttConfig {
   username: string
@@ -12,7 +17,7 @@ export interface MqttConfig {
   broker: string
 }
 
-export interface IConfig {
+export interface IConfig extends StringIndexable {
   db: {
     host: string
     port: number
@@ -29,6 +34,7 @@ export interface IConfig {
   isTesting: boolean
   isUnitTesting: boolean
   isIntegrationTesting: boolean
+  isProduction: boolean
   mqtt: MqttConfig
   deltaWriteStreamFlushPeriod: Duration
 }
@@ -56,6 +62,7 @@ const baseConfig = {
   isTesting,
   isUnitTesting,
   isIntegrationTesting,
+  isProduction,
   mqtt: {
     username: 'runner',
     password: 'runnerpasswort',
@@ -85,6 +92,13 @@ const environments: IEnvironments = {
     db: {
       host: 'postgis',
       port: 5432
+    },
+    clickhouse: {
+      host: 'clickhouse',
+      port: 8123
+    },
+    mqtt: {
+      broker: 'mqtt://mqtt'
     }
   },
   'unit-test': testConfig,
@@ -111,5 +125,41 @@ if (!environments[environment]) {
   throw new Error(`No such environment:${environment}`)
 }
 const config = _.merge(baseConfig, environments[environment])
+if (config.isProduction) {
+  overrideFromEnvironment(config)
+}
 console.log(`Using ${environment} config:\n${JSON.stringify(config, null, 2)}`)
+
 export default config
+
+export function overrideFromEnvironment(
+  values: StringIndexable,
+  prefix: string = 'SIGNALK_STASH_PROD_'
+) {
+  Object.keys(values).forEach(key => {
+    const value = values[key]
+    let keyPrefix = (prefix + key).toUpperCase()
+
+    // Replace hyphens, local references, dots, double underscores and slashes.
+    keyPrefix = keyPrefix.replace(/-|\.\/|\.|__|\//g, '_')
+
+    if (process.env[keyPrefix] !== undefined) {
+      let newValue
+      try {
+        // Try to parse the the environment variable and use it as object or array if possible.
+        newValue = JSON.parse(process.env[keyPrefix] as string)
+      } catch (e) {
+        // If we are not able ot parse the object, use it as a string.
+        newValue = process.env[keyPrefix] as string
+      }
+      console.log(
+        `Using ${keyPrefix} to override config. Old value: ${
+          values[key]
+        } New value: ${newValue}`
+      )
+      values[key] = newValue
+    } else if (typeof value === 'object') {
+      overrideFromEnvironment(value, `${keyPrefix}_`)
+    }
+  })
+}

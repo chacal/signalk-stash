@@ -1,9 +1,12 @@
 .idea
 node_modules/
-*.env
 built/
 api-server/public/bundle.js
 .vscode
 cypress/screenshots/
 cypress/videos/
 test_reports
+ansible/id_rsa_stash*
+ansible/inventory
+*.retry
+env

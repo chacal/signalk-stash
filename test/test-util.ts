@@ -4,6 +4,7 @@ import { expect } from 'chai'
 import Debug from 'debug'
 import express from 'express'
 import { ZonedDateTime } from 'js-joda'
+import _ from 'lodash'
 import request, { Response } from 'supertest'
 
 import API from '../api-server/API'
@@ -23,29 +24,26 @@ export { measurementFixtures, positionFixtures }
 export const vesselUuid =
   'urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e'
 
-export const vesselAccount = new TestAccount(
-  'vessel',
-  'signalk',
-  'PBKDF2$sha256$901$SsBHerbO7k6HXr3V$FK1Dcra1YV+kvqeV/LYaFZN4DslbgL6y' // "signalk"
-)
-
-export const runnerAccount = new TestAccount(
-  'runner',
-  'runnerpasswort',
-  'PBKDF2$sha256$901$AnGxxkFiNnngJRxd$gBezoDi94FpVE/a3z0p6y7uUw2ahFDmL' // "runnerpasswort"
-)
+export const vesselAccount = new TestAccount('vessel', 'signalk')
+export const runnerAccount = new TestAccount('runner', 'runnerpasswort')
 
 export function waitFor<T>(
   action: () => Promise<T>,
   predicate: (t: T) => boolean
 ): Promise<T> {
-  return action().then(res => {
-    if (predicate(res)) {
-      return BPromise.resolve(res)
-    } else {
-      return BPromise.delay(100).then(() => waitFor(action, predicate))
-    }
-  })
+  return action()
+    .then(res => {
+      if (predicate(res)) {
+        return BPromise.resolve(res)
+      } else {
+        return retryAfterDelay()
+      }
+    })
+    .catch(retryAfterDelay)
+
+  function retryAfterDelay() {
+    return BPromise.delay(100).then(() => waitFor(action, predicate))
+  }
 }
 
 export function writeDeltasFromPositionFixture(): Promise<void> {
@@ -84,7 +82,7 @@ export function startTestApp(): express.Express {
   const testApp = express()
   // @ts-ignore: Unused expression
   // tslint:disable-next-line:no-unused-expression-chai
-  new API(config, testApp)
+  new API(config, _.noop, testApp)
   return testApp
 }
 
