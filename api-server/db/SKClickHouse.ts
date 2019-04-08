@@ -108,7 +108,7 @@ export default class SKClickHouse {
       )
       pathValuesToTsv.pipe(pathValueDbStream)
     }, config.deltaWriteStreamFlushPeriod.toMillis())
-    deltaSplittingStream.on('end', () => {
+    deltaSplittingStream.on('finish', () => {
       debug('Clearing interval')
       clearInterval(interval)
     })
