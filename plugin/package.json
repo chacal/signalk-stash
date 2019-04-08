@@ -1,0 +1,15 @@
+{
+  "name": "@signalk/mqtt-stasher",
+  "version": "1.0.0",
+  "description": "Signal K server plugin that sends your data to Signal K Stash via MQTT",
+  "main": "index.js",
+  "keywords": [
+    "signalk-node-server-plugin"
+  ],
+  "author": "teppo.kurki@iki,fi",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "mqtt": "^2.18.8",
+    "mqtt-nedb-store": "^0.1.0"
+  }
+}
