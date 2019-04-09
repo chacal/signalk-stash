@@ -1,19 +1,28 @@
 export default class CountDownLatch {
-  private err: Error | undefined = undefined
+  private triggered: boolean = false
+
   constructor(
     private capacity: number,
     readonly onCompletion: (err?: Error) => void
   ) {}
+
   addCapacity(additionalCapacity: number) {
     this.capacity += additionalCapacity
   }
+
   signal(err?: Error): void {
-    if (err) {
-      this.err = err
-      this.onCompletion(err)
+    if (this.triggered) {
+      return
     }
-    if (--this.capacity < 1 && !this.err) {
+
+    --this.capacity
+
+    if (err) {
+      this.onCompletion(err)
+      this.triggered = true
+    } else if (this.capacity === 0) {
       this.onCompletion()
+      this.triggered = true
     }
   }
 }

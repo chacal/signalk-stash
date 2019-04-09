@@ -1,5 +1,6 @@
 import ClickHouse, { QueryCallback, QueryStream } from '@apla/clickhouse'
 import { SKContext } from '@chacal/signalk-ts'
+import Debug from 'debug'
 import { ChronoUnit, ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
 import config from '../Config'
@@ -20,6 +21,8 @@ import Trackpoint, {
   Track,
   TrackpointsToClickHouseTSV
 } from '../domain/Trackpoint'
+
+const debug = Debug('stash:SKClickHouse')
 
 export default class SKClickHouse {
   constructor(readonly ch = new ClickHouse(config.clickhouse)) {}
@@ -85,7 +88,9 @@ export default class SKClickHouse {
     )
     pathValuesToTsv.pipe(pathValueDbStream)
 
+    debug('Setting interval')
     const interval = setInterval(() => {
+      debug('Flushing streams')
       outputsDoneLatch.addCapacity(2)
       pointsToTsv.unpipe(trackpointDbStream)
       trackpointDbStream.end()
@@ -103,7 +108,8 @@ export default class SKClickHouse {
       )
       pathValuesToTsv.pipe(pathValueDbStream)
     }, config.deltaWriteStreamFlushPeriod.toMillis())
-    deltaSplittingStream.on('end', () => {
+    deltaSplittingStream.on('finish', () => {
+      debug('Clearing interval')
       clearInterval(interval)
     })
     return deltaSplittingStream
