@@ -47,7 +47,9 @@ export default class MqttRunner {
 export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
   const client = mqtt.connect(config.broker, {
     username: config.username,
-    password: config.password
+    password: config.password,
+    clientId: config.clientId,
+    clean: false
   })
   client.on('connect', () => console.log('Connected to MQTT server'))
   client.on('offline', () => console.log('Disconnected from MQTT server'))

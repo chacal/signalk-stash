@@ -35,7 +35,12 @@ describe('MQTT input', () => {
     return startMqttClient({
       broker: config.mqtt.broker,
       username: testVessel.mqttAccount.username,
-      password: vesselMqttPassword
+      password: vesselMqttPassword,
+      clientId:
+        'testClientId_' +
+        Math.random()
+          .toString(16)
+          .substr(2, 8)
     })
       .then(mqttClient =>
         mqttClient.publish(
