@@ -9,50 +9,21 @@
 
 import { SKContext } from '@chacal/signalk-ts'
 import byline from 'byline'
-import { createReadStream, fstatSync, openSync } from 'fs'
+import { createReadStream } from 'fs'
 import _ from 'lodash'
 import * as path from 'path'
-import { Writable } from 'stream'
 import DB from '../api-server/db/StashDB'
-import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
-
-const writer = new SignalKDeltaWriter(DB)
-
-function importOneLine(line: string, context: SKContext) {
-  try {
-    const delta = JSON.parse(line)
-    return writer.writeDelta(_.assignIn({}, delta, { context }))
-  } catch (e) {
-    return Promise.reject(e)
-  }
-}
 
 function runImport(file: string, context: SKContext) {
   console.log(`Importing rows from ${file} with context ${context}`)
 
-  const fd = openSync(file, 'r')
-  const { size } = fstatSync(fd)
-  let progress = 0
-  let loggedProgress = 0
   const readStream = byline.createStream(createReadStream(file))
 
-  const dbWriterStrem = new Writable({
-    write(chunk, encoding, callback) {
-      const line = chunk.toString()
-      progress += line.length
-      const percentageProgress = Math.floor((progress / size) * 100)
-      if (loggedProgress !== percentageProgress) {
-        console.log(`${percentageProgress}%`)
-        loggedProgress = percentageProgress
-      }
-
-      importOneLine(line, context)
-        .then(() => callback())
-        .catch(e => console.error(`Error: ${e.message}, line ${line}`))
-    }
-  })
-
-  readStream.pipe(dbWriterStrem)
+  readStream.pipe(
+    DB.deltaWriteStream(() => {
+      console.log('Done!')
+    })
+  )
 }
 
 if (process.argv.length < 4) {

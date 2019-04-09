@@ -1,7 +1,7 @@
+import { QueryStream } from '@apla/clickhouse'
 import { SKDelta } from '@chacal/signalk-ts'
 import BPromise from 'bluebird'
 import * as mqtt from 'mqtt'
-import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 
 export type MqttTopic = string
 
@@ -17,7 +17,7 @@ const STATSINTERVAL = 60 * 1000
 export default class MqttDeltaInput {
   constructor(
     private readonly mqttClient: mqtt.MqttClient,
-    private readonly deltaWriter: SignalKDeltaWriter,
+    private readonly deltaWriteStream: QueryStream,
     private deltaCounts: { [context: string]: number } = {}
   ) {}
 
@@ -60,9 +60,7 @@ export default class MqttDeltaInput {
       if (contextMatchesTopic(topic, delta)) {
         this.deltaCounts[delta.context] =
           (this.deltaCounts[delta.context] || 0) + 1
-        this.deltaWriter.writeDelta(delta).catch(err => {
-          console.error(err)
-        })
+        this.deltaWriteStream.write(delta)
       }
     } catch (e) {
       console.error(`Invalid SignalK delta from MQTT: ${payload}`)

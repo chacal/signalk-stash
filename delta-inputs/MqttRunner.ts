@@ -4,7 +4,6 @@ import { MqttClient } from 'mqtt'
 import config, { MqttConfig } from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import { MqttAccount, MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
-import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import MqttDeltaInput, {
   DELTASTATSWILDCARDTOPIC,
   DELTAWILDCARDTOPIC
@@ -17,8 +16,7 @@ export default class MqttRunner {
       .then(() => this.insertRunnerAccountIfNeeded())
       .then(() => startMqttClient(config.mqtt))
       .then(mqttClient => {
-        const writer = new SignalKDeltaWriter(DB)
-        const deltaInput = new MqttDeltaInput(mqttClient, writer)
+        const deltaInput = new MqttDeltaInput(mqttClient, DB.deltaWriteStream())
         this.mqttClient = mqttClient
         return deltaInput.start()
       })
