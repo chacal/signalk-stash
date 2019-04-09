@@ -113,7 +113,7 @@ psql-prod: .ensure-inventory
 	@ssh -i $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -t stash@$$(cat ./ansible/inventory) "docker exec -it signalk-stash-prod_postgis_1 /usr/local/bin/psql -U signalk"
 
 clickhouse-client-%:
-	@docker exec -it signalk-stash-$*_clickhouse-$*_1 clickhouse-client
+	@docker exec -it signalk-stash-$*_clickhouse_1 clickhouse-client
 
 clickhouse-dev: clickhouse-client-dev
 
