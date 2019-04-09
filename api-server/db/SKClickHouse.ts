@@ -117,7 +117,7 @@ export default class SKClickHouse {
 
   // TODO: Fix return type
   getValues(
-    context: any,
+    context: SKContext,
     path: string,
     from: ZonedDateTime,
     to: ZonedDateTime,

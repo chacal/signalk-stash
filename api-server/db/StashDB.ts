@@ -49,7 +49,7 @@ export class StashDB {
   }
 
   getValues(
-    context: any,
+    context: SKContext,
     path: string,
     from: ZonedDateTime,
     to: ZonedDateTime,
