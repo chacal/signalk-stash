@@ -3,10 +3,14 @@ import {
   insertRunnerAccount,
   insertVesselAccount
 } from '../delta-inputs/MqttRunner'
-import { runnerAccount, vesselAccount, vesselUuid } from '../test/test-util'
+import {
+  runnerAccount,
+  testVesselUuids,
+  vesselAccount
+} from '../test/test-util'
 
 DB.ensureTables()
-  .then(() => insertVesselAccount(vesselAccount, vesselUuid))
+  .then(() => insertVesselAccount(vesselAccount, testVesselUuids[0]))
   .then(() => insertRunnerAccount(runnerAccount))
   .then(() => {
     process.exit(0)

@@ -10,7 +10,7 @@ import {
   assertFixtureValuesInDB,
   measurementFixtures,
   positionFixtures,
-  vesselUuid,
+  testVesselUuids,
   waitFor,
   writeDeltasFromPositionFixture
 } from './test-util'
@@ -26,7 +26,7 @@ describe('StashDBB', () => {
 
   it('returns tracks by zoomLevel', () => {
     return writeDeltasFromPositionFixture()
-      .then(() => DB.getTrackPointsForVessel(vesselUuid, undefined, 10))
+      .then(() => DB.getTrackPointsForVessel(testVesselUuids[0], undefined, 10))
       .then(points => {
         expect(points).to.have.lengthOf(5)
         expect(points[0].timestamp.toString()).to.equal('2014-08-15T19:00Z')
@@ -35,7 +35,7 @@ describe('StashDBB', () => {
 
   it('returns daily tracks', () => {
     return writeDeltasFromPositionFixture()
-      .then(() => DB.getVesselTracks(vesselUuid))
+      .then(() => DB.getVesselTracks(testVesselUuids[0]))
       .then(result => {
         expect(result).to.have.lengthOf(3)
       })
@@ -45,7 +45,7 @@ describe('StashDBB', () => {
     return writeDeltasFromPositionFixture()
       .then(() =>
         DB.getVesselTracks(
-          'self',
+          testVesselUuids[2],
           new BBox({
             nw: new Coords({ lng: 21.75, lat: 60 }),
             se: new Coords({ lng: 22, lat: 59 })

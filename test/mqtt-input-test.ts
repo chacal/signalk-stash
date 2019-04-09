@@ -13,8 +13,8 @@ import {
   assertTrackpoint,
   positionFixtures,
   runnerAccount,
+  testVesselUuids,
   vesselAccount,
-  vesselUuid,
   waitFor
 } from './test-util'
 import testdb from './TestDB'
@@ -39,31 +39,34 @@ describe('MQTT input', () => {
     })
       .then(mqttClient =>
         mqttClient.publish(
-          vesselTopic(vesselUuid),
+          vesselTopic(testVesselUuids[0]),
           JSON.stringify(positionFixtures[0])
         )
       )
       .then(mqttClient =>
         mqttClient.publish(
-          vesselTopic(vesselUuid),
-          JSON.stringify(positionFixtures[0]).replace(vesselUuid, 'self')
+          vesselTopic(testVesselUuids[0]),
+          JSON.stringify(positionFixtures[0]).replace(
+            testVesselUuids[0],
+            'self'
+          )
         )
       )
       .then(mqttClient =>
         mqttClient.publish(
-          vesselTopic(vesselUuid),
+          vesselTopic(testVesselUuids[0]),
           JSON.stringify(positionFixtures[0]).replace('f', 'a')
         )
       )
       .then(mqttClient =>
         mqttClient.publish(
-          vesselTopic(vesselUuid.replace('f', 'a')),
+          vesselTopic(testVesselUuids[0].replace('f', 'a')),
           JSON.stringify(positionFixtures[0])
         )
       )
       .then(() =>
         waitFor(
-          () => DB.getTrackPointsForVessel(vesselUuid),
+          () => DB.getTrackPointsForVessel(testVesselUuids[0]),
           res => res.length > 0
         )
       )
@@ -73,7 +76,8 @@ describe('MQTT input', () => {
       })
       .then(() =>
         waitFor(
-          () => DB.getTrackPointsForVessel(vesselUuid.replace('f', 'a')),
+          () =>
+            DB.getTrackPointsForVessel(testVesselUuids[0].replace('f', 'a')),
           res => res.length >= 0
         )
       )
@@ -86,6 +90,6 @@ describe('MQTT input', () => {
 function initializeTestDb() {
   return testdb
     .resetTables()
-    .then(() => insertVesselAccount(vesselAccount, vesselUuid))
+    .then(() => insertVesselAccount(vesselAccount, testVesselUuids[0]))
     .then(() => insertRunnerAccount(runnerAccount))
 }
