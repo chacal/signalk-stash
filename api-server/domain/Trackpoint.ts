@@ -127,7 +127,7 @@ export function getTrackPointsForVessel(
   context: SKContext,
   bbox?: BBox,
   zoomLevel?: ZoomLevel
-) {
+): Promise<Trackpoint[]> {
   let selectFields =
     'toUnixTimestamp(ts) as t, millis, context, sourceRef, lat, lng'
   let bboxClause = ''

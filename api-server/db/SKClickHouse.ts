@@ -115,6 +115,7 @@ export default class SKClickHouse {
     return deltaSplittingStream
   }
 
+  // TODO: Fix return type
   getValues(
     context: any,
     path: string,
