@@ -58,6 +58,10 @@ export class StashDB {
     return this.ch.getValues(context, path, from, to, timeresolution)
   }
 
+  getContexts(): Promise<SKContext[]> {
+    return this.ch.getContexts()
+  }
+
   /*
     Auth DB functionality
   */

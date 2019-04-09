@@ -75,6 +75,14 @@ describe('StashDBB', () => {
     chStream.end()
   }).timeout(10000)
 
+  it('returns contexts sorted in ascending order', () => {
+    return writeDeltasFromPositionFixture()
+      .then(() => DB.getContexts())
+      .then(contexts =>
+        expect(contexts).to.have.ordered.members(_.sortBy(testVesselUuids))
+      )
+  })
+
   const waitForTrackpointsInserted = () =>
     waitFor(
       () => TestDB.getRowCountForTable('trackpoint'),
