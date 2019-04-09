@@ -5,6 +5,6 @@
   "repository": {},
   "license": "Apache-2.0",
   "dependencies": {
-    "@signalk/mqtt-stasher": "file:../../plugin"
+    "@signalk/mqtt-stasher": "file:../../plugin/signalk-mqtt-stasher-1.0.0.tgz"
   }
 }

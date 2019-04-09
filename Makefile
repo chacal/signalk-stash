@@ -75,7 +75,7 @@ docker-%-down:
 	@docker-compose -f docker-compose.$*.yml -p signalk-stash-$* down
 
 e2e-plugin-install:
-	cd e2e/dotsignalk; npm install ../../plugin/
+	cd plugin; npm pack; cd ../e2e/dotsignalk; npm install ../../plugin/signalk-mqtt-stasher-*.tgz
 
 e2e-up: docker-e2e-up
 
