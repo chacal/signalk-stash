@@ -1,8 +1,14 @@
-import express, { NextFunction, Request, Response } from 'express'
+import express, {
+  NextFunction,
+  Request,
+  RequestHandler,
+  Response
+} from 'express'
 import path from 'path'
 import { ExpressAppCustomizer } from './APIServerMain'
 import { IConfig } from './Config'
 import setupTrackAPIRoutes from './TrackAPI'
+import setupVesselAPIRoutes from './VesselAPI'
 
 const publicPath = path.join(__dirname, '../../api-server/public')
 
@@ -14,6 +20,7 @@ class API {
   ) {
     this.customizer(this.app)
     setupTrackAPIRoutes(this.app)
+    setupVesselAPIRoutes(this.app)
     this.app.use(express.static(publicPath))
     this.app.use(this.validationErrorHandler)
     this.app.use(this.defaultErrorHandler)
@@ -54,3 +61,11 @@ class API {
 }
 
 export default API
+
+export function asyncHandler<T>(
+  requestHandler: (req: Request, res: Response) => Promise<T>
+): RequestHandler {
+  return (req2: Request, res2: Response, next: NextFunction) => {
+    requestHandler(req2, res2).catch(next)
+  }
+}
