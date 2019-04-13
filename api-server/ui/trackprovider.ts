@@ -41,9 +41,9 @@ export default function tracksFor(
       )
     })
 
-  function loadStateFor(ctx: Vessel) {
+  function loadStateFor(vessel: Vessel) {
     return U.view<Atom<LoadState>>(
-      [L.find((c: Vessel) => c.context === ctx.context), 'trackLoadState'],
+      [L.find((v: Vessel) => v.context === vessel.context), 'trackLoadState'],
       vesselsA
     )
   }
