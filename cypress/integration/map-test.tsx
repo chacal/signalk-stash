@@ -5,7 +5,7 @@ import * as U from 'karet.util'
 import { GeoJSON, Map as LeafletMap } from 'react-leaflet'
 import { Coords } from '../../api-server/domain/Geo'
 import Map from '../../api-server/ui/Map'
-import { emptyBounds, emptyGeoJSON } from '../../api-server/ui/ui-domain'
+import { emptyBounds, LoadState, Vessel } from '../../api-server/ui/ui-domain'
 
 configure({ adapter: new Adapter() })
 
@@ -13,7 +13,7 @@ const defaultProps = () => ({
   center: U.atom(new Coords({ lat: 60, lng: 22 })),
   zoom: U.atom(10),
   bounds: U.atom(emptyBounds),
-  tracks: U.atom(emptyGeoJSON)
+  vessels: U.atom([] as Vessel[])
 })
 
 describe('Stash Map', () => {
@@ -43,13 +43,19 @@ describe('Stash Map', () => {
     const map = mount(<Map {...p} />)
     const geoJson = () => map.find(GeoJSON)
 
-    expect(geoJson()).to.have.lengthOf(1)
-    expect(geoJson().prop('data').coordinates).to.have.lengthOf(0)
+    expect(geoJson()).to.have.lengthOf(0)
 
-    p.tracks.set({
-      type: 'MultiLineString',
-      coordinates: [[[22, 60], [22.5, 60.5]], [[20, 59], [21, 59.5]]]
-    })
+    p.vessels.set([
+      {
+        context: 'self',
+        selected: false,
+        trackLoadState: LoadState.LOADED,
+        track: {
+          type: 'MultiLineString',
+          coordinates: [[[22, 60], [22.5, 60.5]], [[20, 59], [21, 59.5]]]
+        }
+      }
+    ])
     map.update()
 
     expect(geoJson()).to.have.lengthOf(1)

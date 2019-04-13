@@ -1,7 +1,7 @@
 import { SKPosition } from '@chacal/signalk-ts'
 import BinaryQuadkey from 'binaryquadkey'
-import QK from 'quadkeytools'
 import { LatLngBounds } from 'leaflet'
+import QK from 'quadkeytools'
 
 export interface LatLng {
   readonly lat: number
