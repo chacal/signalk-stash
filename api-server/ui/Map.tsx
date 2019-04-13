@@ -1,10 +1,12 @@
 import { SKContext } from '@chacal/signalk-ts'
 import * as React from 'karet'
 import * as U from 'karet.util'
+import { Observable } from 'kefir'
+import { Atom } from 'kefir.atom'
 import { LatLngBounds, LeafletEvent } from 'leaflet'
 import { GeoJSON, Map as LeafletMap, TileLayer } from 'react-leaflet'
 import { Coords, TrackGeoJSON } from '../domain/Geo'
-import { Atomized, Vessel } from './ui-domain'
+import { Vessel } from './ui-domain'
 
 // Lift LeafletMap to Karet to support Atoms as props
 const KaretMap = U.toKaret(LeafletMap)
@@ -15,13 +17,13 @@ export interface Track {
 }
 
 export interface MapProps {
-  center: Coords
-  zoom: number
-  bounds: LatLngBounds
-  vessels: Vessel[]
+  center: Observable<Coords, any>
+  zoom: Atom<number>
+  bounds: Atom<LatLngBounds>
+  vessels: Observable<Vessel[], any>
 }
 
-const Map = ({ center, zoom, bounds, vessels }: Atomized<MapProps>) => {
+const Map = ({ center, zoom, bounds, vessels }: MapProps) => {
   const updateBoundsFromMap = (comp: LeafletMap) =>
     bounds.set(comp.leafletElement.getBounds())
   const updateBoundsFromEvent = (e: LeafletEvent) => {

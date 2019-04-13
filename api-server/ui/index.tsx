@@ -2,7 +2,6 @@ import * as React from 'karet'
 import * as U from 'karet.util'
 import { Atom } from 'kefir.atom'
 import { LatLngBounds } from 'leaflet'
-import * as L from 'partial.lenses'
 import * as ReactDOM from 'react-dom'
 
 import { Coords, TrackGeoJSON } from '../domain/Geo'
@@ -39,9 +38,8 @@ const App = () => {
   const vessels = U.view<Atom<Vessel[]>>('vessels', appState)
   const bounds = U.view<Atom<LatLngBounds>>(['map', 'bounds'], appState)
   const zoom = U.view<Atom<number>>(['map', 'zoom'], appState)
-  const vesselsWithTracks = U.view<Atom<Vessel[]>>(
-    L.partsOf([L.elems, L.when(vesselHasTracks)]),
-    vessels
+  const vesselsWithTracks = vessels.map(vessels =>
+    vessels.filter(vesselHasTracks)
   )
 
   // Update tracks in global state when vessels change
@@ -52,7 +50,7 @@ const App = () => {
 
   return (
     <Map
-      center={U.view(['map', 'center'], appState)}
+      center={appState.map(as => as.map.center)}
       zoom={zoom}
       bounds={bounds}
       vessels={vesselsWithTracks}
