@@ -1,7 +1,7 @@
 import { SKContext } from '@chacal/signalk-ts'
 import Debug from 'debug'
 import * as U from 'karet.util'
-import Kefir, { Stream } from 'kefir'
+import Kefir from 'kefir'
 import { Atom } from 'kefir.atom'
 import { LatLngBounds } from 'leaflet'
 import * as L from 'partial.lenses'
@@ -22,17 +22,20 @@ export default function tracksFor(
   vesselsA
     .flatMapLatest(vessels => Kefir.sequentially(0, vessels))
     .filter(notLoaded)
-    .onValue(vessel => {
+    .onValue(async vessel => {
       const loadState = loadStateFor(vessel)
 
       debug('Loading ', vessel.context)
       loadState.set(LoadState.LOADING)
 
-      loadTrack(vessel.context, boundsA.get(), zoomA.get()).onValue(geoJson => {
-        debug('Loaded ', vessel.context)
-        loadState.set(LoadState.LOADED)
-        trackFor(vessel).set(geoJson)
-      })
+      const geoJson = await loadTrack(
+        vessel.context,
+        boundsA.get(),
+        zoomA.get()
+      )
+      debug('Loaded ', vessel.context)
+      loadState.set(LoadState.LOADED)
+      trackFor(vessel).set(geoJson)
     })
 
   function loadStateFor(vessel: Vessel) {
@@ -51,16 +54,14 @@ export default function tracksFor(
   }
 }
 
-function loadTrack(
+async function loadTrack(
   context: SKContext,
   bounds: LatLngBounds,
   zoom: number
-): Stream<TrackGeoJSON, any> {
+): Promise<TrackGeoJSON> {
   const bStr = toQueryString(bounds)
-
-  return Kefir.fromPromise(
-    fetch(`/tracks?context=${context}&${bStr}&zoomLevel=${zoom}`).then(res =>
-      res.json()
-    )
+  const res = await fetch(
+    `/tracks?context=${context}&${bStr}&zoomLevel=${zoom}`
   )
+  return res.json()
 }
