@@ -7,7 +7,6 @@ import { LatLngBounds } from 'leaflet'
 import * as L from 'partial.lenses'
 
 import { toQueryString, TrackGeoJSON } from '../domain/Geo'
-import { Track } from './Map'
 import { LoadState, Vessel } from './ui-domain'
 
 const debug = Debug('stash:trackprovider')
@@ -19,31 +18,34 @@ export default function tracksFor(
   vesselsA: Atom<Vessel[]>,
   zoomA: Atom<number>,
   boundsA: Atom<LatLngBounds>
-): Stream<Track, any> {
-  return vesselsA
+) {
+  vesselsA
     .flatMapLatest(vessels => Kefir.sequentially(0, vessels))
     .filter(notLoaded)
-    .flatMap(vessel => {
+    .onValue(vessel => {
       const loadState = loadStateFor(vessel)
 
       debug('Loading ', vessel.context)
       loadState.set(LoadState.LOADING)
 
-      return loadTrack(vessel.context, boundsA.get(), zoomA.get()).map(
-        geoJson => {
-          debug('Loaded ', vessel.context)
-          loadState.set(LoadState.LOADED)
-          return {
-            context: vessel.context,
-            geoJson
-          }
-        }
-      )
+      loadTrack(vessel.context, boundsA.get(), zoomA.get()).onValue(geoJson => {
+        debug('Loaded ', vessel.context)
+        loadState.set(LoadState.LOADED)
+        trackFor(vessel).set(geoJson)
+      })
     })
 
   function loadStateFor(vessel: Vessel) {
-    return U.view<Atom<LoadState>>(
-      [L.find((v: Vessel) => v.context === vessel.context), 'trackLoadState'],
+    return propOfVessel<LoadState>(vessel, 'trackLoadState')
+  }
+
+  function trackFor(vessel: Vessel) {
+    return propOfVessel<TrackGeoJSON>(vessel, 'track')
+  }
+
+  function propOfVessel<T>(vessel: Vessel, propName: string) {
+    return U.view<Atom<T>>(
+      [L.find((v: Vessel) => v.context === vessel.context), propName],
       vesselsA
     )
   }
