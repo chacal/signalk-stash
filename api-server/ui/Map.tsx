@@ -39,16 +39,11 @@ const Map = ({ center, zoom, bounds, vessels }: Atomized<MapProps>) => {
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <TileLayer url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png" />
       {vessels.map(vessels =>
-        vessels
-          .filter(vessel => vessel.track && vessel.track.coordinates.length > 0)
-          .map(vessel => {
-            return (
-              <GeoJSON
-                key={vessel.context + Math.random()}
-                data={vessel.track as TrackGeoJSON}
-              />
-            ) // Use random number as key to force rendering of tracks
-          })
+        vessels.map(vessel => (
+          // Use random number as key to force rendering of tracks
+          // (GeoJSON can't re-render itself when its props change)
+          <GeoJSON key={Math.random()} data={vessel.track as TrackGeoJSON} />
+        ))
       )}
     </KaretMap>
   )
