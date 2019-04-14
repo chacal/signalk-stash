@@ -22,6 +22,10 @@ declare module 'karet.util' {
     array: Atom<T[]>
   ): Observable<S[], any>
   export function set<T>(target: Atom<T>, source: T | Observable<T, any>): void
+  export function consume<T>(
+    action: (value: T) => void,
+    obs: Observable<T, any>
+  ): void
 
   interface CheckboxProps {
     type: string

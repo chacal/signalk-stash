@@ -39,9 +39,6 @@ const Map = ({ center, zoom, bounds, vessels }: MapProps) => {
   // Update tracks in global state when vessels change
   updateTracksFor(vessels, zoom, bounds)
 
-  // Reload tracks when bounds or zoom changes
-  bounds.merge(zoom).onValue(() => forceTrackReload(vessels))
-
   return (
     <KaretMap
       center={center}
@@ -49,6 +46,10 @@ const Map = ({ center, zoom, bounds, vessels }: MapProps) => {
       onmoveend={updateBoundsFromEvent}
       ref={updateBoundsFromMap}
     >
+      /* Reload tracks when bounds or zoom changes using U.consume See:
+      https://github.com/chacal/signalk-stash/pull/35#pullrequestreview-226390324
+      */
+      {U.consume(() => forceTrackReload(vessels), bounds.merge(zoom))}
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <TileLayer url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png" />
       {mapArrayInObs(selectedVesselsWithTracks, vessel => (
