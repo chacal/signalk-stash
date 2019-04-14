@@ -48,7 +48,7 @@ describe('Stash Map', () => {
     p.vessels.set([
       {
         context: 'self',
-        selected: false,
+        selected: true,
         trackLoadState: LoadState.LOADED,
         trackLoadTime: new Date(),
         track: {
