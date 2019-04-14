@@ -1,11 +1,7 @@
 import { SKContext } from '@chacal/signalk-ts'
-import * as U from 'karet.util'
-import { Atom } from 'kefir.atom'
+import { Observable } from 'kefir'
 import { LatLngBounds } from 'leaflet'
-import * as L from 'partial.lenses'
 import { Coords, TrackGeoJSON } from '../domain/Geo'
-
-export type Atomized<T> = { [P in keyof T]: Atom<T[P]> }
 
 export interface AppState {
   vessels: Vessel[]
@@ -16,22 +12,11 @@ export interface AppState {
   }
 }
 
-export function vesselProp<T>(
-  context: SKContext,
-  propName: string,
-  state: Atom<AppState>
-): Atom<T> {
-  return U.view<Atom<T>>(
-    ['vessels', L.find((c: Vessel) => c.context === context), propName],
-    state
-  )
-}
-
-export function allVesselProps<T>(
-  propName: string,
-  state: Atom<AppState>
-): Atom<T> {
-  return U.view<Atom<T>>(['vessels', L.elems, propName, L.defaults([])], state)
+export function mapArrayInObs<T, S>(
+  arrayObs: Observable<T[], any>,
+  mapper: (item: T, index?: number) => S
+) {
+  return arrayObs.map(items => items.map(mapper))
 }
 
 export interface Vessel {

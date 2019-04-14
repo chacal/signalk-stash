@@ -8,7 +8,7 @@ import * as L from 'partial.lenses'
 import { GeoJSON, Map as LeafletMap, TileLayer } from 'react-leaflet'
 import { Coords, TrackGeoJSON } from '../domain/Geo'
 import updateTracksFor from './trackprovider'
-import { LoadState, Vessel } from './ui-domain'
+import { LoadState, mapArrayInObs, Vessel } from './ui-domain'
 
 // Lift LeafletMap to Karet to support Atoms as props
 const KaretMap = U.toKaret(LeafletMap)
@@ -51,13 +51,11 @@ const Map = ({ center, zoom, bounds, vessels }: MapProps) => {
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <TileLayer url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png" />
-      {vesselsWithTracks.map(vessels =>
-        vessels.map(vessel => (
-          // Use random number as key to force rendering of tracks
-          // (GeoJSON can't re-render itself when its props change)
-          <GeoJSON key={Math.random()} data={vessel.track as TrackGeoJSON} />
-        ))
-      )}
+      {mapArrayInObs(vesselsWithTracks, vessel => (
+        // Use random number as key to force rendering of tracks
+        // (GeoJSON can't re-render itself when its props change)
+        <GeoJSON key={Math.random()} data={vessel.track as TrackGeoJSON} />
+      ))}
     </KaretMap>
   )
 }
