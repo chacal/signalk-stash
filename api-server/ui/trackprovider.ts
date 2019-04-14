@@ -13,6 +13,7 @@ const debug = Debug('stash:trackprovider')
 
 const notLoaded = (vessel: Vessel) =>
   vessel.trackLoadState === LoadState.NOT_LOADED
+const selected = (vessel: Vessel) => vessel.selected
 
 export default function tracksFor(
   vesselsA: Atom<Vessel[]>,
@@ -21,6 +22,7 @@ export default function tracksFor(
 ) {
   vesselsA
     .flatMapLatest(vessels => Kefir.sequentially(0, vessels))
+    .filter(selected)
     .filter(notLoaded)
     .onValue(async vessel => {
       const loadState = loadStateFor(vessel)

@@ -32,8 +32,8 @@ const Map = ({ center, zoom, bounds, vessels }: MapProps) => {
     bounds.set(e.target.getBounds())
     zoom.set(e.target.getZoom())
   }
-  const vesselsWithTracks = vessels.map(vessels =>
-    vessels.filter(vesselHasTracks)
+  const selectedVesselsWithTracks = vessels.map(vessels =>
+    vessels.filter(vesselHasTracks).filter(vesselSelected)
   )
 
   // Update tracks in global state when vessels change
@@ -51,7 +51,7 @@ const Map = ({ center, zoom, bounds, vessels }: MapProps) => {
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <TileLayer url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png" />
-      {mapArrayInObs(vesselsWithTracks, vessel => (
+      {mapArrayInObs(selectedVesselsWithTracks, vessel => (
         // GeoJSON can't re-render itself when its props change ->
         // use context + track load time as key to force re-render when new track
         // for a vessel is loaded
@@ -72,6 +72,10 @@ function forceTrackReload(vesselsA: Atom<Vessel[]>) {
 
 function vesselHasTracks(v: Vessel) {
   return v.track && v.track.coordinates.length > 0
+}
+
+function vesselSelected(v: Vessel) {
+  return v.selected
 }
 
 export default Map
