@@ -33,13 +33,22 @@ export default function tracksFor(
         boundsA.get(),
         zoomA.get()
       )
+
       debug('Loaded ', vessel.context)
-      loadState.set(LoadState.LOADED)
-      trackFor(vessel).set(geoJson)
+      // Use U.holding to "squash" all Atom mutations to produce only one change event to subscribers
+      U.holding(() => {
+        loadState.set(LoadState.LOADED)
+        loadTimeFor(vessel).set(new Date())
+        trackFor(vessel).set(geoJson)
+      })
     })
 
   function loadStateFor(vessel: Vessel) {
     return propOfVessel<LoadState>(vessel, 'trackLoadState')
+  }
+
+  function loadTimeFor(vessel: Vessel) {
+    return propOfVessel<Date>(vessel, 'trackLoadTime')
   }
 
   function trackFor(vessel: Vessel) {

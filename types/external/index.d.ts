@@ -14,6 +14,7 @@ declare module 'karet.util' {
 
   export function atom<T>(v: T): Atom<T>
   export function view<T>(lens: any, value: any): T
+  export function holding(mutation: () => void): void
 }
 
 declare module 'kefir.atom' {

@@ -50,6 +50,7 @@ describe('Stash Map', () => {
         context: 'self',
         selected: false,
         trackLoadState: LoadState.LOADED,
+        trackLoadTime: new Date(),
         track: {
           type: 'MultiLineString',
           coordinates: [[[22, 60], [22.5, 60.5]], [[20, 59], [21, 59.5]]]

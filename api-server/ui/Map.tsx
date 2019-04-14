@@ -52,9 +52,13 @@ const Map = ({ center, zoom, bounds, vessels }: MapProps) => {
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <TileLayer url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png" />
       {mapArrayInObs(vesselsWithTracks, vessel => (
-        // Use random number as key to force rendering of tracks
-        // (GeoJSON can't re-render itself when its props change)
-        <GeoJSON key={Math.random()} data={vessel.track as TrackGeoJSON} />
+        // GeoJSON can't re-render itself when its props change ->
+        // use context + track load time as key to force re-render when new track
+        // for a vessel is loaded
+        <GeoJSON
+          key={vessel.context + vessel.trackLoadTime.getTime()}
+          data={vessel.track as TrackGeoJSON}
+        />
       ))}
     </KaretMap>
   )
