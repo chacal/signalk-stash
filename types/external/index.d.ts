@@ -2,6 +2,7 @@ declare module 'karet'
 declare module 'partial.lenses'
 
 declare module 'karet.util' {
+  import { Observable } from 'kefir'
   import { Atom } from 'kefir.atom'
   import { Component } from 'react'
 
@@ -15,6 +16,18 @@ declare module 'karet.util' {
   export function atom<T>(v: T): Atom<T>
   export function view<T>(lens: any, value: any): T
   export function holding(mutation: () => void): void
+  export function mapElemsWithIds<T, S>(
+    indexLens: any,
+    mapper: (elem: Atom<T>, id: any) => S,
+    array: Atom<T[]>
+  ): Observable<S[], any>
+  export function set<T>(target: Atom<T>, source: T | Observable<T, any>): void
+
+  interface CheckboxProps {
+    type: string
+    checked: Atom<boolean>
+  }
+  export function Input(props: CheckboxProps): JSX.Element
 }
 
 declare module 'kefir.atom' {

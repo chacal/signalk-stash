@@ -8,6 +8,7 @@ import { Coords } from '../domain/Geo'
 import './main.less'
 import Map from './Map'
 import { AppState, emptyBounds, LoadState, Vessel } from './ui-domain'
+import VesselSelectionPanel from './VesselSelectionPanel'
 
 // Global application state wrapped into an Atom
 const appState = U.atom<AppState>({
@@ -33,12 +34,15 @@ const App = () => {
   const zoom = U.view<Atom<number>>(['map', 'zoom'], appState)
 
   return (
-    <Map
-      center={appState.map(as => as.map.center)}
-      zoom={zoom}
-      bounds={bounds}
-      vessels={vessels}
-    />
+    <React.Fragment>
+      <Map
+        center={appState.map(as => as.map.center)}
+        zoom={zoom}
+        bounds={bounds}
+        vessels={vessels}
+      />
+      <VesselSelectionPanel vessels={vessels} />
+    </React.Fragment>
   )
 }
 
