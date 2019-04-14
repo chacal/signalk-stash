@@ -4,7 +4,11 @@ import * as React from 'karet'
 import * as U from 'karet.util'
 import Kefir, { Observable } from 'kefir'
 import { Atom } from 'kefir.atom'
-import { LoadState, Vessel } from './ui-domain'
+import {
+  LoadState,
+  selectedStateFromLocalStorageOrDefault,
+  Vessel
+} from './ui-domain'
 
 const debug = Debug('stash:trackprovider')
 
@@ -47,7 +51,7 @@ function loadVessels(): Observable<Vessel[], any> {
       debug(`${contexts.length} vessels loaded`)
       return contexts.map(ctx => ({
         context: ctx,
-        selected: false,
+        selected: selectedStateFromLocalStorageOrDefault(ctx),
         trackLoadState: LoadState.NOT_LOADED,
         trackLoadTime: new Date()
       }))

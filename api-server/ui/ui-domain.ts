@@ -1,5 +1,6 @@
 import { SKContext } from '@chacal/signalk-ts'
 import { Observable } from 'kefir'
+import { Atom } from 'kefir.atom'
 import { LatLngBounds } from 'leaflet'
 import { Coords, TrackGeoJSON } from '../domain/Geo'
 
@@ -33,3 +34,27 @@ export enum LoadState {
   LOADED
 }
 export const emptyBounds = new LatLngBounds([[0, 0], [0, 0]])
+
+export function saveVesselSelectionsToLocalStorage(appState: Atom<AppState>) {
+  if (typeof localStorage !== 'undefined') {
+    appState.onValue(as =>
+      as.vessels.forEach(v =>
+        localStorage.setItem(
+          v.context,
+          JSON.stringify({ selected: v.selected })
+        )
+      )
+    )
+  }
+}
+
+export function selectedStateFromLocalStorageOrDefault(context: SKContext) {
+  try {
+    const state = localStorage.getItem(context)
+    if (state !== null) {
+      return JSON.parse(state).selected
+    }
+  } catch {
+    return false
+  }
+}
