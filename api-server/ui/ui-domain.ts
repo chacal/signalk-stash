@@ -23,7 +23,7 @@ export interface Vessel {
   context: SKContext
   selected: boolean
   trackLoadState: LoadState
-  trackLoadTime: Date
+  trackLoadTime?: Date
   track?: TrackGeoJSON
 }
 

@@ -16,8 +16,7 @@ const appState = U.atom<AppState>({
     {
       context: 'self',
       selected: false,
-      trackLoadState: LoadState.NOT_LOADED,
-      trackLoadTime: new Date()
+      trackLoadState: LoadState.NOT_LOADED
     }
   ],
   map: {

@@ -56,10 +56,7 @@ const Map = ({ center, zoom, bounds, vessels }: MapProps) => {
         // GeoJSON can't re-render itself when its props change ->
         // use context + track load time as key to force re-render when new track
         // for a vessel is loaded
-        <GeoJSON
-          key={vessel.context + vessel.trackLoadTime.getTime()}
-          data={vessel.track as TrackGeoJSON}
-        />
+        <GeoJSON key={keyFor(vessel)} data={vessel.track as TrackGeoJSON} />
       ))}
     </KaretMap>
   )
@@ -77,6 +74,12 @@ function vesselHasTracks(v: Vessel) {
 
 function vesselSelected(v: Vessel) {
   return v.selected
+}
+
+function keyFor(v: Vessel) {
+  return (
+    v.context + (v.trackLoadTime !== undefined ? v.trackLoadTime.getTime() : '')
+  )
 }
 
 export default Map
