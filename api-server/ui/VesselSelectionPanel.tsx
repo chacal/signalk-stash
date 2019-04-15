@@ -1,31 +1,61 @@
 import { SKContext } from '@chacal/signalk-ts'
+import { createStyles, WithStyles, withStyles } from '@material-ui/core'
 import * as React from 'karet'
 import * as U from 'karet.util'
 import { Atom } from 'kefir.atom'
 import { loadVessels } from './backend-requests'
+import * as K from './karet-components'
 import { Vessel } from './ui-domain'
 
+//
+//   VesselSelection
+//
+const vsStyles = createStyles({
+  button: {
+    padding: '0 6px 0 16px'
+  }
+})
+interface VSProps extends WithStyles<typeof vsStyles> {
+  vessel: Atom<Vessel>
+}
 
-interface Props {
+const VesselSelection = withStyles(vsStyles)(({ vessel, classes }: VSProps) => {
+  const checked = U.view<Atom<boolean>>('selected', vessel)
+  const context = U.view<Atom<SKContext>>('context', vessel)
+
+  return (
+    <K.ListItem button classes={classes}>
+      <K.ListItemText primary={context} />
+      <K.CheckBox
+        color={'primary'}
+        checked={checked}
+        onChange={U.getProps({ checked })}
+      />
+    </K.ListItem>
+  )
+})
+
+//
+//   VesselSelectionPanel
+//
+const vspStyles = createStyles({
+  root: {
+    position: 'absolute',
+    bottom: '10px',
+    left: '10px',
+    'z-index': 2000
+  }
+})
+
+interface VSPProps extends WithStyles<typeof vspStyles> {
   vessels: Atom<Vessel[]>
 }
 
-const VesselSelection = ({ vessel }: { vessel: Atom<Vessel> }) => {
-  const selected = U.view<Atom<boolean>>('selected', vessel)
-  return (
-    <li>
-      {U.view('context', vessel)}
-      <U.Input type={'checkbox'} checked={selected} />
-    </li>
-  )
-}
-
-const VesselSelectionPanel = ({ vessels }: Props) => {
-  return (
-    <div className={'vessel-selection-panel'}>
+const VesselSelectionPanel = withStyles(vspStyles)(
+  ({ vessels, classes }: VSPProps) => (
+    <K.Paper classes={classes}>
       {U.set(vessels, loadVessels())}
-      Available vessels:
-      <ul>
+      <K.List>
         {U.mapElemsWithIds(
           'context',
           (vessel, context) => (
@@ -33,8 +63,9 @@ const VesselSelectionPanel = ({ vessels }: Props) => {
           ),
           vessels
         )}
-      </ul>
-    </div>
+      </K.List>
+    </K.Paper>
   )
+)
 
 export default VesselSelectionPanel
