@@ -1,4 +1,3 @@
-import { SKContext } from '@chacal/signalk-ts'
 import Debug from 'debug'
 import * as U from 'karet.util'
 import Kefir from 'kefir'
