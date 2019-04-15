@@ -3,7 +3,6 @@ import { createStyles, WithStyles, withStyles } from '@material-ui/core'
 import * as React from 'karet'
 import * as U from 'karet.util'
 import { Atom } from 'kefir.atom'
-import { loadVessels } from './backend-requests'
 import * as K from './karet-components'
 import { Vessel } from './ui-domain'
 
@@ -55,7 +54,6 @@ interface VSPProps extends WithStyles<typeof vspStyles> {
 const VesselSelectionPanel = withStyles(vspStyles)(
   ({ vessels, classes }: VSPProps) => (
     <K.Paper classes={classes}>
-      {U.set(vessels, loadVessels())}
       <K.List>
         {U.mapElemsWithIds(
           'context',
