@@ -1,16 +1,10 @@
 import { SKContext } from '@chacal/signalk-ts'
-import Debug from 'debug'
 import * as React from 'karet'
 import * as U from 'karet.util'
-import Kefir, { Observable } from 'kefir'
 import { Atom } from 'kefir.atom'
-import {
-  LoadState,
-  selectedStateFromLocalStorageOrDefault,
-  Vessel
-} from './ui-domain'
+import { loadVessels } from './backend-requests'
+import { Vessel } from './ui-domain'
 
-const debug = Debug('stash:trackprovider')
 
 interface Props {
   vessels: Atom<Vessel[]>
@@ -42,21 +36,5 @@ const VesselSelectionPanel = ({ vessels }: Props) => {
       </ul>
     </div>
   )
-}
-
-function loadVessels(): Observable<Vessel[], any> {
-  debug('Loading vessels..')
-  return Kefir.fromPromise(fetch(`/contexts`).then(res => res.json())).map(
-    (contexts: SKContext[]) => {
-      debug(`${contexts.length} vessels loaded`)
-      return contexts.map(ctx => ({
-        context: ctx,
-        selected: selectedStateFromLocalStorageOrDefault(ctx),
-        trackLoadState: LoadState.NOT_LOADED,
-        trackLoadTime: new Date()
-      }))
-    }
-  )
-}
 
 export default VesselSelectionPanel

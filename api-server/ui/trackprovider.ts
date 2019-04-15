@@ -6,7 +6,8 @@ import { Atom } from 'kefir.atom'
 import { LatLngBounds } from 'leaflet'
 import * as L from 'partial.lenses'
 
-import { toQueryString, TrackGeoJSON } from '../domain/Geo'
+import { TrackGeoJSON } from '../domain/Geo'
+import { loadTrack } from './backend-requests'
 import { LoadState, Vessel } from './ui-domain'
 
 const debug = Debug('stash:trackprovider')
@@ -63,16 +64,4 @@ export default function tracksFor(
       vesselsA
     )
   }
-}
-
-async function loadTrack(
-  context: SKContext,
-  bounds: LatLngBounds,
-  zoom: number
-): Promise<TrackGeoJSON> {
-  const bStr = toQueryString(bounds)
-  const res = await fetch(
-    `/tracks?context=${context}&${bStr}&zoomLevel=${zoom}`
-  )
-  return res.json()
 }
