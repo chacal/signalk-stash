@@ -43,7 +43,7 @@ declare module 'kefir.atom' {
 
   interface Atom<T> extends Observable<T, any> {
     get(): T
-    modify(): (current: T) => T
+    modify(modifier: (current: T) => T): void
     set(t: T): void
     remove(): void
     view<V>(lens: any): Atom<V>
