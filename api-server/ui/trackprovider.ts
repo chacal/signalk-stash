@@ -5,7 +5,6 @@ import { Atom } from 'kefir.atom'
 import { LatLngBounds } from 'leaflet'
 import * as L from 'partial.lenses'
 
-import { TrackGeoJSON } from '../domain/Geo'
 import { loadTrack } from './backend-requests'
 import { LoadState, Vessel } from './ui-domain'
 
@@ -24,42 +23,32 @@ export default function tracksFor(
     .flatMapLatest(vessels => Kefir.sequentially(0, vessels))
     .filter(selected)
     .filter(notLoaded)
-    .onValue(async vessel => {
-      const loadState = loadStateFor(vessel)
+    .map(toAtom)
+    .onValue(async vesselA => {
+      const context = vesselA.get().context
+      const loadState = U.view<Atom<LoadState>>('trackLoadState', vesselA)
 
-      debug('Loading ', vessel.context)
+      debug('Loading ', context)
       loadState.set(LoadState.LOADING)
 
-      const geoJson = await loadTrack(
-        vessel.context,
-        boundsA.get(),
-        zoomA.get()
-      )
+      const geoJson = await loadTrack(context, boundsA.get(), zoomA.get())
 
-      debug('Loaded ', vessel.context)
-      // Use U.holding to "squash" all Atom mutations to produce only one change event to subscribers
-      U.holding(() => {
-        loadState.set(LoadState.LOADED)
-        loadTimeFor(vessel).set(new Date())
-        trackFor(vessel).set(geoJson)
+      debug('Loaded ', context)
+      vesselA.modify(vessel => {
+        return {
+          ...vessel,
+          ...{
+            trackLoadState: LoadState.LOADED,
+            trackLoadTime: new Date(),
+            track: geoJson
+          }
+        }
       })
     })
 
-  function loadStateFor(vessel: Vessel) {
-    return propOfVessel<LoadState>(vessel, 'trackLoadState')
-  }
-
-  function loadTimeFor(vessel: Vessel) {
-    return propOfVessel<Date>(vessel, 'trackLoadTime')
-  }
-
-  function trackFor(vessel: Vessel) {
-    return propOfVessel<TrackGeoJSON>(vessel, 'track')
-  }
-
-  function propOfVessel<T>(vessel: Vessel, propName: string) {
-    return U.view<Atom<T>>(
-      [L.find((v: Vessel) => v.context === vessel.context), propName],
+  function toAtom(vessel: Vessel) {
+    return U.view<Atom<Vessel>>(
+      L.find((v: Vessel) => v.context === vessel.context),
       vesselsA
     )
   }
