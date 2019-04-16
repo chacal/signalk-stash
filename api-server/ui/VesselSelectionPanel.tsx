@@ -24,7 +24,12 @@ const VesselSelection = withStyles(vsStyles)(({ vessel, classes }: VSProps) => {
   const onClick = () => checked.modify(currentValue => !currentValue)
 
   return (
-    <K.ListItem button classes={classes} onClick={onClick}>
+    <K.ListItem
+      button
+      classes={classes}
+      onClick={onClick}
+      data-cy="vessel-selection-panel__vessel"
+    >
       <K.ListItemText primary={context} />
       <K.CheckBox
         color={'primary'}
