@@ -1,7 +1,9 @@
 import { SKContext } from '@chacal/signalk-ts'
+import * as U from 'karet.util'
 import { Observable } from 'kefir'
 import { Atom } from 'kefir.atom'
 import { LatLngBounds } from 'leaflet'
+import * as L from 'partial.lenses'
 import { Coords, TrackGeoJSON } from '../domain/Geo'
 
 export interface AppState {
@@ -13,12 +15,18 @@ export interface AppState {
   }
 }
 
-export function mapArrayInObs<T, S>(
-  arrayObs: Observable<T[], any>,
-  mapper: (item: T, index?: number) => S
-) {
-  return arrayObs.map(items => items.map(mapper))
-}
+export const bounds = (appState: Atom<AppState>) =>
+  U.view<Atom<LatLngBounds>>(['map', 'bounds'], appState)
+export const zoom = (appState: Atom<AppState>) =>
+  U.view<Atom<number>>(['map', 'zoom'], appState)
+export const vessels = (appState: Atom<AppState>) =>
+  U.view<Atom<Vessel[]>>('vessels', appState)
+export const trackLoadStates = (appState: Atom<AppState>) =>
+  U.view<Atom<LoadState>>([L.elems, 'trackLoadState'], vessels(appState))
+export const selectedVesselsWithTracks = (appState: Atom<AppState>) =>
+  vessels(appState).map(vessels =>
+    vessels.filter(vesselHasTracks).filter(vesselSelected)
+  )
 
 export interface Vessel {
   context: SKContext
@@ -35,26 +43,17 @@ export enum LoadState {
 }
 export const emptyBounds = new LatLngBounds([[0, 0], [0, 0]])
 
-export function saveVesselSelectionsToLocalStorage(appState: Atom<AppState>) {
-  if (typeof localStorage !== 'undefined') {
-    appState.onValue(as =>
-      as.vessels.forEach(v =>
-        localStorage.setItem(
-          v.context,
-          JSON.stringify({ selected: v.selected })
-        )
-      )
-    )
-  }
+export function mapArrayInObs<T, S>(
+  arrayObs: Observable<T[], any>,
+  mapper: (item: T, index?: number) => S
+) {
+  return arrayObs.map(items => items.map(mapper))
 }
 
-export function selectedStateFromLocalStorageOrDefault(context: SKContext) {
-  try {
-    const state = localStorage.getItem(context)
-    if (state !== null) {
-      return JSON.parse(state).selected
-    }
-  } catch {
-    return false
-  }
+function vesselHasTracks(v: Vessel) {
+  return v.track && v.track.coordinates.length > 0
+}
+
+function vesselSelected(v: Vessel) {
+  return v.selected
 }

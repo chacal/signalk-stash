@@ -3,11 +3,8 @@ import Debug from 'debug'
 import Kefir, { Observable } from 'kefir'
 import { LatLngBounds } from 'leaflet'
 import { toQueryString, TrackGeoJSON } from '../domain/Geo'
-import {
-  LoadState,
-  selectedStateFromLocalStorageOrDefault,
-  Vessel
-} from './ui-domain'
+import { selectedStateFromLocalStorageOrDefault } from './state-management'
+import { LoadState, Vessel } from './ui-domain'
 
 const debug = Debug('stash:backend-requests')
 

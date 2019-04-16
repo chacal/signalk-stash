@@ -13,7 +13,7 @@ const defaultProps = () => ({
   center: U.atom(new Coords({ lat: 60, lng: 22 })),
   zoom: U.atom(10),
   bounds: U.atom(emptyBounds),
-  vessels: U.atom([] as Vessel[])
+  shownVessels: U.atom([] as Vessel[])
 })
 
 describe('Stash Map', () => {
@@ -45,7 +45,7 @@ describe('Stash Map', () => {
 
     expect(geoJson()).to.have.lengthOf(0)
 
-    p.vessels.set([
+    p.shownVessels.set([
       {
         context: 'self',
         selected: true,

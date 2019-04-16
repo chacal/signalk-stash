@@ -1,22 +1,14 @@
 import * as React from 'karet'
 import * as U from 'karet.util'
-import { Atom } from 'kefir.atom'
-import { LatLngBounds } from 'leaflet'
 import * as ReactDOM from 'react-dom'
 
 import { Coords } from '../domain/Geo'
-import { loadVessels } from './backend-requests'
+import App from './App'
 import './main.less'
-import Map from './Map'
-import {
-  AppState,
-  emptyBounds,
-  saveVesselSelectionsToLocalStorage,
-  Vessel
-} from './ui-domain'
-import VesselSelectionPanel from './VesselSelectionPanel'
+import { initializeStateManagement } from './state-management'
+import { AppState, emptyBounds } from './ui-domain'
 
-// Global application state wrapped into an Atom
+// Initial global application state wrapped into an Atom
 const appState = U.atom<AppState>({
   vessels: [],
   map: {
@@ -25,26 +17,9 @@ const appState = U.atom<AppState>({
     bounds: emptyBounds
   }
 })
-const vessels = U.view<Atom<Vessel[]>>('vessels', appState)
 
-// Main application component
-const App = () => {
-  const bounds = U.view<Atom<LatLngBounds>>(['map', 'bounds'], appState)
-  const zoom = U.view<Atom<number>>(['map', 'zoom'], appState)
+// Setup state transforms
+initializeStateManagement(appState)
 
-  return (
-    <React.Fragment>
-      <Map
-        center={appState.map(as => as.map.center)}
-        zoom={zoom}
-        bounds={bounds}
-        vessels={vessels}
-      />
-      <VesselSelectionPanel vessels={vessels} />
-    </React.Fragment>
-  )
-}
-
-ReactDOM.render(<App />, document.getElementById('main'))
-saveVesselSelectionsToLocalStorage(appState)
-loadVessels().onValue(loadedVessels => vessels.set(loadedVessels))
+// Render main component
+ReactDOM.render(<App appState={appState} />, document.getElementById('main'))
