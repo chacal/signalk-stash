@@ -39,6 +39,7 @@ const VesselSelection = withStyles(vsStyles)(({ vessel, classes }: VSProps) => {
         checked={checked}
         onChange={U.getProps({ checked })}
         style={{ color }}
+        data-cy="vessel-selection-panel__vessel_checkbox"
       />
     </K.ListItem>
   )
