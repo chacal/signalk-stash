@@ -38,7 +38,11 @@ const Map = ({ center, zoom, bounds, shownVessels }: MapProps) => {
         // GeoJSON can't re-render itself when its props change ->
         // use context + track load time as key to force re-render when new track
         // for a vessel is loaded
-        <GeoJSON key={keyFor(vessel)} data={vessel.track as TrackGeoJSON} />
+        <GeoJSON
+          key={keyFor(vessel)}
+          data={vessel.track as TrackGeoJSON}
+          color={vessel.trackColor.hex()}
+        />
       ))}
     </K.Map>
   )

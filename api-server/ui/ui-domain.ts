@@ -1,4 +1,5 @@
 import { SKContext } from '@chacal/signalk-ts'
+import Color = require('color')
 import * as U from 'karet.util'
 import { Observable } from 'kefir'
 import { Atom } from 'kefir.atom'
@@ -32,6 +33,7 @@ export interface Vessel {
   context: SKContext
   selected: boolean
   trackLoadState: LoadState
+  trackColor: Color
   trackLoadTime?: Date
   track?: TrackGeoJSON
 }

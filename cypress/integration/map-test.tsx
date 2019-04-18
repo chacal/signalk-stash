@@ -1,4 +1,5 @@
 import { configure, mount } from 'enzyme'
+import Color = require('color')
 import Adapter from 'enzyme-adapter-react-16'
 import * as React from 'karet'
 import * as U from 'karet.util'
@@ -38,7 +39,7 @@ describe('Stash Map', () => {
     })
   })
 
-  it('renders tracks as GeoJSON', () => {
+  it('renders tracks as colored GeoJSON', () => {
     const p = defaultProps()
     const map = mount(<Map {...p} />)
     const geoJson = () => map.find(GeoJSON)
@@ -51,6 +52,7 @@ describe('Stash Map', () => {
         selected: true,
         trackLoadState: LoadState.LOADED,
         trackLoadTime: new Date(),
+        trackColor: Color('#0000FF'),
         track: {
           type: 'MultiLineString',
           coordinates: [[[22, 60], [22.5, 60.5]], [[20, 59], [21, 59.5]]]
@@ -63,5 +65,6 @@ describe('Stash Map', () => {
     const coords = geoJson().prop('data').coordinates
     expect(coords).to.have.lengthOf(2)
     expect(coords[0][0]).to.eql([22, 60])
+    expect(geoJson().prop('color')).to.equal('#0000FF')
   })
 })

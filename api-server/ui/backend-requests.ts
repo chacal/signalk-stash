@@ -1,5 +1,7 @@
 import { SKContext } from '@chacal/signalk-ts'
+import Color from 'color'
 import Debug from 'debug'
+import palette from 'google-palette'
 import Kefir, { Observable } from 'kefir'
 import { LatLngBounds } from 'leaflet'
 import { toQueryString, TrackGeoJSON } from '../domain/Geo'
@@ -25,10 +27,16 @@ export function loadVessels(): Observable<Vessel[], any> {
   return Kefir.fromPromise(fetch(`/contexts`).then(res => res.json())).map(
     (contexts: SKContext[]) => {
       debug(`${contexts.length} vessels loaded`)
-      return contexts.map(ctx => ({
+
+      const colors = palette('mpn65', contexts.length)
+
+      return contexts.map((ctx, idx) => ({
         context: ctx,
         selected: selectedStateFromLocalStorageOrDefault(ctx),
         trackLoadState: LoadState.NOT_LOADED,
+        trackColor: Color(`#${colors[idx]}`)
+          .desaturate(0.5)
+          .lighten(0.06),
         trackLoadTime: new Date()
       }))
     }

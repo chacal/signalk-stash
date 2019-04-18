@@ -1,4 +1,5 @@
 import { Checkbox, ListItem } from '@material-ui/core'
+import Color = require('color')
 import { configure, mount, ReactWrapper } from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'
 import * as React from 'karet'
@@ -15,7 +16,8 @@ const defaultProps = (vessels: Vessel[] = []) => ({
 const testVessel = (context: string = 'self') => ({
   context,
   selected: false,
-  trackLoadState: LoadState.NOT_LOADED
+  trackLoadState: LoadState.NOT_LOADED,
+  trackColor: Color('#0000AA')
 })
 
 describe('VesselSelectionPanel', () => {
@@ -30,6 +32,11 @@ describe('VesselSelectionPanel', () => {
 
     expect(F.items()).to.have.lengthOf(1)
     expect(F.item(0).text()).to.equal('self')
+    expect(
+      F.checkbox(0)
+        .prop('style')
+        .color.hex()
+    ).to.equal('#0000AA')
 
     props.vessels.set([testVessel(), testVessel('self2')])
     vsp.update()

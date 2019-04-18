@@ -70,3 +70,9 @@ declare module 'quadkeytools' {
 
   export function locationToQuadkey(location: Location, detail: number): QuadKey
 }
+
+declare module 'google-palette' {
+  type RGBString = string
+
+  export default function palette(name: string, size: number): RGBString[]
+}

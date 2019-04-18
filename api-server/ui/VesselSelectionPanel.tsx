@@ -1,5 +1,6 @@
 import { SKContext } from '@chacal/signalk-ts'
 import { createStyles, WithStyles, withStyles } from '@material-ui/core'
+import Color = require('color')
 import * as React from 'karet'
 import * as U from 'karet.util'
 import { Atom } from 'kefir.atom'
@@ -21,6 +22,8 @@ interface VSProps extends WithStyles<typeof vsStyles> {
 const VesselSelection = withStyles(vsStyles)(({ vessel, classes }: VSProps) => {
   const checked = U.view<Atom<boolean>>('selected', vessel)
   const context = U.view<Atom<SKContext>>('context', vessel)
+  const color = U.view<Atom<Color>>('trackColor', vessel)
+
   const onClick = () => checked.modify(currentValue => !currentValue)
 
   return (
@@ -35,6 +38,7 @@ const VesselSelection = withStyles(vsStyles)(({ vessel, classes }: VSProps) => {
         color={'primary'}
         checked={checked}
         onChange={U.getProps({ checked })}
+        style={{ color }}
       />
     </K.ListItem>
   )
