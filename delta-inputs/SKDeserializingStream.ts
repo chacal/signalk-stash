@@ -7,14 +7,18 @@ export default class SKDeserializingStream extends Transform {
   }
 
   _transform(chunk: any, encoding: string, callback: TransformCallback): void {
+    let delta
     try {
-      this.push(SKDelta.fromJSON(chunk))
+      delta = SKDelta.fromJSON(chunk)
     } catch (e) {
       console.error(
-        `Failed to validate Signal K input! Skipping. Error: ${e} Input: ${JSON.stringify(
+        `Failed to validate Signal K input! Skipping. Error: ${e.toString()} Input: ${JSON.stringify(
           chunk
         )}`
       )
+    }
+    if (delta) {
+      this.push(delta)
     }
     callback()
   }
