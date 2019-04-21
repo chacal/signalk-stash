@@ -2,7 +2,14 @@ import Clickhouse from '@apla/clickhouse'
 import { SKContext } from '@chacal/signalk-ts'
 import BinaryQuadkey from 'binaryquadkey'
 import Debug from 'debug'
-import { ChronoField, Instant, ZonedDateTime, ZoneId } from 'js-joda'
+import {
+  ChronoField,
+  ChronoUnit,
+  Duration,
+  Instant,
+  ZonedDateTime,
+  ZoneId
+} from 'js-joda'
 import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
 import { timeResolutionForZoom } from '../db/SKClickHouse'
@@ -21,12 +28,33 @@ export default class Trackpoint {
 // TODO: Move to a separate file?
 export type Track = Trackpoint[]
 
+//Class B AIS transmits every 3 minutes when going < 2 knots
+const trackPauseThreshold = Duration.of(4, ChronoUnit.MINUTES)
+
 export function tracksToGeoJSON(tracks: Track[]): TrackGeoJSON {
+  let lastTrackpointTimestamp = ZonedDateTime.ofInstant(
+    Instant.ofEpochSecond(0),
+    ZoneId.UTC
+  )
+  let currentTrack
   return {
     type: 'MultiLineString',
-    coordinates: tracks.map(track =>
-      track.map(({ coords }) => [coords.lng, coords.lat])
-    )
+    coordinates: tracks.reduce((acc: number[][], track) => {
+      track.forEach((trackpoint: Trackpoint) => {
+        if (
+          Duration.between(
+            lastTrackpointTimestamp,
+            trackpoint.timestamp
+          ).compareTo(trackPauseThreshold) > 0
+        ) {
+          currentTrack = [] as number[]
+          acc.push(currentTrack)
+        }
+        lastTrackpointTimestamp = trackpoint.timestamp
+        currentTrack.push([trackpoint.coords.lng, trackpoint.coords.lat])
+      })
+      return acc
+    }, [])
   }
 }
 
