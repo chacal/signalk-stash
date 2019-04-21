@@ -1,5 +1,5 @@
 import Clickhouse from '@apla/clickhouse'
-import { SKValue } from '@chacal/signalk-ts'
+import { SKContext, SKValue } from '@chacal/signalk-ts'
 import { ChronoField, ZonedDateTime } from 'js-joda'
 import { Transform, TransformCallback } from 'stream'
 
@@ -59,7 +59,7 @@ function pathValuetoColumns(pathValue: PathValue): PathValueRowColumns {
 
 export function getValues(
   ch: Clickhouse,
-  context: string,
+  context: SKContext,
   path: string,
   from: ZonedDateTime,
   to: ZonedDateTime,

@@ -10,7 +10,7 @@ import {
   assertFixtureValuesInDB,
   measurementFixtures,
   positionFixtures,
-  vesselUuid,
+  testVesselUuids,
   waitFor,
   writeDeltasFromPositionFixture
 } from './test-util'
@@ -18,62 +18,64 @@ import TestDB from './TestDB'
 
 describe('StashDBB', () => {
   beforeEach(() => TestDB.resetTables())
-  it('writes positions', () => {
-    return writeDeltasFromPositionFixture().then(() =>
-      assertFixturePositionsInDB(DB)
+  it('writes positions', async () => {
+    await writeDeltasFromPositionFixture()
+    await assertFixturePositionsInDB(DB)
+  })
+
+  it('returns tracks by zoomLevel', async () => {
+    await writeDeltasFromPositionFixture()
+    const points = await DB.getTrackPointsForVessel(
+      testVesselUuids[0],
+      undefined,
+      10
     )
+    expect(points).to.have.lengthOf(5)
+    expect(points[0].timestamp.toString()).to.equal('2014-08-15T19:00Z')
   })
 
-  it('returns tracks by zoomLevel', () => {
-    return writeDeltasFromPositionFixture()
-      .then(() => DB.getTrackPointsForVessel(vesselUuid, undefined, 10))
-      .then(points => {
-        expect(points).to.have.lengthOf(5)
-        expect(points[0].timestamp.toString()).to.equal('2014-08-15T19:00Z')
-      })
+  it('returns daily tracks', async () => {
+    await writeDeltasFromPositionFixture()
+    const result = await DB.getVesselTracks(testVesselUuids[0])
+    expect(result).to.have.lengthOf(3)
   })
 
-  it('returns daily tracks', () => {
-    return writeDeltasFromPositionFixture()
-      .then(() => DB.getVesselTracks(vesselUuid))
-      .then(result => {
-        expect(result).to.have.lengthOf(3)
+  it('returns daily tracks by bbox', async () => {
+    await writeDeltasFromPositionFixture()
+    const tracks = await DB.getVesselTracks(
+      testVesselUuids[2],
+      new BBox({
+        nw: new Coords({ lng: 21.75, lat: 60 }),
+        se: new Coords({ lng: 22, lat: 59 })
       })
-  })
-
-  it('returns daily tracks by bbox', () => {
-    return writeDeltasFromPositionFixture()
-      .then(() =>
-        DB.getVesselTracks(
-          'self',
-          new BBox({
-            nw: new Coords({ lng: 21.75, lat: 60 }),
-            se: new Coords({ lng: 22, lat: 59 })
-          })
-        )
-      )
-      .then(tracks => {
-        expect(tracks).to.have.lengthOf(1)
-        expect(tracks[0]).to.have.lengthOf(2)
-      })
+    )
+    expect(tracks).to.have.lengthOf(1)
+    expect(tracks[0]).to.have.lengthOf(2)
   })
 
   it('writes deltas via stream', done => {
-    const chStream = DB.deltaWriteStream(err => {
+    const chStream = DB.deltaWriteStream(async err => {
       expect(err).to.be.undefined
-      waitForTrackpointsInserted()
-        .then(() => waitForValuesInserted())
-        .then(() => assertFixturePositionsInDB(DB))
-        .then(() => assertFixtureValuesInDB(DB))
-        .then(() => {
-          done()
-        })
-        .catch(err => done(err))
+      try {
+        await waitForTrackpointsInserted()
+        await waitForValuesInserted()
+        await assertFixturePositionsInDB(DB)
+        await assertFixtureValuesInDB(DB)
+        done()
+      } catch (err) {
+        done(err)
+      }
     })
     const fixtures = _.shuffle(positionFixtures.concat(measurementFixtures))
     fixtures.forEach(delta => chStream.write(SKDelta.fromJSON(delta)))
     chStream.end()
-  }).timeout(10000)
+  })
+
+  it('returns contexts sorted in ascending order', async () => {
+    await writeDeltasFromPositionFixture()
+    const contexts = await DB.getContexts()
+    expect(contexts).to.have.ordered.members(_.sortBy(testVesselUuids))
+  })
 
   const waitForTrackpointsInserted = () =>
     waitFor(

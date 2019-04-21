@@ -1,5 +1,6 @@
 import { SKPosition } from '@chacal/signalk-ts'
 import BinaryQuadkey from 'binaryquadkey'
+import { LatLngBounds } from 'leaflet'
 import QK from 'quadkeytools'
 
 export interface LatLng {
@@ -48,3 +49,7 @@ export interface TrackGeoJSON {
 }
 
 export type ZoomLevel = number
+
+export function toQueryString(b: LatLngBounds) {
+  return `s=${b.getSouth()}&w=${b.getWest()}&n=${b.getNorth()}&e=${b.getEast()}`
+}

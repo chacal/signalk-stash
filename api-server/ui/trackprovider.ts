@@ -1,21 +1,55 @@
-import Kefir, { Stream } from 'kefir'
+import Debug from 'debug'
+import * as U from 'karet.util'
+import Kefir from 'kefir'
 import { Atom } from 'kefir.atom'
 import { LatLngBounds } from 'leaflet'
-import { TrackGeoJSON } from '../domain/Geo'
+import * as L from 'partial.lenses'
+
+import { loadTrack } from './backend-requests'
+import { LoadState, Vessel } from './ui-domain'
+
+const debug = Debug('stash:trackprovider')
+
+const notLoaded = (vessel: Vessel) =>
+  vessel.trackLoadState === LoadState.NOT_LOADED
+const selected = (vessel: Vessel) => vessel.selected
 
 export default function tracksFor(
-  context: Atom<string>,
-  zoom: Atom<number>,
-  bounds: Atom<LatLngBounds>
-): Stream<TrackGeoJSON, any> {
-  return Kefir.combine([context, zoom, bounds])
-    .changes()
-    .flatMapLatest(([ctx, z, b]) => {
-      const bounds = `s=${b.getSouth()}&w=${b.getWest()}&n=${b.getNorth()}&e=${b.getEast()}`
-      return Kefir.fromPromise(
-        fetch(`/tracks?context=${ctx}&${bounds}&zoomLevel=${z}`).then(res =>
-          res.json()
-        )
-      )
+  vesselsA: Atom<Vessel[]>,
+  zoomA: Atom<number>,
+  boundsA: Atom<LatLngBounds>
+) {
+  vesselsA
+    .flatMapLatest(vessels => Kefir.sequentially(0, vessels))
+    .filter(selected)
+    .filter(notLoaded)
+    .map(toAtom)
+    .onValue(async vesselA => {
+      const context = vesselA.get().context
+      const loadState = U.view<Atom<LoadState>>('trackLoadState', vesselA)
+
+      debug('Loading ', context)
+      loadState.set(LoadState.LOADING)
+
+      const geoJson = await loadTrack(context, boundsA.get(), zoomA.get())
+
+      debug('Loaded ', context)
+      vesselA.modify(vessel => {
+        return {
+          ...vessel,
+          ...{
+            trackLoadState: LoadState.LOADED,
+            trackLoadTime: new Date(),
+            track: geoJson
+          }
+        }
+      })
     })
+
+  function toAtom(vessel: Vessel) {
+    return U.view<Atom<Vessel>>(
+      L.find((v: Vessel) => v.context === vessel.context),
+      vesselsA
+    )
+  }
 }

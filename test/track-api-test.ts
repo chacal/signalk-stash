@@ -4,6 +4,7 @@ import {
   assertValidationErrors,
   getJson,
   startTestApp,
+  testVesselUuids,
   writeDeltasFromPositionFixture
 } from './test-util'
 import TestDB from './TestDB'
@@ -15,7 +16,7 @@ describe('Track API', () => {
 
   it('returns tracks for self vessel', () => {
     return getJson(app, '/tracks')
-      .query({ context: 'self' })
+      .query({ context: testVesselUuids[2] })
       .expect(res => {
         expect(res.body.type).to.equal('MultiLineString')
         expect(res.body.coordinates).to.have.lengthOf(1)
@@ -26,7 +27,7 @@ describe('Track API', () => {
   it('returns tracks with bounding box', () => {
     return getJson(app, '/tracks')
       .query({
-        context: 'self',
+        context: testVesselUuids[2],
         s: 59,
         n: 60,
         w: 21,
@@ -43,7 +44,7 @@ describe('Track API', () => {
   it('returns empty track with bounding box', () => {
     return getJson(app, '/tracks')
       .query({
-        context: 'self',
+        context: testVesselUuids[2],
         s: 40,
         n: 50,
         w: 21,
@@ -61,7 +62,7 @@ describe('Track API', () => {
   })
   it('returns error if bounding box is invalid', () => {
     return getJson(app, '/tracks', 400)
-      .query({ context: 'self', n: 59.5, s: 'abcdefg', e: 1500 })
+      .query({ context: testVesselUuids[2], n: 59.5, s: 'abcdefg', e: 1500 })
       .expect(res =>
         assertValidationErrors(
           res,
@@ -74,7 +75,7 @@ describe('Track API', () => {
   it('returns track with zoom level 20', () => {
     return getJson(app, '/tracks')
       .query({
-        context: 'self',
+        context: testVesselUuids[2],
         zoomLevel: 20 // Use 2s time interval -> will return all 3 points
       })
       .expect(res => {
@@ -85,7 +86,7 @@ describe('Track API', () => {
   it('returns track with zoom level 11', () => {
     return getJson(app, '/tracks')
       .query({
-        context: 'self',
+        context: testVesselUuids[2],
         zoomLevel: 11 // Use 30s time interval -> will return only 2 points (two first are averaged)
       })
       .expect(res => {
@@ -97,14 +98,14 @@ describe('Track API', () => {
   })
   it('returns error with invalid zoom level', () => {
     return getJson(app, '/tracks', 400)
-      .query({ context: 'self', zoomLevel: 'test' })
+      .query({ context: testVesselUuids[2], zoomLevel: 'test' })
       .expect(res =>
         assertValidationErrors(res, '"zoomLevel" must be a number')
       )
   })
   it('returns error with too small zoom level', () => {
     return getJson(app, '/tracks', 400)
-      .query({ context: 'self', zoomLevel: 0 })
+      .query({ context: testVesselUuids[2], zoomLevel: 0 })
       .expect(res =>
         assertValidationErrors(res, '"zoomLevel" must be greater than 0')
       )

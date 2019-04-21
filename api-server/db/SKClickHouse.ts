@@ -115,14 +115,25 @@ export default class SKClickHouse {
     return deltaSplittingStream
   }
 
+  // TODO: Fix return type
   getValues(
-    context: any,
+    context: SKContext,
     path: string,
     from: ZonedDateTime,
     to: ZonedDateTime,
     timeresolution: number
   ): any {
     return getValues(this.ch, context, path, from, to, timeresolution)
+  }
+
+  getContexts(): Promise<SKContext[]> {
+    return this.ch
+      .querying('SELECT DISTINCT(context) AS c FROM trackpoint ORDER BY c')
+      .then(x => {
+        debug(JSON.stringify(x.statistics) + ' ' + x.data.length)
+        return x
+      })
+      .then(x => _.flatten(x.data as string[][]))
   }
 }
 

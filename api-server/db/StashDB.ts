@@ -49,13 +49,17 @@ export class StashDB {
   }
 
   getValues(
-    context: any,
+    context: SKContext,
     path: string,
     from: ZonedDateTime,
     to: ZonedDateTime,
     timeresolution: number
   ): any {
     return this.ch.getValues(context, path, from, to, timeresolution)
+  }
+
+  getContexts(): Promise<SKContext[]> {
+    return this.ch.getContexts()
   }
 
   /*

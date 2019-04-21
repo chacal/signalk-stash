@@ -21,8 +21,11 @@ const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures
 const positionFixtures: SKDeltaJSON[] = untypedPositionFixtures
 export { measurementFixtures, positionFixtures }
 
-export const vesselUuid =
-  'urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e'
+export const testVesselUuids = [
+  'urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e',
+  'urn:mrn:signalk:uuid:7434c104-feae-48c8-ab3a-fd3bf4ad552f',
+  'urn:mrn:signalk:uuid:7434c104-feae-48c8-ab3a-deadbeefdead'
+]
 
 export const vesselAccount = new TestAccount('vessel', 'signalk')
 export const runnerAccount = new TestAccount('runner', 'runnerpasswort')
@@ -98,29 +101,25 @@ export function assertTrackpoint(point: Trackpoint, fixturePoint: any): void {
   )
 }
 
-const vesselIds = [
-  vesselUuid,
-  'self',
-  'urn:mrn:signalk:uuid:7434c104-feae-48c8-ab3a-fd3bf4ad552f'
-]
 export function assertFixturePositionsInDB(DB: StashDB): Promise<void[]> {
-  return Promise.all(vesselIds.map(id => DB.getTrackPointsForVessel(id))).then(
-    positionsLists =>
-      positionsLists.map((positions, i) => {
-        const vesselFixturePositions = positionFixtures.filter(
-          delta =>
-            delta.context === 'vessels.' + vesselIds[i] ||
-            (!delta.context && vesselIds[i] === 'self')
-        )
-        expect(positions.length).to.equal(vesselFixturePositions.length)
-        assertTrackpoint(positions[0], vesselFixturePositions[0])
-      })
+  return Promise.all(
+    testVesselUuids.map(id => DB.getTrackPointsForVessel(id))
+  ).then(positionsLists =>
+    positionsLists.map((positions, i) => {
+      const vesselFixturePositions = positionFixtures.filter(
+        delta =>
+          delta.context === 'vessels.' + testVesselUuids[i] ||
+          (!delta.context && testVesselUuids[i] === 'self')
+      )
+      expect(positions.length).to.equal(vesselFixturePositions.length)
+      assertTrackpoint(positions[0], vesselFixturePositions[0])
+    })
   )
 }
 
 export function assertFixtureValuesInDB(DB: StashDB): Promise<void[]> {
   return DB.getValues(
-    vesselUuid,
+    testVesselUuids[0],
     'navigation.speedOverGround',
     ZonedDateTime.parse('2014-08-15T19:00:16.000Z'),
     ZonedDateTime.parse('2014-08-15T19:00:23.000Z'),

@@ -1,11 +1,12 @@
 import { configure, mount } from 'enzyme'
+import Color = require('color')
 import Adapter from 'enzyme-adapter-react-16'
 import * as React from 'karet'
 import * as U from 'karet.util'
 import { GeoJSON, Map as LeafletMap } from 'react-leaflet'
 import { Coords } from '../../api-server/domain/Geo'
 import Map from '../../api-server/ui/Map'
-import { emptyBounds, emptyGeoJSON } from '../../api-server/ui/ui-domain'
+import { emptyBounds, LoadState, Vessel } from '../../api-server/ui/ui-domain'
 
 configure({ adapter: new Adapter() })
 
@@ -13,7 +14,7 @@ const defaultProps = () => ({
   center: U.atom(new Coords({ lat: 60, lng: 22 })),
   zoom: U.atom(10),
   bounds: U.atom(emptyBounds),
-  tracks: U.atom(emptyGeoJSON)
+  shownVessels: U.atom([] as Vessel[])
 })
 
 describe('Stash Map', () => {
@@ -38,23 +39,32 @@ describe('Stash Map', () => {
     })
   })
 
-  it('renders tracks as GeoJSON', () => {
+  it('renders tracks as colored GeoJSON', () => {
     const p = defaultProps()
     const map = mount(<Map {...p} />)
     const geoJson = () => map.find(GeoJSON)
 
-    expect(geoJson()).to.have.lengthOf(1)
-    expect(geoJson().prop('data').coordinates).to.have.lengthOf(0)
+    expect(geoJson()).to.have.lengthOf(0)
 
-    p.tracks.set({
-      type: 'MultiLineString',
-      coordinates: [[[22, 60], [22.5, 60.5]], [[20, 59], [21, 59.5]]]
-    })
+    p.shownVessels.set([
+      {
+        context: 'self',
+        selected: true,
+        trackLoadState: LoadState.LOADED,
+        trackLoadTime: new Date(),
+        trackColor: Color('#0000FF'),
+        track: {
+          type: 'MultiLineString',
+          coordinates: [[[22, 60], [22.5, 60.5]], [[20, 59], [21, 59.5]]]
+        }
+      }
+    ])
     map.update()
 
     expect(geoJson()).to.have.lengthOf(1)
     const coords = geoJson().prop('data').coordinates
     expect(coords).to.have.lengthOf(2)
     expect(coords[0][0]).to.eql([22, 60])
+    expect(geoJson().prop('color')).to.equal('#0000FF')
   })
 })
