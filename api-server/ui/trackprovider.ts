@@ -31,7 +31,11 @@ export default function tracksFor(
       debug('Loading ', context)
       loadState.set(LoadState.LOADING)
 
-      const geoJson = await loadTrack(context, boundsA.get(), zoomA.get())
+      const geoJson = await loadTrack(
+        context,
+        enlarge(boundsA.get(), 0.05),
+        zoomA.get()
+      )
 
       debug('Loaded ', context)
       vesselA.modify(vessel => {
@@ -52,4 +56,13 @@ export default function tracksFor(
       vesselsA
     )
   }
+}
+
+function enlarge(bounds: LatLngBounds, factor: number) {
+  const lngDelta = factor * (bounds.getEast() - bounds.getWest())
+  const latDelta = factor * (bounds.getNorth() - bounds.getSouth())
+  return new LatLngBounds(
+    [bounds.getSouth() - latDelta, bounds.getWest() - lngDelta],
+    [bounds.getNorth() + latDelta, bounds.getEast() + lngDelta]
+  )
 }

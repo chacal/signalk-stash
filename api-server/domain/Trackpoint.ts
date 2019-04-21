@@ -28,7 +28,7 @@ export default class Trackpoint {
 // TODO: Move to a separate file?
 export type Track = Trackpoint[]
 
-//Class B AIS transmits every 3 minutes when going < 2 knots
+// Class B AIS transmits every 3 minutes when going < 2 knots
 const trackPauseThreshold = Duration.of(4, ChronoUnit.MINUTES)
 
 export function tracksToGeoJSON(tracks: Track[]): TrackGeoJSON {
