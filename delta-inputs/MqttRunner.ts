@@ -3,12 +3,7 @@ import * as mqtt from 'mqtt'
 import { MqttClient } from 'mqtt'
 import config, { MqttConfig } from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
-import {
-  Account,
-  MqttACL,
-  MqttACLLevel,
-  passwordHash
-} from '../api-server/domain/Auth'
+import { MqttAccount, MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import MqttDeltaInput, {
   DELTASTATSWILDCARDTOPIC,
@@ -44,7 +39,7 @@ export default class MqttRunner {
   private insertRunnerAccountIfNeeded() {
     if (!config.isTesting) {
       return insertRunnerAccount(
-        new Account(config.mqtt.username, passwordHash(config.mqtt.password))
+        new MqttAccount(config.mqtt.username, config.mqtt.password)
       )
     } else {
       return Promise.resolve()
@@ -77,7 +72,7 @@ export async function insertRunnerAccount(account: Account) {
 }
 
 export function insertVesselAccount(
-  vesselAccount: Account,
+  vesselAccount: MqttAccount,
   vesselUuid: string
 ) {
   return DB.upsertAccount(vesselAccount).then(() =>

@@ -14,7 +14,7 @@ import { StashDB } from '../api-server/db/StashDB'
 import Trackpoint from '../api-server/domain/Trackpoint'
 import untypedMeasurementFixtures from './data/measurement-fixtures.json'
 import untypedPositionFixtures from './data/position-fixtures.json'
-import TestAccount from './TestAccount'
+import { MqttAccount } from '../api-server/domain/Auth';
 
 const debug = Debug('stash:test-util')
 const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures
@@ -27,8 +27,9 @@ export const testVesselUuids = [
   'urn:mrn:signalk:uuid:7434c104-feae-48c8-ab3a-deadbeefdead'
 ]
 
-export const vesselAccount = new TestAccount('vessel', 'signalk')
-export const runnerAccount = new TestAccount('runner', 'runnerpasswort')
+export const vesselMqttPassword = 'vesselpassword'
+export const vesselAccount = new MqttAccount('vessel', vesselMqttPassword)
+export const runnerAccount = new MqttAccount('runner', 'runnerpasswort')
 
 export function waitFor<T>(
   action: () => Promise<T>,

@@ -15,6 +15,7 @@ import {
   runnerAccount,
   testVesselUuids,
   vesselAccount,
+  vesselMqttPassword,
   waitFor
 } from './test-util'
 import testdb from './TestDB'
@@ -35,7 +36,7 @@ describe('MQTT input', () => {
     return startMqttClient({
       broker: config.mqtt.broker,
       username: vesselAccount.username,
-      password: vesselAccount.password
+      password: vesselMqttPassword
     })
       .then(mqttClient =>
         mqttClient.publish(

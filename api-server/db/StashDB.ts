@@ -1,7 +1,7 @@
 import { QueryCallback, QueryStream } from '@apla/clickhouse'
 import { SKContext } from '@chacal/signalk-ts'
 import { ZonedDateTime } from 'js-joda'
-import { Account, MqttACL } from '../domain/Auth'
+import { MqttAccount, MqttACL } from '../domain/Auth'
 import { BBox, ZoomLevel } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
 import SKClickHouse from './SKClickHouse'
@@ -65,7 +65,7 @@ export class StashDB {
   /*
     Auth DB functionality
   */
-  upsertAccount(account: Account): Promise<void> {
+  upsertAccount(account: MqttAccount): Promise<void> {
     return this.postgis.upsertAccount(account)
   }
 

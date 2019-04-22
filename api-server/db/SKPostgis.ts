@@ -2,7 +2,7 @@ import path from 'path'
 import pgp from 'pg-promise'
 
 import config from '../Config'
-import { Account, MqttACL } from '../domain/Auth'
+import { MqttAccount, MqttACL } from '../domain/Auth'
 
 // Needs to be relative from "built/api-server/db" directory
 const TABLES_FILE = new pgp.QueryFile(
@@ -20,7 +20,7 @@ export default class SKPostgis {
     return this.db.query(TABLES_FILE)
   }
 
-  upsertAccount(account: Account): Promise<void> {
+  upsertAccount(account: MqttAccount): Promise<void> {
     return this.db.query(
       `
           INSERT INTO account (username, password, mosquitto_super)
