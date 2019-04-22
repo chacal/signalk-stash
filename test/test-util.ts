@@ -22,7 +22,7 @@ const positionFixtures: SKDeltaJSON[] = untypedPositionFixtures
 export { measurementFixtures, positionFixtures }
 
 export const testVesselUuids = [
-  'urn:mrn:signalk:uuid:2204ae24-c944-5ffe-8d1d-4d411c9cea2e',
+  'urn:mrn:signalk:uuid:2204ae24-c944-4ffe-8d1d-4d411c9cea2e',
   'urn:mrn:signalk:uuid:7434c104-feae-48c8-ab3a-fd3bf4ad552f',
   'urn:mrn:signalk:uuid:7434c104-feae-48c8-ab3a-deadbeefdead'
 ]
