@@ -5,6 +5,7 @@ import palette from 'google-palette'
 import Kefir, { Observable } from 'kefir'
 import { LatLngBounds } from 'leaflet'
 import { toQueryString, TrackGeoJSON } from '../domain/Geo'
+import { VesselData } from '../domain/Vessel'
 import { selectedStateFromLocalStorageOrDefault } from './state-management'
 import { LoadState, Vessel } from './ui-domain'
 
@@ -25,16 +26,17 @@ export async function loadTrack(
 export function loadVessels(): Observable<Vessel[], any> {
   debug('Loading vessels..')
   return Kefir.fromPromise(fetch(`/contexts`).then(res => res.json())).map(
-    (contexts: SKContext[]) => {
-      debug(`${contexts.length} vessels loaded`)
+    (vesselDataA: VesselData[]) => {
+      debug(`${vesselDataA.length} vessels loaded`)
 
-      const colors = palette('mpn65', contexts.length)
+      const colors = palette('mpn65', vesselDataA.length)
 
-      return contexts.map((ctx, idx) => ({
-        context: ctx,
-        selected: selectedStateFromLocalStorageOrDefault(ctx),
+      return vesselDataA.map((vesselData, idx) => ({
+        context: vesselData.vesselId as SKContext,
+        name: vesselData.name,
+        selected: selectedStateFromLocalStorageOrDefault(vesselData.vesselId),
         trackLoadState: LoadState.NOT_LOADED,
-        trackColor: Color(`#${colors[idx]}`)
+        trackColor: Color(`#${colors[idx % colors.length]}`)
           .desaturate(0.5)
           .lighten(0.06),
         trackLoadTime: new Date()

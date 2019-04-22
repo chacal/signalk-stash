@@ -5,8 +5,8 @@
     "targets": [
       {
         "remoteHost": "mqtt://mqtt",
-        "username": "vessel",
-        "password": "signalk",
+        "username": "urn:mrn:signalk:uuid:2204ae24-c944-4ffe-8d1d-4d411c9cea2e",
+        "password": "vesselpassword",
         "rejectUnauthorized": false,
         "bufferTime": 5,
         "maxUpdatesToBuffer": 100,

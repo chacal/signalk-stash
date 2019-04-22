@@ -1,10 +1,17 @@
 import { MqttAccount } from './Auth'
 
-export default class Vessel {
+export interface VesselData {
   vesselId: VesselId
+  name: string
+}
+
+export default class Vessel implements VesselData {
+  vesselId: VesselId
+  name: string
   mqttAccount: MqttAccount
-  constructor(vesselId: string, mqttPassword: string) {
-    this.vesselId = asVesselid(vesselId)
+  constructor(vesselId: string, name: string, mqttPassword: string) {
+    this.vesselId = asVesselId(vesselId)
+    this.name = name
     this.mqttAccount = new MqttAccount(vesselId, mqttPassword)
   }
 }
@@ -14,7 +21,7 @@ interface VesselIdBrand {
 }
 export type VesselId = VesselIdBrand & string
 
-export function asVesselid(id: string) {
+export function asVesselId(id: string) {
   if (!isValidVesselid(id)) {
     throw new Error('Invalid vessel id:' + id)
   }

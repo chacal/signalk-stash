@@ -25,7 +25,11 @@ export { measurementFixtures, positionFixtures }
 export const vesselMqttPassword = 'vesselpassword'
 export const vesselUuid =
   'urn:mrn:signalk:uuid:2204ae24-c944-4ffe-8d1d-4d411c9cea2e'
-export const testVessel = new Vessel(vesselUuid, vesselMqttPassword)
+export const testVessel = new Vessel(
+  vesselUuid,
+  'S/Y TestVessel',
+  vesselMqttPassword
+)
 export const runnerAccount = new MqttAccount('runner', 'runnerpasswort')
 
 export const testVesselUuids = [

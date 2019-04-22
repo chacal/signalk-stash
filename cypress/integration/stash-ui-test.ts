@@ -12,8 +12,8 @@ describe('Stash UI', () => {
       expect($items.get(0).style.color).to.not.equal($items.get(1).style.color)
     )
 
-    vesselItem(0).contains('self')
-    vesselItem(1).contains('self2')
+    vesselItem(0).contains('bar')
+    vesselItem(1).contains('foo')
     checkbox(0).should('not.be.checked')
     checkbox(1).should('not.be.checked')
 

@@ -1,9 +1,11 @@
 import { QueryCallback, QueryStream } from '@apla/clickhouse'
 import { SKContext } from '@chacal/signalk-ts'
 import { ZonedDateTime } from 'js-joda'
-import { MqttAccount, MqttACL } from '../domain/Auth'
+import { vesselTopic } from '../../delta-inputs/MqttDeltaInput'
+import { MqttAccount, MqttACL, MqttACLLevel } from '../domain/Auth'
 import { BBox, ZoomLevel } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
+import Vessel, { VesselData } from '../domain/Vessel'
 import SKClickHouse from './SKClickHouse'
 import SKPostgis from './SKPostgis'
 
@@ -58,8 +60,35 @@ export class StashDB {
     return this.ch.getValues(context, path, from, to, timeresolution)
   }
 
-  getContexts(): Promise<SKContext[]> {
-    return this.ch.getContexts()
+  getContexts(): Promise<VesselData[]> {
+    return this.postgis.getContexts()
+  }
+
+  /*
+    Vessel level functionality
+  */
+
+  upsertVessel(vessel: Vessel): Promise<void> {
+    return this.upsertAccount(vessel.mqttAccount)
+      .then(() =>
+        this.upsertAcl(
+          new MqttACL(
+            vessel.mqttAccount.username,
+            vesselTopic(vessel.vesselId),
+            MqttACLLevel.ALL
+          )
+        )
+      )
+      .then(() =>
+        this.upsertAcl(
+          new MqttACL(
+            vessel.mqttAccount.username,
+            vesselTopic(vessel.vesselId) + '/stats',
+            MqttACLLevel.SUBSCRIBE + MqttACLLevel.READ
+          )
+        )
+      )
+      .then(() => this.postgis.upsertVessel(vessel))
   }
 
   /*

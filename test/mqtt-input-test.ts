@@ -6,7 +6,6 @@ import DB from '../api-server/db/StashDB'
 import { vesselTopic } from '../delta-inputs/MqttDeltaInput'
 import MqttRunner, {
   insertRunnerAccount,
-  insertVessel,
   startMqttClient
 } from '../delta-inputs/MqttRunner'
 import {
@@ -91,6 +90,6 @@ describe('MQTT input', () => {
 function initializeTestDb() {
   return testdb
     .resetTables()
-    .then(() => insertVessel(testVessel))
+    .then(() => DB.upsertVessel(testVessel))
     .then(() => insertRunnerAccount(runnerAccount))
 }

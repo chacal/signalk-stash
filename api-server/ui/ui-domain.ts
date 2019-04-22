@@ -31,6 +31,7 @@ export const selectedVesselsWithTracks = (appState: Atom<AppState>) =>
 
 export interface Vessel {
   context: SKContext
+  name: string
   selected: boolean
   trackLoadState: LoadState
   trackColor: Color

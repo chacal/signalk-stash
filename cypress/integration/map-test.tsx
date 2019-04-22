@@ -1,5 +1,5 @@
-import { configure, mount } from 'enzyme'
 import Color = require('color')
+import { configure, mount } from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'
 import * as React from 'karet'
 import * as U from 'karet.util'
@@ -49,6 +49,7 @@ describe('Stash Map', () => {
     p.shownVessels.set([
       {
         context: 'self',
+        name: 'SelfName',
         selected: true,
         trackLoadState: LoadState.LOADED,
         trackLoadTime: new Date(),
