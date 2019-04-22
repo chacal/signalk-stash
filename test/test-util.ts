@@ -11,25 +11,28 @@ import API from '../api-server/API'
 import config from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import { StashDB } from '../api-server/db/StashDB'
+import { MqttAccount } from '../api-server/domain/Auth'
 import Trackpoint from '../api-server/domain/Trackpoint'
+import Vessel from '../api-server/domain/Vessel'
 import untypedMeasurementFixtures from './data/measurement-fixtures.json'
 import untypedPositionFixtures from './data/position-fixtures.json'
-import { MqttAccount } from '../api-server/domain/Auth';
 
 const debug = Debug('stash:test-util')
 const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures
 const positionFixtures: SKDeltaJSON[] = untypedPositionFixtures
 export { measurementFixtures, positionFixtures }
 
+export const vesselMqttPassword = 'vesselpassword'
+export const vesselUuid =
+  'urn:mrn:signalk:uuid:2204ae24-c944-4ffe-8d1d-4d411c9cea2e'
+export const testVessel = new Vessel(vesselUuid, vesselMqttPassword)
+export const runnerAccount = new MqttAccount('runner', 'runnerpasswort')
+
 export const testVesselUuids = [
-  'urn:mrn:signalk:uuid:2204ae24-c944-4ffe-8d1d-4d411c9cea2e',
+  vesselUuid,
   'urn:mrn:signalk:uuid:7434c104-feae-48c8-ab3a-fd3bf4ad552f',
   'urn:mrn:signalk:uuid:7434c104-feae-48c8-ab3a-deadbeefdead'
 ]
-
-export const vesselMqttPassword = 'vesselpassword'
-export const vesselAccount = new MqttAccount('vessel', vesselMqttPassword)
-export const runnerAccount = new MqttAccount('runner', 'runnerpasswort')
 
 export function waitFor<T>(
   action: () => Promise<T>,

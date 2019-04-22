@@ -1,16 +1,9 @@
 import DB from '../api-server/db/StashDB'
-import {
-  insertRunnerAccount,
-  insertVesselAccount
-} from '../delta-inputs/MqttRunner'
-import {
-  runnerAccount,
-  testVesselUuids,
-  vesselAccount
-} from '../test/test-util'
+import { insertRunnerAccount, insertVessel } from '../delta-inputs/MqttRunner'
+import { runnerAccount, testVessel } from '../test/test-util'
 
 DB.ensureTables()
-  .then(() => insertVesselAccount(vesselAccount, testVesselUuids[0]))
+  .then(() => insertVessel(testVessel))
   .then(() => insertRunnerAccount(runnerAccount))
   .then(() => {
     process.exit(0)

@@ -4,8 +4,8 @@ export class MqttAccount {
   readonly username: string
   readonly passwordHash: string
   readonly isMqttSuperUser: boolean = false
-constructor(
-     username: string,
+  constructor(
+    username: string,
     password: string,
     isMqttSuperUser: boolean = false
   ) {
