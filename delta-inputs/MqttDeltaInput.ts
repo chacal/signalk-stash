@@ -11,14 +11,37 @@ export const DELTAWILDCARDTOPIC: MqttTopic = DELTABASETOPIC + '/+'
 const VESSELSPREFIX: string = 'vessels.'
 const VESSELSPREFIXLENGTH: number = VESSELSPREFIX.length
 
+const STATSINTERVAL = 60 * 1000
+
 export default class MqttDeltaInput {
   constructor(
     private readonly mqttClient: mqtt.MqttClient,
-    private readonly deltaWriter: SignalKDeltaWriter
+    private readonly deltaWriter: SignalKDeltaWriter,
+    private deltaCounts: { [context: string]: number } = {}
   ) {}
 
   start() {
     this.mqttClient.on('message', this._sendDeltaToWriter.bind(this))
+
+    setInterval(() => {
+      const now = new Date().toISOString()
+      Object.keys(this.deltaCounts).forEach(context => {
+        const topic =
+          'signalk/delta/' +
+          context.substring(VESSELSPREFIXLENGTH, context.length) +
+          '/stats'
+        this.mqttClient.publish(
+          topic,
+          JSON.stringify({
+            deltas: this.deltaCounts[context],
+            periodLength: STATSINTERVAL,
+            timestamp: now
+          })
+        )
+      })
+      this.deltaCounts = {}
+    }, STATSINTERVAL)
+
     return BPromise.fromCallback(cb =>
       this.mqttClient.subscribe(DELTAWILDCARDTOPIC, { qos: 1 }, cb)
     )
@@ -34,6 +57,8 @@ export default class MqttDeltaInput {
         )
       }
       if (contextMatchesTopic(topic, delta)) {
+        this.deltaCounts[delta.context] =
+          (this.deltaCounts[delta.context] || 0) + 1
         this.deltaWriter.writeDelta(delta).catch(err => {
           console.error(err)
         })
