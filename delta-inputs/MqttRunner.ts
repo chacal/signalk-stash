@@ -90,7 +90,7 @@ export function insertVesselAccount(
         new MqttACL(
           vesselAccount.username,
           vesselTopic(vesselUuid) + '/stats',
-          MqttACLLevel.ALL
+          MqttACLLevel.SUBSCRIBE + MqttACLLevel.READ
         )
       )
     ])
