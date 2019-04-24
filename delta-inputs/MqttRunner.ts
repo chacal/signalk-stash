@@ -11,6 +11,7 @@ import {
 } from '../api-server/domain/Auth'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import MqttDeltaInput, {
+  DELTASTATSWILDCARDTOPIC,
   DELTAWILDCARDTOPIC,
   vesselTopic
 } from './MqttDeltaInput'
@@ -65,11 +66,13 @@ export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
   ).then(() => client)
 }
 
-export function insertRunnerAccount(account: Account): Promise<void> {
-  return DB.upsertAccount(account).then(() =>
-    DB.upsertAcl(
-      new MqttACL(account.username, DELTAWILDCARDTOPIC, MqttACLLevel.ALL)
-    )
+export async function insertRunnerAccount(account: Account) {
+  await DB.upsertAccount(account)
+  await DB.upsertAcl(
+    new MqttACL(account.username, DELTAWILDCARDTOPIC, MqttACLLevel.ALL)
+  )
+  await DB.upsertAcl(
+    new MqttACL(account.username, DELTASTATSWILDCARDTOPIC, MqttACLLevel.ALL)
   )
 }
 

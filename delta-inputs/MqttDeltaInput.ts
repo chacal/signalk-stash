@@ -8,6 +8,7 @@ export type MqttTopic = string
 export const DELTABASETOPIC: MqttTopic = 'signalk/delta'
 const TOPICPREFIXLENGTH: number = DELTABASETOPIC.length + 1
 export const DELTAWILDCARDTOPIC: MqttTopic = DELTABASETOPIC + '/+'
+export const DELTASTATSWILDCARDTOPIC: MqttTopic = DELTABASETOPIC + '/+/stats'
 const VESSELSPREFIX: string = 'vessels.'
 const VESSELSPREFIXLENGTH: number = VESSELSPREFIX.length
 
