@@ -30,7 +30,7 @@ services:
   grafana:
     image: "grafana/grafana"
     ports:
-      - "3001:3000"
+      - 53001:3000
     volumes:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana/provisioning/datasources/dev:/etc/grafana/provisioning/datasources
