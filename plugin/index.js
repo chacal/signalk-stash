@@ -38,6 +38,7 @@ module.exports = function (app) {
     properties: {
       targets: {
         type: 'array',
+        description: 'Stash servers',
         default: [],
         items: {
           type: 'object',
@@ -45,12 +46,12 @@ module.exports = function (app) {
           properties: {
             remoteHost: {
               type: 'string',
-              title: 'MQTT server Url (starts with mqtt/mqtts)',
+              title: 'Stash MQTT server Url (starts with mqtt/mqtts)',
               default: 'mqtt://somehost:someport'
             },
             password: {
               type: 'string',
-              title: 'MQTT server password'
+              title: 'Stash MQTT server password'
             },
             rejectUnauthorized: {
               type: 'boolean',
