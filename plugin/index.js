@@ -138,7 +138,8 @@ module.exports = function (app) {
           try {
             const stats = JSON.parse(payload.toString())
             app.setProviderStatus(
-              `${stats.deltas} messages stashed in ${stats.periodLength / 1000} seconds (${stats.timestamp})`
+              `${stats.deltas} messages stashed in ${stats.periodLength /
+                1000} seconds (${stats.timestamp})`
             )
           } catch (ex) {
             console.log(`Error parsing stats message: ${payload.toString()}`)
@@ -171,9 +172,7 @@ module.exports = function (app) {
           updatesAccumulator.length > stashTarget.maxUpdatesToBuffer ||
           Date.now() > lastSend + stashTarget.bufferTime * 1000
         ) {
-          app.debug(
-            `Sending ${updatesAccumulator.length} updates to ${topic}`
-          )
+          app.debug(`Sending ${updatesAccumulator.length} updates to ${topic}`)
           client.publish(
             topic,
             JSON.stringify({ updates: updatesAccumulator }),
