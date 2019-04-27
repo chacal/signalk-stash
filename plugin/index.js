@@ -146,7 +146,11 @@ module.exports = function (app) {
           }
         })
       })
-      client.on('error', err => console.error(err))
+      client.on('error', err => {
+        app.error(err)
+        app.error(mqttOptions)
+        app.setProviderError(err.message)
+      })
       client.on('disconnect', () => {
         result.connected = false
         console.log(`${stashTarget.remoteHost} disconnected`)
