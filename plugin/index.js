@@ -48,10 +48,6 @@ module.exports = function (app) {
               title: 'MQTT server Url (starts with mqtt/mqtts)',
               default: 'mqtt://somehost:someport'
             },
-            username: {
-              type: 'string',
-              title: 'MQTT server username'
-            },
             password: {
               type: 'string',
               title: 'MQTT server password'
@@ -107,7 +103,7 @@ module.exports = function (app) {
   plugin.start = function (options) {
     plugin.onStop = []
 
-    const topic = `signalk/delta/${app.selfId}`
+    const topic = `signalk/delta/${app.getPath('self').replace('vessels.', '')}`
 
     plugin.clientsData = options.targets.map(stashTarget => {
       const dbPath = path.join(
@@ -115,16 +111,17 @@ module.exports = function (app) {
         stashTarget.remoteHost.replace(nonAlphaNumerics, '_')
       )
       const manager = NeDBStore(dbPath)
+      const mqttOptions = {
+        rejectUnauthorized: options.rejectUnauthorized,
+        reconnectPeriod: 60000,
+        clientId: app.getPath('self'),
+        outgoingStore: manager.outgoing,
+        username: app.getPath('self').replace('vessels.', ''),
+        password: stashTarget.password
+      }
       const client = mqtt.connect(
         stashTarget.remoteHost,
-        {
-          rejectUnauthorized: options.rejectUnauthorized,
-          reconnectPeriod: 60000,
-          clientId: app.selfId,
-          outgoingStore: manager.outgoing,
-          username: stashTarget.username,
-          password: stashTarget.password
-        }
+        mqttOptions
       )
 
       const result = {
