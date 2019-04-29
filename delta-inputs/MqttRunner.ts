@@ -3,17 +3,11 @@ import * as mqtt from 'mqtt'
 import { MqttClient } from 'mqtt'
 import config, { MqttConfig } from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
-import {
-  Account,
-  MqttACL,
-  MqttACLLevel,
-  passwordHash
-} from '../api-server/domain/Auth'
+import { MqttAccount, MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
 import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import MqttDeltaInput, {
   DELTASTATSWILDCARDTOPIC,
-  DELTAWILDCARDTOPIC,
-  vesselTopic
+  DELTAWILDCARDTOPIC
 } from './MqttDeltaInput'
 
 export default class MqttRunner {
@@ -44,7 +38,7 @@ export default class MqttRunner {
   private insertRunnerAccountIfNeeded() {
     if (!config.isTesting) {
       return insertRunnerAccount(
-        new Account(config.mqtt.username, passwordHash(config.mqtt.password))
+        new MqttAccount(config.mqtt.username, config.mqtt.password)
       )
     } else {
       return Promise.resolve()
@@ -66,36 +60,12 @@ export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
   ).then(() => client)
 }
 
-export async function insertRunnerAccount(account: Account) {
+export async function insertRunnerAccount(account: MqttAccount) {
   await DB.upsertAccount(account)
   await DB.upsertAcl(
     new MqttACL(account.username, DELTAWILDCARDTOPIC, MqttACLLevel.ALL)
   )
   await DB.upsertAcl(
     new MqttACL(account.username, DELTASTATSWILDCARDTOPIC, MqttACLLevel.ALL)
-  )
-}
-
-export function insertVesselAccount(
-  vesselAccount: Account,
-  vesselUuid: string
-) {
-  return DB.upsertAccount(vesselAccount).then(() =>
-    Promise.all([
-      DB.upsertAcl(
-        new MqttACL(
-          vesselAccount.username,
-          vesselTopic(vesselUuid),
-          MqttACLLevel.ALL
-        )
-      ),
-      DB.upsertAcl(
-        new MqttACL(
-          vesselAccount.username,
-          vesselTopic(vesselUuid) + '/stats',
-          MqttACLLevel.SUBSCRIBE + MqttACLLevel.READ
-        )
-      )
-    ])
   )
 }

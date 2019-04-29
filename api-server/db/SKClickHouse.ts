@@ -125,16 +125,6 @@ export default class SKClickHouse {
   ): any {
     return getValues(this.ch, context, path, from, to, timeresolution)
   }
-
-  getContexts(): Promise<SKContext[]> {
-    return this.ch
-      .querying('SELECT DISTINCT(context) AS c FROM trackpoint ORDER BY c')
-      .then(x => {
-        debug(JSON.stringify(x.statistics) + ' ' + x.data.length)
-        return x
-      })
-      .then(x => _.flatten(x.data as string[][]))
-  }
 }
 
 export function timeResolutionForZoom(zoom: ZoomLevel) {

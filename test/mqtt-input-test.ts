@@ -6,15 +6,15 @@ import DB from '../api-server/db/StashDB'
 import { vesselTopic } from '../delta-inputs/MqttDeltaInput'
 import MqttRunner, {
   insertRunnerAccount,
-  insertVesselAccount,
   startMqttClient
 } from '../delta-inputs/MqttRunner'
 import {
   assertTrackpoint,
   positionFixtures,
   runnerAccount,
+  testVessel,
   testVesselUuids,
-  vesselAccount,
+  vesselMqttPassword,
   waitFor
 } from './test-util'
 import testdb from './TestDB'
@@ -34,8 +34,8 @@ describe('MQTT input', () => {
   it('writes position published only to signalk/delta/vesselUuid', () => {
     return startMqttClient({
       broker: config.mqtt.broker,
-      username: vesselAccount.username,
-      password: vesselAccount.password
+      username: testVessel.mqttAccount.username,
+      password: vesselMqttPassword
     })
       .then(mqttClient =>
         mqttClient.publish(
@@ -90,6 +90,6 @@ describe('MQTT input', () => {
 function initializeTestDb() {
   return testdb
     .resetTables()
-    .then(() => insertVesselAccount(vesselAccount, testVesselUuids[0]))
+    .then(() => DB.upsertVessel(testVessel))
     .then(() => insertRunnerAccount(runnerAccount))
 }

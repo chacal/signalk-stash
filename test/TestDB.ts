@@ -18,6 +18,7 @@ class TestDB {
         `
           DO $$
           BEGIN
+            DROP TABLE vessel CASCADE;
             DELETE FROM account;
             DELETE FROM mqtt_acl;
             EXCEPTION

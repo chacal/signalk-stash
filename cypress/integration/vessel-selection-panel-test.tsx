@@ -15,6 +15,7 @@ const defaultProps = (vessels: Vessel[] = []) => ({
 
 const testVessel = (context: string = 'self') => ({
   context,
+  name: context,
   selected: false,
   trackLoadState: LoadState.NOT_LOADED,
   trackColor: Color('#0000AA')

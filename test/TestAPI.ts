@@ -2,7 +2,9 @@ import Debug from 'debug'
 import { Express, NextFunction, Request, Response } from 'express'
 import fs from 'fs'
 import path from 'path'
-import { writeDeltasFromJSONArray } from './test-util'
+import DB from '../api-server/db/StashDB'
+import Vessel from '../api-server/domain/Vessel'
+import { testVesselUuids, writeDeltasFromJSONArray } from './test-util'
 import TestDB from './TestDB'
 const debug = Debug('stash:test-api')
 
@@ -30,6 +32,8 @@ function insertLargePositionsFixture(
   )
   const rows = JSON.parse(content.toString())
   writeDeltasFromJSONArray(rows)
+    .then(() => DB.upsertVessel(new Vessel(testVesselUuids[1], 'bar', 'baz')))
+    .then(() => DB.upsertVessel(new Vessel(testVesselUuids[2], 'foo', 'BAZ')))
     .then(() => res.status(204).end())
     .catch(next)
 }

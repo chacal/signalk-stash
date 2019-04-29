@@ -1,11 +1,18 @@
 import crypto from 'crypto'
 
-export class Account {
+export class MqttAccount {
+  readonly username: string
+  readonly passwordHash: string
+  readonly isMqttSuperUser: boolean = false
   constructor(
-    readonly username: string,
-    readonly passwordHash: string,
-    readonly isMqttSuperUser: boolean = false
-  ) {}
+    username: string,
+    password: string,
+    isMqttSuperUser: boolean = false
+  ) {
+    this.username = username
+    this.passwordHash = passwordHash(password)
+    this.isMqttSuperUser = isMqttSuperUser
+  }
 }
 
 export class MqttACL {

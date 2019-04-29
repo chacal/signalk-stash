@@ -21,7 +21,7 @@ interface VSProps extends WithStyles<typeof vsStyles> {
 
 const VesselSelection = withStyles(vsStyles)(({ vessel, classes }: VSProps) => {
   const checked = U.view<Atom<boolean>>('selected', vessel)
-  const context = U.view<Atom<SKContext>>('context', vessel)
+  const name = U.view<Atom<SKContext>>('name', vessel)
   const color = U.view<Atom<Color>>('trackColor', vessel)
 
   const onClick = () => checked.modify(currentValue => !currentValue)
@@ -33,7 +33,7 @@ const VesselSelection = withStyles(vsStyles)(({ vessel, classes }: VSProps) => {
       onClick={onClick}
       data-cy="vessel-selection-panel__vessel"
     >
-      <K.ListItemText primary={context} />
+      <K.ListItemText primary={name} />
       <K.CheckBox
         color={'primary'}
         checked={checked}

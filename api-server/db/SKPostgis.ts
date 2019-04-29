@@ -2,7 +2,8 @@ import path from 'path'
 import pgp from 'pg-promise'
 
 import config from '../Config'
-import { Account, MqttACL } from '../domain/Auth'
+import { MqttAccount, MqttACL } from '../domain/Auth'
+import Vessel, { VesselData } from '../domain/Vessel'
 
 // Needs to be relative from "built/api-server/db" directory
 const TABLES_FILE = new pgp.QueryFile(
@@ -20,7 +21,28 @@ export default class SKPostgis {
     return this.db.query(TABLES_FILE)
   }
 
-  upsertAccount(account: Account): Promise<void> {
+  upsertVessel(vessel: Vessel): Promise<void> {
+    return this.db.query(
+      `
+      INSERT INTO vessel(vesselId, name)
+      VALUES ($[vesselId], $[name])
+      ON CONFLICT (vesselId)
+      DO UPDATE SET name = $[name]`,
+      vessel
+    )
+  }
+
+  getContexts(): Promise<VesselData[]> {
+    return this.db
+      .query(
+        `
+      SELECT vesselId as "vesselId", name
+      FROM vessel`
+      )
+      .then(res => res as VesselData[])
+  }
+
+  upsertAccount(account: MqttAccount): Promise<void> {
     return this.db.query(
       `
           INSERT INTO account (username, password, mosquitto_super)
