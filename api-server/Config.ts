@@ -122,7 +122,9 @@ const environments: IEnvironments = {
 
 const environment = process.env.ENVIRONMENT || 'development'
 if (!environments[environment]) {
-  throw new Error(`No such environment:${environment}`)
+  throw new Error(
+    `No such environment:${environment} (${Object.keys(environments)})`
+  )
 }
 const config = _.merge(baseConfig, environments[environment])
 if (config.isProduction) {
