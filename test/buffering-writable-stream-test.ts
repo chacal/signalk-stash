@@ -1,62 +1,165 @@
+import { expect } from 'chai'
+import { Duration } from 'js-joda'
 import { Writable } from 'stream'
 import BufferingWritableStream from '../api-server/BufferingWritableStream'
+import CountDownLatch from '../api-server/CountDownLatch'
 import { Callback } from '../api-server/RetryingWritableStream'
+import EventEmitter = NodeJS.EventEmitter
 
 class TestWritable extends Writable {
-  private static failCount: number = 0
+  static endFailCount: number = 0
+  static writeFailCount: number = 0
+  buffer: string[] = []
 
-  constructor() {
-    super()
+  constructor(
+    private readonly endFailCount: number = 0,
+    private readonly writeFailCount: number = 0
+  ) {
+    super({ objectMode: true })
   }
 
   _write(value: any, encoding: string, done: any) {
-    console.log('Flushing', value)
-    if (TestWritable.failCount === 1) {
-      TestWritable.failCount++
-      this.emit('error', new Error('Kuikka!'))
+    this.buffer.push(value)
+    if (TestWritable.writeFailCount < this.writeFailCount) {
+      TestWritable.writeFailCount++
+      this.emit('error', new Error('Write failed!'))
+    } else {
+      done()
     }
-    done()
   }
 
   _final(cb: Callback) {
-    console.log('Final')
-    if (TestWritable.failCount === 3) {
-      cb()
+    if (TestWritable.endFailCount < this.endFailCount) {
+      TestWritable.endFailCount++
+      cb(new Error('End failed'))
     } else {
-      TestWritable.failCount++
-      console.log('Creating error')
-      cb(new Error('laa'))
+      cb()
     }
   }
 }
 
+let currentOutput = new TestWritable()
+let outputCreateCount = 0
+let streamToTest: BufferingWritableStream<object>
+
 describe('BufferingWritableStream', () => {
-  it('works', done => {
-    const createDownstream = () => new TestWritable()
-    const stream = new BufferingWritableStream(createDownstream, 2)
+  // Initialize shared state for each test
+  beforeEach(() => {
+    TestWritable.endFailCount = 0
+    TestWritable.writeFailCount = 0
+    outputCreateCount = 0
+  })
 
-    let count = 0
-    writeNext()
+  it('writes to output when ending', done => {
+    // Test is done when this latch triggers
+    const latch = new CountDownLatch(2, done)
+    streamToTest = new BufferingWritableStream(createDownstream())
 
-    function writeNext() {
-      if (count < 5) {
-        const ret = stream.write('' + count)
-        console.log(ret)
-        count++
-        if (ret) {
-          writeNext()
-        } else {
-          stream.once('drain', () => {
-            console.log('Drain')
-            writeNext()
-          })
-        }
-      } else {
-        stream.end(() => {
-          console.log('End called')
-          done()
-        })
-      }
-    }
-  }).timeout(5000)
+    // Stream should block immediately as it doesn't use internal buffers
+    const ret = streamToTest.write({ a: 1 })
+    expect(ret).to.equal(false)
+
+    streamToTest.once('drain', () => {
+      // Output should be empty as the stream hasn't flushed yet
+      expect(currentOutput.buffer).to.eql([])
+      latch.signal()
+    })
+    streamToTest.once('finish', () => {
+      expect(currentOutput.buffer).to.eql([{ a: 1 }])
+      latch.signal()
+    })
+
+    streamToTest.end()
+  })
+
+  it('flushes to output when buffer gets full', async () => {
+    streamToTest = new BufferingWritableStream(createDownstream(), 2)
+
+    await writeToStream({ a: 1 })
+    await writeToStream({ a: 2 })
+    expect(currentOutput.buffer).to.eql([{ a: 1 }, { a: 2 }])
+
+    await writeToStream({ a: 3 })
+    await writeToStream({ a: 4 })
+    expect(currentOutput.buffer).to.eql([{ a: 3 }, { a: 4 }])
+
+    streamToTest.write({ a: 5 })
+    streamToTest.end()
+    await eventP(streamToTest, 'finish')
+    expect(currentOutput.buffer).to.eql([{ a: 5 }])
+  })
+
+  it('retries flushing buffer if ending or writing to output fails', async () => {
+    streamToTest = new BufferingWritableStream(
+      createDownstream(1, 1),
+      2,
+      Duration.ofMillis(100)
+    )
+
+    const start = new Date()
+    await writeToStream({ a: 1 })
+    await writeToStream({ a: 2 })
+    expect(currentOutput.buffer).to.eql([{ a: 1 }, { a: 2 }])
+    // Three outputs should have been created:
+    // - First for the failing write to output during flush
+    // - Second for the failing end() of the output
+    // - Third for the succeeding output
+    expect(outputCreateCount).to.eq(3)
+    expect(new Date().getTime() - start.getTime()).to.be.at.least(100)
+
+    streamToTest.write({ a: 3 })
+    streamToTest.end()
+    await eventP(streamToTest, 'finish')
+    expect(currentOutput.buffer).to.eql([{ a: 3 }])
+  })
+  it('retries flushing multiple times', async () => {
+    streamToTest = new BufferingWritableStream(
+      createDownstream(3),
+      2,
+      Duration.ofMillis(100)
+    )
+
+    const start = new Date()
+    await writeToStream({ a: 1 })
+    await writeToStream({ a: 2 })
+    expect(currentOutput.buffer).to.eql([{ a: 1 }, { a: 2 }])
+    // Four outputs should have been created:
+    // - Three for the failing flushes
+    // - Fourth for the succeeding one
+    expect(outputCreateCount).to.eq(4)
+    expect(new Date().getTime() - start.getTime()).to.be.at.least(3 * 100)
+
+    streamToTest.write({ a: 3 })
+    streamToTest.end()
+    await eventP(streamToTest, 'finish')
+    expect(currentOutput.buffer).to.eql([{ a: 3 }])
+  })
 })
+
+function createDownstream(
+  endFailCount: number = 0,
+  writeFailCount: number = 0
+) {
+  return () => {
+    outputCreateCount++
+    currentOutput = new TestWritable(endFailCount, writeFailCount)
+    return currentOutput
+  }
+}
+
+async function writeToStream(obj: object) {
+  streamToTest.write(obj)
+  await eventP(streamToTest, 'drain')
+}
+
+function eventP(source: EventEmitter, eventName: string) {
+  return new Promise((resolve, reject) => {
+    source.once(eventName, err => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve()
+      }
+    })
+  })
+}
