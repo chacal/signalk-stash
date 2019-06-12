@@ -50,8 +50,16 @@ export default class MqttDeltaInput {
 
   handleMessage(packet: mqtt.Packet, done: mqtt.PacketCallback) {
     if (isPublishPacket(packet)) {
+      let delta
       try {
-        let delta = SKDelta.fromJSON(packet.payload.toString())
+        delta = SKDelta.fromJSON(packet.payload.toString())
+      } catch (e) {
+        console.error(
+          `Invalid SignalK delta from MQTT: ${JSON.stringify(packet)}`
+        )
+        done()
+      }
+      if (delta) {
         if (delta.context === 'self' || delta.context === 'vessels.self') {
           delta = new SKDelta(
             VESSELSPREFIX +
@@ -62,15 +70,14 @@ export default class MqttDeltaInput {
         if (contextMatchesTopic(packet.topic, delta)) {
           this.deltaCounts[delta.context] =
             (this.deltaCounts[delta.context] || 0) + 1
-          this.deltaWriteStream.write(delta)
+          if (this.deltaWriteStream.write(delta)) {
+            done()
+          } else {
+            this.deltaWriteStream.on('drain', done)
+          }
         }
-      } catch (e) {
-        console.error(
-          `Invalid SignalK delta from MQTT: ${JSON.stringify(packet)}`
-        )
       }
     }
-    done()
   }
 }
 
