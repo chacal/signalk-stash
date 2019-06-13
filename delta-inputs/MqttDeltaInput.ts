@@ -1,7 +1,8 @@
+import { QueryStream } from '@apla/clickhouse'
 import { SKDelta } from '@chacal/signalk-ts'
 import BPromise from 'bluebird'
 import * as mqtt from 'mqtt'
-import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
+import { IPublishPacket } from 'mqtt-packet'
 
 export type MqttTopic = string
 
@@ -17,13 +18,11 @@ const STATSINTERVAL = 60 * 1000
 export default class MqttDeltaInput {
   constructor(
     private readonly mqttClient: mqtt.MqttClient,
-    private readonly deltaWriter: SignalKDeltaWriter,
+    private readonly deltaWriteStream: QueryStream,
     private deltaCounts: { [context: string]: number } = {}
   ) {}
 
   start() {
-    this.mqttClient.on('message', this._sendDeltaToWriter.bind(this))
-
     setInterval(() => {
       const now = new Date().toISOString()
       Object.keys(this.deltaCounts).forEach(context => {
@@ -43,29 +42,41 @@ export default class MqttDeltaInput {
       this.deltaCounts = {}
     }, STATSINTERVAL)
 
+    this.mqttClient.handleMessage = this.handleMessage.bind(this)
     return BPromise.fromCallback(cb =>
       this.mqttClient.subscribe(DELTAWILDCARDTOPIC, { qos: 1 }, cb)
     )
   }
 
-  _sendDeltaToWriter(topic: string, payload: Buffer, packet: mqtt.Packet) {
-    try {
-      let delta = SKDelta.fromJSON(payload.toString())
-      if (delta.context === 'self' || delta.context === 'vessels.self') {
-        delta = new SKDelta(
-          VESSELSPREFIX + topic.substring(TOPICPREFIXLENGTH, topic.length),
-          delta.updates
+  handleMessage(packet: mqtt.Packet, done: mqtt.PacketCallback) {
+    if (isPublishPacket(packet)) {
+      let delta
+      try {
+        delta = SKDelta.fromJSON(packet.payload.toString())
+      } catch (e) {
+        console.error(
+          `Invalid SignalK delta from MQTT: ${JSON.stringify(packet)}`
         )
+        done()
       }
-      if (contextMatchesTopic(topic, delta)) {
-        this.deltaCounts[delta.context] =
-          (this.deltaCounts[delta.context] || 0) + 1
-        this.deltaWriter.writeDelta(delta).catch(err => {
-          console.error(err)
-        })
+      if (delta) {
+        if (delta.context === 'self' || delta.context === 'vessels.self') {
+          delta = new SKDelta(
+            VESSELSPREFIX +
+              packet.topic.substring(TOPICPREFIXLENGTH, packet.topic.length),
+            delta.updates
+          )
+        }
+        if (contextMatchesTopic(packet.topic, delta)) {
+          this.deltaCounts[delta.context] =
+            (this.deltaCounts[delta.context] || 0) + 1
+          if (this.deltaWriteStream.write(delta)) {
+            done()
+          } else {
+            this.deltaWriteStream.on('drain', done)
+          }
+        }
       }
-    } catch (e) {
-      console.error(`Invalid SignalK delta from MQTT: ${payload}`)
     }
   }
 }
@@ -79,4 +90,8 @@ function contextMatchesTopic(topic: string, delta: SKDelta): boolean {
 
 export function vesselTopic(vesselUuid: string): string {
   return `${DELTABASETOPIC}/${vesselUuid}`
+}
+
+function isPublishPacket(object: any): object is IPublishPacket {
+  return object.cmd === 'publish'
 }

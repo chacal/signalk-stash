@@ -15,6 +15,7 @@ export interface MqttConfig {
   username: string
   password: string
   broker: string
+  clientId: string
 }
 
 export interface IConfig extends StringIndexable {
@@ -66,6 +67,7 @@ const baseConfig = {
   mqtt: {
     username: 'runner',
     password: 'runnerpasswort',
+    clientId: 'runner',
     broker: 'mqtt://localhost:1883'
   },
   deltaWriteStreamFlushPeriod: Duration.ofMillis(1000)

@@ -4,7 +4,6 @@ import { MqttClient } from 'mqtt'
 import config, { MqttConfig } from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import { MqttAccount, MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
-import SignalKDeltaWriter from '../api-server/SignalKDeltaWriter'
 import MqttDeltaInput, {
   DELTASTATSWILDCARDTOPIC,
   DELTAWILDCARDTOPIC
@@ -17,8 +16,7 @@ export default class MqttRunner {
       .then(() => this.insertRunnerAccountIfNeeded())
       .then(() => startMqttClient(config.mqtt))
       .then(mqttClient => {
-        const writer = new SignalKDeltaWriter(DB)
-        const deltaInput = new MqttDeltaInput(mqttClient, writer)
+        const deltaInput = new MqttDeltaInput(mqttClient, DB.deltaWriteStream())
         this.mqttClient = mqttClient
         return deltaInput.start()
       })
@@ -49,7 +47,9 @@ export default class MqttRunner {
 export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
   const client = mqtt.connect(config.broker, {
     username: config.username,
-    password: config.password
+    password: config.password,
+    clientId: config.clientId,
+    clean: false
   })
   client.on('connect', () => console.log('Connected to MQTT server'))
   client.on('offline', () => console.log('Disconnected from MQTT server'))
