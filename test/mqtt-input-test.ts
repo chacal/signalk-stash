@@ -69,6 +69,8 @@ describe('MQTT input', () => {
           JSON.stringify(positionFixtures[0])
         )
       )
+      .delay(1000) // TODO: Remove this once the mqtt runner flushes its outpus periodically again
+      .then(() => mqttRunner.stop()) // This flushes received deltas to the database
       .then(() =>
         waitFor(
           () => DB.getTrackPointsForVessel(testVesselUuids[0]),

@@ -10,15 +10,16 @@ import MqttDeltaInput, {
 } from './MqttDeltaInput'
 
 export default class MqttRunner {
-  private mqttClient: MqttClient | void = undefined
+  private mqttClient: MqttClient | undefined
+  private deltaInput: MqttDeltaInput | undefined
   start() {
     return DB.ensureTables()
       .then(() => this.insertRunnerAccountIfNeeded())
       .then(() => startMqttClient(config.mqtt))
       .then(mqttClient => {
-        const deltaInput = new MqttDeltaInput(mqttClient, DB.deltaWriteStream())
+        this.deltaInput = new MqttDeltaInput(mqttClient, DB.deltaWriteStream())
         this.mqttClient = mqttClient
-        return deltaInput.start()
+        return this.deltaInput.start()
       })
       .catch(err => {
         console.error(err)
@@ -26,6 +27,9 @@ export default class MqttRunner {
       })
   }
   stop() {
+    if (this.deltaInput) {
+      this.deltaInput.stop()
+    }
     if (this.mqttClient) {
       this.mqttClient.end()
     } else {
