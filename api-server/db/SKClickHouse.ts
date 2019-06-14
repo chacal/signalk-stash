@@ -1,7 +1,12 @@
-import ClickHouse, { QueryCallback, QueryStream } from '@apla/clickhouse'
+import ClickHouse, {
+  QueryCallback,
+  QueryOptions,
+  QueryStream
+} from '@apla/clickhouse'
 import { SKContext } from '@chacal/signalk-ts'
 import { ChronoUnit, ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
+import BufferingWritableStream from '../BufferingWritableStream'
 import config from '../Config'
 import CountDownLatch from '../CountDownLatch'
 import DeltaSplittingStream from '../DeltaSplittingStream'
@@ -32,7 +37,7 @@ export default class SKClickHouse {
   }
 
   insertTrackpoint(trackpoint: Trackpoint): Promise<void> {
-    return insertTrackpoint(this.ch, trackpoint)
+    return insertTrackpoint(this, trackpoint)
   }
 
   getTrackPointsForVessel(
@@ -74,13 +79,13 @@ export default class SKClickHouse {
     )
 
     const trackpointDbStream = insertTrackpointStream(
-      this.ch,
+      this,
       outputsDoneLatch.signal.bind(outputsDoneLatch)
     )
     pointsToTsv.pipe(trackpointDbStream)
 
     const pathValueDbStream = insertPathValueStream(
-      this.ch,
+      this,
       outputsDoneLatch.signal.bind(outputsDoneLatch)
     )
     pathValuesToTsv.pipe(pathValueDbStream)
@@ -97,6 +102,21 @@ export default class SKClickHouse {
     timeresolution: number
   ): any {
     return getValues(this.ch, context, path, from, to, timeresolution)
+  }
+
+  bufferingQuery<T = any>(
+    query: string,
+    options: QueryOptions,
+    cb?: QueryCallback<T>
+  ): QueryStream {
+    const s = new BufferingWritableStream(done =>
+      this.ch.query(query, options, done)
+    )
+    if (cb) {
+      s.on('finish', cb)
+      s.on('error', cb)
+    }
+    return s
   }
 }
 

@@ -2,6 +2,7 @@ import Clickhouse from '@apla/clickhouse'
 import { SKContext, SKValue } from '@chacal/signalk-ts'
 import { ChronoField, ZonedDateTime } from 'js-joda'
 import { Transform, TransformCallback } from 'stream'
+import SKClickHouse from '../db/SKClickHouse'
 
 export default class PathValue {
   constructor(
@@ -27,10 +28,10 @@ export function createValuesTable(ch: Clickhouse) {
 }
 
 export function insertPathValueStream(
-  ch: Clickhouse,
+  ch: SKClickHouse,
   cb?: (err?: Error) => void
 ) {
-  return ch.query(`INSERT INTO value`, { format: 'TSV' }, cb)
+  return ch.bufferingQuery(`INSERT INTO value`, { format: 'TSV' }, cb)
 }
 
 type PathValueRowColumns = [number, number, string, string, string, number]

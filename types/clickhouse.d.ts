@@ -6,7 +6,7 @@ declare module '@apla/clickhouse' {
     readonly port: number
   }
 
-  interface QueryOptions {
+  export interface QueryOptions {
     readonly format: string
   }
 
