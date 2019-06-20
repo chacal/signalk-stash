@@ -1,4 +1,6 @@
+import { EventEmitter } from 'events'
 import { Duration } from 'js-joda'
+import _ from 'lodash'
 import { Writable } from 'stream'
 import ArrayReadable from './ArrayReadable'
 
@@ -6,6 +8,8 @@ export type Callback = (err?: Error) => void
 
 export default class BufferingWritableStream<T> extends Writable {
   private buffer: T[] = []
+  private flushedEmitter: EventEmitter = new EventEmitter()
+  private isFlushing = false
 
   constructor(
     private readonly createNewOutput: (done: Callback) => Writable,
@@ -13,6 +17,11 @@ export default class BufferingWritableStream<T> extends Writable {
     private readonly retryInterval: Duration = Duration.ofMillis(1000)
   ) {
     super({ highWaterMark: 1, objectMode: true })
+    setInterval(() => {
+      if (!this.isFlushing) {
+        this.flushCurrentBuffer()
+      }
+    }, 10000)
   }
 
   _write(value: T, encoding: string, done: any) {
@@ -21,25 +30,48 @@ export default class BufferingWritableStream<T> extends Writable {
     if (this.buffer.length < this.maxBufferSize) {
       done()
     } else {
-      this.flushBuffer(done)
+      const flushAndDone = () => {
+        this.flushCurrentBuffer()
+        done()
+      }
+
+      if (this.isFlushing) {
+        this.flushedEmitter.once('flushed', flushAndDone)
+      } else {
+        flushAndDone()
+      }
     }
   }
 
   _final(cb: Callback) {
-    this.flushBuffer(cb)
+    if (this.isFlushing) {
+      this.flushedEmitter.once('flushed', () => this.flushCurrentBuffer(cb))
+    } else {
+      this.flushCurrentBuffer(cb)
+    }
   }
 
-  flushBuffer(done: Callback) {
+  flushCurrentBuffer(done: Callback = _.noop) {
+    this.isFlushing = true
+    this.doFlushBuffer(this.buffer, done)
+    this.buffer = []
+  }
+
+  doFlushBuffer(buffer: T[], done: Callback) {
     const output = this.createNewOutput((err?: Error) => {
       if (err) {
-        setTimeout(() => this.flushBuffer(done), this.retryInterval.toMillis())
+        setTimeout(
+          () => this.doFlushBuffer(buffer, done),
+          this.retryInterval.toMillis()
+        )
       } else {
-        this.buffer = []
+        this.isFlushing = false
+        this.flushedEmitter.emit('flushed')
         done()
       }
     })
 
-    const bufferReader = new ArrayReadable(this.buffer)
+    const bufferReader = new ArrayReadable(buffer)
     bufferReader.pipe(output)
   }
 }
