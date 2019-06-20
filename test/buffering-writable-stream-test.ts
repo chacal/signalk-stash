@@ -7,6 +7,7 @@ import BufferingWritableStream, {
 } from '../api-server/BufferingWritableStream'
 import CountDownLatch from '../api-server/CountDownLatch'
 import EventEmitter = NodeJS.EventEmitter
+import { waitFor } from './test-util'
 
 class TestWritable extends Writable {
   static endFailCount: number = 0
@@ -103,12 +104,18 @@ describe('BufferingWritableStream', () => {
     const start = new Date()
     await writeToStream({ a: 1 })
     await writeToStream({ a: 2 })
-    expect(currentOutput.buffer).to.eql([{ a: 1 }, { a: 2 }])
+    await waitFor(
+      () => Promise.resolve(currentOutput.buffer),
+      outputBuffer => _.isEqual(outputBuffer, [{ a: 1 }, { a: 2 }])
+    )
     // Three outputs should have been created:
     // - First for the failing write to output during flush
     // - Second for the failing end() of the output
     // - Third for the succeeding output
-    expect(outputCreateCount).to.eq(3)
+    await waitFor(
+      () => Promise.resolve(outputCreateCount),
+      createCount => createCount === 3
+    )
     expect(new Date().getTime() - start.getTime()).to.be.at.least(100)
 
     streamToTest.write({ a: 3 })
@@ -126,11 +133,18 @@ describe('BufferingWritableStream', () => {
     const start = new Date()
     await writeToStream({ a: 1 })
     await writeToStream({ a: 2 })
-    expect(currentOutput.buffer).to.eql([{ a: 1 }, { a: 2 }])
+    await waitFor(
+      () => Promise.resolve(currentOutput.buffer),
+      outputBuffer => _.isEqual(outputBuffer, [{ a: 1 }, { a: 2 }])
+    )
+
     // Four outputs should have been created:
     // - Three for the failing flushes
     // - Fourth for the succeeding one
-    expect(outputCreateCount).to.eq(4)
+    await waitFor(
+      () => Promise.resolve(outputCreateCount),
+      createCount => createCount === 4
+    )
     expect(new Date().getTime() - start.getTime()).to.be.at.least(3 * 100)
 
     streamToTest.write({ a: 3 })
