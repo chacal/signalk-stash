@@ -36,10 +36,10 @@ export function tracksToGeoJSON(tracks: Track[]): TrackGeoJSON {
     Instant.ofEpochSecond(0),
     ZoneId.UTC
   )
+  let currentTrack: number[][]
   return {
     type: 'MultiLineString',
     coordinates: tracks.reduce((acc: number[][][], track) => {
-      let currentTrack: number[][]
       track.forEach((trackpoint: Trackpoint) => {
         if (
           Duration.between(
