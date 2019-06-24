@@ -111,7 +111,9 @@ module.exports = function (app) {
         app.getDataDirPath(),
         stashTarget.remoteHost.replace(nonAlphaNumerics, '_')
       )
-      const manager = NeDBStore(dbPath)
+      const manager = NeDBStore(dbPath, {
+        outgoing: { autocompactionInterval: 60 * 1000 }
+      })
       const mqttOptions = {
         rejectUnauthorized: options.rejectUnauthorized,
         reconnectPeriod: 60000,
