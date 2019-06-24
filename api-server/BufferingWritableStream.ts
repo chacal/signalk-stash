@@ -14,14 +14,15 @@ export default class BufferingWritableStream<T> extends Writable {
   constructor(
     private readonly createNewOutput: (done: Callback) => Writable,
     private readonly maxBufferSize = 100,
-    private readonly retryInterval: Duration = Duration.ofMillis(1000)
+    private readonly retryInterval: Duration = Duration.ofMillis(1000),
+    private readonly flushInterval: Duration = Duration.ofMillis(10000)
   ) {
     super({ highWaterMark: 1, objectMode: true })
     setInterval(() => {
       if (!this.isFlushing) {
         this.flushCurrentBuffer()
       }
-    }, 10000)
+    }, this.flushInterval.toMillis())
   }
 
   _write(value: T, encoding: string, done: any) {

@@ -152,6 +152,23 @@ describe('BufferingWritableStream', () => {
     await eventP(streamToTest, 'finish')
     expect(currentOutput.buffer).to.eql([{ a: 3 }])
   })
+  it('flushes periodically', async () => {
+    streamToTest = new BufferingWritableStream(
+      createDownstream(),
+      100,
+      Duration.ofMillis(1000),
+      Duration.ofMillis(100)
+    )
+
+    const start = new Date()
+    await writeToStream({ a: 1 })
+    await writeToStream({ a: 2 })
+    await waitFor(
+      () => Promise.resolve(currentOutput.buffer),
+      outputBuffer => _.isEqual(outputBuffer, [{ a: 1 }, { a: 2 }])
+    )
+    expect(new Date().getTime() - start.getTime()).to.be.at.least(100)
+  })
 })
 
 function createDownstream(
