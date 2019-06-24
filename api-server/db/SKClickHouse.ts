@@ -109,8 +109,11 @@ export default class SKClickHouse {
     options: QueryOptions,
     cb?: QueryCallback<T>
   ): QueryStream {
-    const s = new BufferingWritableStream(done =>
-      this.ch.query(query, options, done)
+    const s = new BufferingWritableStream(
+      done => this.ch.query(query, options, done),
+      config.deltaWriteStreamBufferSize,
+      config.deltaWriteStreamFlushPeriod,
+      config.deltaWriteStreamFlushRetryPeriod
     )
     if (cb) {
       s.on('finish', cb)
