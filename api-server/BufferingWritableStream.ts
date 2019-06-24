@@ -14,8 +14,8 @@ export default class BufferingWritableStream<T> extends Writable {
   constructor(
     private readonly createNewOutput: (done: Callback) => Writable,
     private readonly maxBufferSize = 100,
-    private readonly retryInterval: Duration = Duration.ofMillis(1000),
-    private readonly flushInterval: Duration = Duration.ofMillis(10000)
+    private readonly flushInterval: Duration = Duration.ofMillis(10000),
+    private readonly retryInterval: Duration = Duration.ofMillis(1000)
   ) {
     super({ highWaterMark: 1, objectMode: true })
     setInterval(() => {

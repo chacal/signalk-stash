@@ -98,6 +98,7 @@ describe('BufferingWritableStream', () => {
     streamToTest = new BufferingWritableStream(
       createDownstream(1, 1),
       2,
+      Duration.ofMillis(10000),
       Duration.ofMillis(100)
     )
 
@@ -127,6 +128,7 @@ describe('BufferingWritableStream', () => {
     streamToTest = new BufferingWritableStream(
       createDownstream(3),
       2,
+      Duration.ofMillis(10000),
       Duration.ofMillis(100)
     )
 
@@ -156,8 +158,8 @@ describe('BufferingWritableStream', () => {
     streamToTest = new BufferingWritableStream(
       createDownstream(),
       100,
-      Duration.ofMillis(1000),
-      Duration.ofMillis(100)
+      Duration.ofMillis(100),
+      Duration.ofMillis(1000)
     )
 
     const start = new Date()
