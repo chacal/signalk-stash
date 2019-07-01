@@ -37,7 +37,9 @@ export interface IConfig extends StringIndexable {
   isIntegrationTesting: boolean
   isProduction: boolean
   mqtt: MqttConfig
+  deltaWriteStreamBufferSize: number
   deltaWriteStreamFlushPeriod: Duration
+  deltaWriteStreamFlushRetryPeriod: Duration
 }
 
 type DeepPartial<T> = { [P in keyof T]?: DeepPartial<T[P]> }
@@ -70,7 +72,9 @@ const baseConfig = {
     clientId: 'runner',
     broker: 'mqtt://localhost:1883'
   },
-  deltaWriteStreamFlushPeriod: Duration.ofMillis(1000)
+  deltaWriteStreamBufferSize: 100,
+  deltaWriteStreamFlushPeriod: Duration.ofMillis(10000),
+  deltaWriteStreamFlushRetryPeriod: Duration.ofMillis(1000)
 }
 
 const testConfig = {

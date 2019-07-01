@@ -1,8 +1,12 @@
-import ClickHouse, { QueryCallback, QueryStream } from '@apla/clickhouse'
+import ClickHouse, {
+  QueryCallback,
+  QueryOptions,
+  QueryStream
+} from '@apla/clickhouse'
 import { SKContext } from '@chacal/signalk-ts'
-import Debug from 'debug'
 import { ChronoUnit, ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
+import BufferingWritableStream from '../BufferingWritableStream'
 import config from '../Config'
 import CountDownLatch from '../CountDownLatch'
 import DeltaSplittingStream from '../DeltaSplittingStream'
@@ -22,8 +26,6 @@ import Trackpoint, {
   TrackpointsToClickHouseTSV
 } from '../domain/Trackpoint'
 
-const debug = Debug('stash:SKClickHouse')
-
 export default class SKClickHouse {
   constructor(readonly ch = new ClickHouse(config.clickhouse)) {}
 
@@ -35,7 +37,7 @@ export default class SKClickHouse {
   }
 
   insertTrackpoint(trackpoint: Trackpoint): Promise<void> {
-    return insertTrackpoint(this.ch, trackpoint)
+    return insertTrackpoint(this, trackpoint)
   }
 
   getTrackPointsForVessel(
@@ -76,42 +78,18 @@ export default class SKClickHouse {
       done !== undefined ? done : () => {}
     )
 
-    let trackpointDbStream = insertTrackpointStream(
-      this.ch,
+    const trackpointDbStream = insertTrackpointStream(
+      this,
       outputsDoneLatch.signal.bind(outputsDoneLatch)
     )
     pointsToTsv.pipe(trackpointDbStream)
 
-    let pathValueDbStream = insertPathValueStream(
-      this.ch,
+    const pathValueDbStream = insertPathValueStream(
+      this,
       outputsDoneLatch.signal.bind(outputsDoneLatch)
     )
     pathValuesToTsv.pipe(pathValueDbStream)
 
-    debug('Setting interval')
-    const interval = setInterval(() => {
-      debug('Flushing streams')
-      outputsDoneLatch.addCapacity(2)
-      pointsToTsv.unpipe(trackpointDbStream)
-      trackpointDbStream.end()
-      trackpointDbStream = insertTrackpointStream(
-        this.ch,
-        outputsDoneLatch.signal.bind(outputsDoneLatch)
-      )
-      pointsToTsv.pipe(trackpointDbStream)
-
-      pathValuesToTsv.unpipe(pathValueDbStream)
-      pathValueDbStream.end()
-      pathValueDbStream = insertPathValueStream(
-        this.ch,
-        outputsDoneLatch.signal.bind(outputsDoneLatch)
-      )
-      pathValuesToTsv.pipe(pathValueDbStream)
-    }, config.deltaWriteStreamFlushPeriod.toMillis())
-    deltaSplittingStream.on('finish', () => {
-      debug('Clearing interval')
-      clearInterval(interval)
-    })
     return deltaSplittingStream
   }
 
@@ -124,6 +102,24 @@ export default class SKClickHouse {
     timeresolution: number
   ): any {
     return getValues(this.ch, context, path, from, to, timeresolution)
+  }
+
+  bufferingQuery<T = any>(
+    query: string,
+    options: QueryOptions,
+    cb?: QueryCallback<T>
+  ): QueryStream {
+    const s = new BufferingWritableStream(
+      done => this.ch.query(query, options, done),
+      config.deltaWriteStreamBufferSize,
+      config.deltaWriteStreamFlushPeriod,
+      config.deltaWriteStreamFlushRetryPeriod
+    )
+    if (cb) {
+      s.on('finish', cb)
+      s.on('error', cb)
+    }
+    return s
   }
 }
 

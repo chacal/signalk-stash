@@ -48,6 +48,10 @@ export default class MqttDeltaInput {
     )
   }
 
+  stop() {
+    this.deltaWriteStream.end()
+  }
+
   handleMessage(packet: mqtt.Packet, done: mqtt.PacketCallback) {
     if (isPublishPacket(packet)) {
       let delta

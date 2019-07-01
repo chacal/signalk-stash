@@ -12,7 +12,7 @@ import {
 } from 'js-joda'
 import QK from 'quadkeytools'
 import { Transform, TransformCallback } from 'stream'
-import { timeResolutionForZoom } from '../db/SKClickHouse'
+import SKClickHouse, { timeResolutionForZoom } from '../db/SKClickHouse'
 import { BBox, Coords, TrackGeoJSON, ZoomLevel } from './Geo'
 const debug = Debug('stash:skclickhouse')
 
@@ -36,10 +36,10 @@ export function tracksToGeoJSON(tracks: Track[]): TrackGeoJSON {
     Instant.ofEpochSecond(0),
     ZoneId.UTC
   )
+  let currentTrack: number[][]
   return {
     type: 'MultiLineString',
     coordinates: tracks.reduce((acc: number[][][], track) => {
-      let currentTrack: number[][]
       track.forEach((trackpoint: Trackpoint) => {
         if (
           Duration.between(
@@ -87,14 +87,14 @@ export function createTrackpointTable(ch: Clickhouse) {
 }
 
 export function insertTrackpointStream(
-  ch: Clickhouse,
+  ch: SKClickHouse,
   cb?: (err?: Error) => void
 ) {
-  return ch.query(`INSERT INTO trackpoint`, { format: 'TSV' }, cb)
+  return ch.bufferingQuery(`INSERT INTO trackpoint`, { format: 'TSV' }, cb)
 }
 
 export function insertTrackpoint(
-  ch: Clickhouse,
+  ch: SKClickHouse,
   trackpoint: Trackpoint
 ): Promise<void> {
   return new Promise((resolve, reject) => {
