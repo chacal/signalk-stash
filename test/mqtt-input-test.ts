@@ -76,7 +76,7 @@ describe('MQTT input', () => {
     expect(otherVesselTrackpoints).to.have.lengthOf(0)
   }).timeout(10000)
 
-  it('publishes latest positions to mqtt', async () => {
+  it('publishes latest positions to mqtt with retain=true', async () => {
     const vesselClient = await startTestVesselMqttClient()
     const deltaReaderClient = await startLatestDeltaReaderMqttClient()
     const runnerClient = await startRunnerMqttClient()
@@ -87,7 +87,10 @@ describe('MQTT input', () => {
     // Use runner account here as only it has write ACL to the latest topic
     clearRetainedMessage(runnerClient, latestPositionTopic)
 
-    const receivedLatestPositions: SKDelta[] = []
+    //
+    // Test that a delta reader gets the published position messages when vessel publishes deltas
+    //
+    let receivedLatestPositions: SKDelta[] = []
     deltaReaderClient.subscribe(latestPositionTopic)
     deltaReaderClient.on('message', (topic, payload) => {
       receivedLatestPositions.push(SKDelta.fromJSON(payload.toString()))
@@ -108,6 +111,28 @@ describe('MQTT input', () => {
     )
 
     // Later update from positionFixtures[1] should have been published
+    expect(receivedLatestPositions[0]).to.eql(
+      SKDelta.fromJSON(positionFixtures[1])
+    )
+
+    deltaReaderClient.unsubscribe(latestPositionTopic)
+    deltaReaderClient.end()
+
+    //
+    // Test that a new delta reader gets the last retained position message
+    //
+    receivedLatestPositions = []
+    const anotherDeltaReaderClient = await startLatestDeltaReaderMqttClient()
+    anotherDeltaReaderClient.subscribe(latestPositionTopic)
+    anotherDeltaReaderClient.on('message', (topic, payload) => {
+      receivedLatestPositions.push(SKDelta.fromJSON(payload.toString()))
+    })
+
+    await waitFor(
+      () => Promise.resolve(receivedLatestPositions),
+      positions => positions.length > 0
+    )
+
     expect(receivedLatestPositions[0]).to.eql(
       SKDelta.fromJSON(positionFixtures[1])
     )
