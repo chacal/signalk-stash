@@ -140,8 +140,7 @@ describe('MQTT input', () => {
 })
 
 function startTestVesselMqttClient() {
-  return startMqttClient({
-    broker: config.mqtt.broker,
+  return startMqttClient(config.mqtt.broker, {
     username: testVessel.mqttAccount.username,
     password: vesselMqttPassword,
     clientId: randomClientId()
@@ -149,8 +148,7 @@ function startTestVesselMqttClient() {
 }
 
 function startLatestDeltaReaderMqttClient() {
-  return startMqttClient({
-    broker: config.mqtt.broker,
+  return startMqttClient(config.mqtt.broker, {
     username: latestDeltaReaderAccount.username,
     password: latestDeltaReaderPassword,
     clientId: randomClientId()
@@ -158,8 +156,7 @@ function startLatestDeltaReaderMqttClient() {
 }
 
 function startRunnerMqttClient() {
-  return startMqttClient({
-    broker: config.mqtt.broker,
+  return startMqttClient(config.mqtt.broker, {
     username: runnerAccount.username,
     password: runnerPassword,
     clientId: randomClientId()

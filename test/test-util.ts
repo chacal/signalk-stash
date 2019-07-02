@@ -30,12 +30,16 @@ export const testVessel = new Vessel(
   'S/Y TestVessel',
   vesselMqttPassword
 )
-export const runnerPassword = 'runnerpasswort'
+export const runnerPassword = config.mqtt.runner.password
 // Runner account is an MQTT superuser as wildcard subscriptions don't work with Mosquitto auth plugin at the moment..
-export const runnerAccount = new MqttAccount('runner', runnerPassword, true)
-export const latestDeltaReaderPassword = 'latestreaderpasswort'
+export const runnerAccount = new MqttAccount(
+  config.mqtt.runner.username,
+  runnerPassword,
+  true
+)
+export const latestDeltaReaderPassword = config.mqtt.latestReader.password
 export const latestDeltaReaderAccount = new MqttAccount(
-  'latestreader',
+  config.mqtt.latestReader.password,
   latestDeltaReaderPassword
 )
 
