@@ -50,7 +50,7 @@ export default class MqttRunner {
   }
 }
 
-export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
+export async function startMqttClient(config: MqttConfig): Promise<MqttClient> {
   const client = mqtt.connect(config.broker, {
     username: config.username,
     password: config.password,

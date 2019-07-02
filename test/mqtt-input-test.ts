@@ -31,8 +31,8 @@ describe('MQTT input', () => {
 
   afterEach(() => mqttRunner.stop())
 
-  it('writes position published only to signalk/delta/vesselUuid', () => {
-    return startMqttClient({
+  it('writes position published only to signalk/delta/vesselUuid', async () => {
+    const mqttClient = await startMqttClient({
       broker: config.mqtt.broker,
       username: testVessel.mqttAccount.username,
       password: vesselMqttPassword,
@@ -42,53 +42,36 @@ describe('MQTT input', () => {
           .toString(16)
           .substr(2, 8)
     })
-      .then(mqttClient =>
-        mqttClient.publish(
-          vesselTopic(testVesselUuids[0]),
-          JSON.stringify(positionFixtures[0])
-        )
-      )
-      .then(mqttClient =>
-        mqttClient.publish(
-          vesselTopic(testVesselUuids[0]),
-          JSON.stringify(positionFixtures[0]).replace(
-            testVesselUuids[0],
-            'self'
-          )
-        )
-      )
-      .then(mqttClient =>
-        mqttClient.publish(
-          vesselTopic(testVesselUuids[0]),
-          JSON.stringify(positionFixtures[0]).replace('f', 'a')
-        )
-      )
-      .then(mqttClient =>
-        mqttClient.publish(
-          vesselTopic(testVesselUuids[0].replace('f', 'a')),
-          JSON.stringify(positionFixtures[0])
-        )
-      )
-      .then(() =>
-        waitFor(
-          () => DB.getTrackPointsForVessel(testVesselUuids[0]),
-          res => res.length > 0
-        )
-      )
-      .then(trackpoints => {
-        expect(trackpoints).to.have.lengthOf(2)
-        assertTrackpoint(trackpoints[0], positionFixtures[0])
-      })
-      .then(() =>
-        waitFor(
-          () =>
-            DB.getTrackPointsForVessel(testVesselUuids[0].replace('f', 'a')),
-          res => res.length >= 0
-        )
-      )
-      .then(trackpoints => {
-        expect(trackpoints).to.have.lengthOf(0)
-      })
+
+    mqttClient.publish(
+      vesselTopic(testVesselUuids[0]),
+      JSON.stringify(positionFixtures[0])
+    )
+    mqttClient.publish(
+      vesselTopic(testVesselUuids[0]),
+      JSON.stringify(positionFixtures[0]).replace(testVesselUuids[0], 'self')
+    )
+    mqttClient.publish(
+      vesselTopic(testVesselUuids[0]),
+      JSON.stringify(positionFixtures[0]).replace('f', 'a')
+    )
+    mqttClient.publish(
+      vesselTopic(testVesselUuids[0].replace('f', 'a')),
+      JSON.stringify(positionFixtures[0])
+    )
+
+    const vesselTrackpoints = await waitFor(
+      () => DB.getTrackPointsForVessel(testVesselUuids[0]),
+      res => res.length > 0
+    )
+    expect(vesselTrackpoints).to.have.lengthOf(2)
+    assertTrackpoint(vesselTrackpoints[0], positionFixtures[0])
+
+    const otherVesselTrackpoints = await waitFor(
+      () => DB.getTrackPointsForVessel(testVesselUuids[0].replace('f', 'a')),
+      res => res.length >= 0
+    )
+    expect(otherVesselTrackpoints).to.have.lengthOf(0)
   }).timeout(10000)
 })
 
