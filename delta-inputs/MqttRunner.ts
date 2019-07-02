@@ -5,6 +5,7 @@ import config, { MqttConfig } from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import { MqttAccount, MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
 import MqttDeltaInput, {
+  DELTALATESTSWILDCARDTOPIC,
   DELTASTATSWILDCARDTOPIC,
   DELTAWILDCARDTOPIC
 } from './MqttDeltaInput'
@@ -72,5 +73,8 @@ export async function insertRunnerAccount(account: MqttAccount) {
   )
   await DB.upsertAcl(
     new MqttACL(account.username, DELTASTATSWILDCARDTOPIC, MqttACLLevel.ALL)
+  )
+  await DB.upsertAcl(
+    new MqttACL(account.username, DELTALATESTSWILDCARDTOPIC, MqttACLLevel.ALL)
   )
 }
