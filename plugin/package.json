@@ -10,6 +10,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "mqtt": "^2.18.8",
-    "mqtt-nedb-store": "tkurki/mqtt-nedb-store#add-autocompaction-support"
+    "mqtt-nedb-store": "^0.1.1"
   }
 }
