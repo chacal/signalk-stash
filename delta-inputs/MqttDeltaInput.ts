@@ -160,6 +160,10 @@ export function vesselTopic(vesselUuid: string): string {
   return `${DELTABASETOPIC}/${vesselUuid}`
 }
 
+export function latestDeltaTopic(vesselUuid: string): string {
+  return `${DELTABASETOPIC}/${vesselUuid}/latest`
+}
+
 function isPublishPacket(object: any): object is IPublishPacket {
   return object.cmd === 'publish'
 }

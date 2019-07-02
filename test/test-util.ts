@@ -32,6 +32,11 @@ export const testVessel = new Vessel(
 )
 // Runner account is an MQTT superuser as wildcard subscriptions don't work with Mosquitto auth plugin at the moment..
 export const runnerAccount = new MqttAccount('runner', 'runnerpasswort', true)
+export const latestDeltaReaderPassword = 'latestreaderpasswort'
+export const latestDeltaReaderAccount = new MqttAccount(
+  'latestreader',
+  latestDeltaReaderPassword
+)
 
 export const testVesselUuids = [
   vesselUuid,
