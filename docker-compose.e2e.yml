@@ -27,7 +27,7 @@ services:
   grafana:
     image: "grafana/grafana"
     ports:
-      - 23000:3000
+      - 23001:3000
     volumes:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana/provisioning/datasources/e2e:/etc/grafana/provisioning/datasources
