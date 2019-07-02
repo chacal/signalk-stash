@@ -89,7 +89,8 @@ const testConfig = {
   mqtt: {
     broker: 'mqtt://localhost:41883'
   },
-  port: 43000
+  port: 43000,
+  deltaWriteStreamFlushPeriod: Duration.ofMillis(100)
 }
 
 const environments: IEnvironments = {
