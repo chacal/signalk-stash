@@ -1,10 +1,16 @@
 /* eslint-env mocha */
 import { expect } from 'chai'
+import _ from 'lodash'
+import { MqttClient } from 'mqtt'
 
 import { SKDelta } from '@chacal/signalk-ts'
 import config from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
-import { latestDeltaTopic, vesselTopic } from '../delta-inputs/MqttDeltaInput'
+import {
+  latestDeltaTopic,
+  MqttTopic,
+  vesselTopic
+} from '../delta-inputs/MqttDeltaInput'
 import MqttRunner, {
   insertLatestDeltaReaderAccount,
   insertRunnerAccount,
@@ -16,6 +22,7 @@ import {
   latestDeltaReaderPassword,
   positionFixtures,
   runnerAccount,
+  runnerPassword,
   testVessel,
   testVesselUuids,
   vesselMqttPassword,
@@ -72,18 +79,27 @@ describe('MQTT input', () => {
   it('publishes latest positions to mqtt', async () => {
     const vesselClient = await startTestVesselMqttClient()
     const deltaReaderClient = await startLatestDeltaReaderMqttClient()
+    const runnerClient = await startRunnerMqttClient()
+    const latestPositionTopic =
+      latestDeltaTopic(testVesselUuids[0]) + '/navigation/position'
+
+    // Make sure old retained messages don't affect the test
+    // Use runner account here as only it has write ACL to the latest topic
+    clearRetainedMessage(runnerClient, latestPositionTopic)
 
     const receivedLatestPositions: SKDelta[] = []
-    deltaReaderClient.subscribe(
-      latestDeltaTopic(testVesselUuids[0]) + '/navigation/position'
-    )
+    deltaReaderClient.subscribe(latestPositionTopic)
     deltaReaderClient.on('message', (topic, payload) => {
       receivedLatestPositions.push(SKDelta.fromJSON(payload.toString()))
     })
 
+    // Create a test delta that has two position updates in reverse order
+    const testPositionDelta = _.cloneDeep(positionFixtures[0])
+    testPositionDelta.updates.unshift(...positionFixtures[1].updates) // Prepend updates from [1] to updates of [0]
+
     vesselClient.publish(
       vesselTopic(testVesselUuids[0]),
-      JSON.stringify(positionFixtures[0])
+      JSON.stringify(testPositionDelta)
     )
 
     await waitFor(
@@ -91,8 +107,9 @@ describe('MQTT input', () => {
       positions => positions.length > 0
     )
 
+    // Later update from positionFixtures[1] should have been published
     expect(receivedLatestPositions[0]).to.eql(
-      SKDelta.fromJSON(positionFixtures[0])
+      SKDelta.fromJSON(positionFixtures[1])
     )
   })
 })
@@ -112,6 +129,22 @@ function startLatestDeltaReaderMqttClient() {
     username: latestDeltaReaderAccount.username,
     password: latestDeltaReaderPassword,
     clientId: randomClientId()
+  })
+}
+
+function startRunnerMqttClient() {
+  return startMqttClient({
+    broker: config.mqtt.broker,
+    username: runnerAccount.username,
+    password: runnerPassword,
+    clientId: randomClientId()
+  })
+}
+
+function clearRetainedMessage(client: MqttClient, topic: MqttTopic) {
+  client.publish(topic, Buffer.alloc(0), {
+    qos: 1,
+    retain: true
   })
 }
 
