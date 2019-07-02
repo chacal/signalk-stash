@@ -122,7 +122,7 @@ export default class MqttDeltaInput {
 
     const newPositionDelta = new SKDelta(delta.context, [
       new SKUpdate(
-        latestUpdateWithPosition.sourceRef,
+        latestUpdateWithPosition.$source,
         latestUpdateWithPosition.timestamp,
         [positionValue],
         latestUpdateWithPosition.source
