@@ -7,6 +7,7 @@ import express, {
 import path from 'path'
 import { ExpressAppCustomizer } from './APIServerMain'
 import { IConfig } from './Config'
+import setupMqttCredentialsAPIRoutes from './MqttCredentialsAPI'
 import setupTrackAPIRoutes from './TrackAPI'
 import setupVesselAPIRoutes from './VesselAPI'
 
@@ -21,6 +22,7 @@ class API {
     this.customizer(this.app)
     setupTrackAPIRoutes(this.app)
     setupVesselAPIRoutes(this.app)
+    setupMqttCredentialsAPIRoutes(this.app)
     this.app.use(express.static(publicPath))
     this.app.use(this.validationErrorHandler)
     this.app.use(this.defaultErrorHandler)
