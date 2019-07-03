@@ -20,7 +20,6 @@ import {
   assertTrackpoint,
   positionFixtures,
   runnerAccount,
-  runnerPassword,
   testVessel,
   testVesselUuids,
   vesselMqttPassword,
@@ -151,8 +150,8 @@ function startLatestDeltaReaderMqttClient() {
 
 function startRunnerMqttClient() {
   return startMqttClient(config.mqtt.broker, {
-    username: runnerAccount.username,
-    password: runnerPassword,
+    username: config.mqtt.runner.username,
+    password: config.mqtt.runner.password,
     clientId: randomClientId()
   })
 }
