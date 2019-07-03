@@ -6,20 +6,18 @@ import { MqttClient } from 'mqtt'
 import { SKDelta } from '@chacal/signalk-ts'
 import config from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
+import { insertLatestDeltaReaderAccountFromConfig } from '../api-server/MqttCredentialsAPI'
 import {
   latestDeltaTopic,
   MqttTopic,
   vesselTopic
 } from '../delta-inputs/MqttDeltaInput'
 import MqttRunner, {
-  insertLatestDeltaReaderAccount,
   insertRunnerAccount,
   startMqttClient
 } from '../delta-inputs/MqttRunner'
 import {
   assertTrackpoint,
-  latestDeltaReaderAccount,
-  latestDeltaReaderPassword,
   positionFixtures,
   runnerAccount,
   runnerPassword,
@@ -148,11 +146,7 @@ function startTestVesselMqttClient() {
 }
 
 function startLatestDeltaReaderMqttClient() {
-  return startMqttClient(config.mqtt.broker, {
-    username: latestDeltaReaderAccount.username,
-    password: latestDeltaReaderPassword,
-    clientId: randomClientId()
-  })
+  return startMqttClient(config.mqtt.broker, config.mqtt.latestReader, true)
 }
 
 function startRunnerMqttClient() {
@@ -183,5 +177,5 @@ async function initializeTestDb() {
   await testdb.resetTables()
   await DB.upsertVessel(testVessel)
   await insertRunnerAccount(runnerAccount)
-  await insertLatestDeltaReaderAccount(latestDeltaReaderAccount)
+  await insertLatestDeltaReaderAccountFromConfig()
 }

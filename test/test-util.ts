@@ -37,11 +37,6 @@ export const runnerAccount = new MqttAccount(
   runnerPassword,
   true
 )
-export const latestDeltaReaderPassword = config.mqtt.latestReader.password
-export const latestDeltaReaderAccount = new MqttAccount(
-  config.mqtt.latestReader.username,
-  latestDeltaReaderPassword
-)
 
 export const testVesselUuids = [
   vesselUuid,
