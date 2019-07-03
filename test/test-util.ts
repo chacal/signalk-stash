@@ -39,7 +39,7 @@ export const runnerAccount = new MqttAccount(
 )
 export const latestDeltaReaderPassword = config.mqtt.latestReader.password
 export const latestDeltaReaderAccount = new MqttAccount(
-  config.mqtt.latestReader.password,
+  config.mqtt.latestReader.username,
   latestDeltaReaderPassword
 )
 
