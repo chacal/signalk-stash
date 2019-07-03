@@ -86,14 +86,3 @@ export async function insertRunnerAccountFromConfig() {
     new MqttACL(account.username, DELTALATESTSWILDCARDTOPIC, MqttACLLevel.ALL)
   )
 }
-
-export async function insertLatestDeltaReaderAccount(account: MqttAccount) {
-  await DB.upsertAccount(account)
-  await DB.upsertAcl(
-    new MqttACL(
-      account.username,
-      DELTALATESTSWILDCARDTOPIC,
-      MqttACLLevel.SUBSCRIBE + MqttACLLevel.READ
-    )
-  )
-}

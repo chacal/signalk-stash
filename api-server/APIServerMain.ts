@@ -21,9 +21,9 @@ function startAPIServer(routeCustomizer: ExpressAppCustomizer = _.noop) {
   })
 }
 
-function startApi(config: IConfig, customizer: ExpressAppCustomizer) {
+async function startApi(config: IConfig, customizer: ExpressAppCustomizer) {
   const api = new API(config, customizer)
-  api.start()
+  await api.start()
 }
 
 export default startAPIServer

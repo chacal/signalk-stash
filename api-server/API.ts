@@ -7,7 +7,9 @@ import express, {
 import path from 'path'
 import { ExpressAppCustomizer } from './APIServerMain'
 import { IConfig } from './Config'
-import setupMqttCredentialsAPIRoutes from './MqttCredentialsAPI'
+import setupMqttCredentialsAPIRoutes, {
+  insertLatestDeltaReaderAccountFromConfig
+} from './MqttCredentialsAPI'
 import setupTrackAPIRoutes from './TrackAPI'
 import setupVesselAPIRoutes from './VesselAPI'
 
@@ -28,7 +30,8 @@ class API {
     this.app.use(this.defaultErrorHandler)
   }
 
-  start() {
+  async start() {
+    await insertLatestDeltaReaderAccountFromConfig()
     this.app.listen(this.config.port, () =>
       console.log(`Listening on port ${this.config.port}!`)
     )
