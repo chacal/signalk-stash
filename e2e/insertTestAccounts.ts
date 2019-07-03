@@ -1,10 +1,10 @@
 import DB from '../api-server/db/StashDB'
-import { insertRunnerAccount } from '../delta-inputs/MqttRunner'
-import { runnerAccount, testVessel } from '../test/test-util'
+import { insertRunnerAccountFromConfig } from '../delta-inputs/MqttRunner'
+import { testVessel } from '../test/test-util'
 
 DB.ensureTables()
   .then(() => DB.upsertVessel(testVessel))
-  .then(() => insertRunnerAccount(runnerAccount))
+  .then(() => insertRunnerAccountFromConfig())
   .then(() => {
     process.exit(0)
   })

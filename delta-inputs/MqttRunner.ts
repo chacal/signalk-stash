@@ -40,14 +40,7 @@ export default class MqttRunner {
 
   private insertRunnerAccountIfNeeded() {
     if (!config.isTesting) {
-      // Runner account is an MQTT superuser as wildcard subscriptions don't work with Mosquitto auth plugin at the moment..
-      return insertRunnerAccount(
-        new MqttAccount(
-          config.mqtt.runner.username,
-          config.mqtt.runner.password,
-          true
-        )
-      )
+      return insertRunnerAccountFromConfig()
     } else {
       return Promise.resolve()
     }
@@ -74,7 +67,14 @@ export async function startMqttClient(
   ).then(() => client)
 }
 
-export async function insertRunnerAccount(account: MqttAccount) {
+export async function insertRunnerAccountFromConfig() {
+  // Runner account is an MQTT superuser as wildcard subscriptions don't work with Mosquitto auth plugin at the moment..
+  const account = new MqttAccount(
+    config.mqtt.runner.username,
+    config.mqtt.runner.password,
+    true
+  )
+
   await DB.upsertAccount(account)
   await DB.upsertAcl(
     new MqttACL(account.username, DELTAWILDCARDTOPIC, MqttACLLevel.ALL)

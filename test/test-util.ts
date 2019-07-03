@@ -11,7 +11,6 @@ import API from '../api-server/API'
 import config from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import { StashDB } from '../api-server/db/StashDB'
-import { MqttAccount } from '../api-server/domain/Auth'
 import Trackpoint from '../api-server/domain/Trackpoint'
 import Vessel from '../api-server/domain/Vessel'
 import untypedMeasurementFixtures from './data/measurement-fixtures.json'
@@ -29,13 +28,6 @@ export const testVessel = new Vessel(
   vesselUuid,
   'S/Y TestVessel',
   vesselMqttPassword
-)
-export const runnerPassword = config.mqtt.runner.password
-// Runner account is an MQTT superuser as wildcard subscriptions don't work with Mosquitto auth plugin at the moment..
-export const runnerAccount = new MqttAccount(
-  config.mqtt.runner.username,
-  runnerPassword,
-  true
 )
 
 export const testVesselUuids = [

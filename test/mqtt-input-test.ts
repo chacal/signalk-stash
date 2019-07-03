@@ -13,13 +13,12 @@ import {
   vesselTopic
 } from '../delta-inputs/MqttDeltaInput'
 import MqttRunner, {
-  insertRunnerAccount,
+  insertRunnerAccountFromConfig,
   startMqttClient
 } from '../delta-inputs/MqttRunner'
 import {
   assertTrackpoint,
   positionFixtures,
-  runnerAccount,
   testVessel,
   testVesselUuids,
   vesselMqttPassword,
@@ -175,6 +174,6 @@ function randomClientId() {
 async function initializeTestDb() {
   await testdb.resetTables()
   await DB.upsertVessel(testVessel)
-  await insertRunnerAccount(runnerAccount)
+  await insertRunnerAccountFromConfig()
   await insertLatestDeltaReaderAccountFromConfig()
 }
