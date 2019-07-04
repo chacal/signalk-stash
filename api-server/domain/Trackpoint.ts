@@ -112,7 +112,12 @@ export class TrackpointsToClickHouseTSV extends Transform {
   }
 
   _transform(trackpoint: Trackpoint, encoding: string, cb: TransformCallback) {
-    this.push(trackPointToColumns(trackpoint))
+    if (
+      trackpoint.coords.latitude != null &&
+      trackpoint.coords.longitude != null
+    ) {
+      this.push(trackPointToColumns(trackpoint))
+    }
     cb()
   }
 }
