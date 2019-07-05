@@ -61,6 +61,7 @@ export default class BufferingWritableStream<T> extends Writable {
   doFlushBuffer(buffer: T[], done: Callback) {
     const output = this.createNewOutput((err?: Error) => {
       if (err) {
+        console.error(err)
         setTimeout(
           () => this.doFlushBuffer(buffer, done),
           this.retryInterval.toMillis()

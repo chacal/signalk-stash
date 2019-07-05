@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-import { SKDelta } from '@chacal/signalk-ts'
+import { SKDelta, SKDeltaJSON } from '@chacal/signalk-ts'
 import { expect } from 'chai'
 import _ from 'lodash'
 import * as L from 'partial.lenses'
@@ -66,7 +66,12 @@ describe('StashDBB', () => {
         done(err)
       }
     })
-    const fixtures = _.shuffle(positionFixtures.concat(measurementFixtures))
+
+    // include a position with null latitude and longitude and a normal
+    // pathvalue with null value
+    const fixtures = [getPositionWithNulls(), getMeasurementWithNull()].concat(
+      _.shuffle(positionFixtures.concat(measurementFixtures))
+    )
     fixtures.forEach(delta => chStream.write(SKDelta.fromJSON(delta)))
     chStream.end()
   })
@@ -95,3 +100,22 @@ describe('StashDBB', () => {
       }
     )
 })
+
+function getPositionWithNulls(): SKDeltaJSON {
+  const positionDeltaString = JSON.stringify(positionFixtures[0])
+  return JSON.parse(
+    positionDeltaString.replace(
+      JSON.stringify(positionFixtures[0].updates[0].values[0]),
+      '{"path":"navigation.position","value":{"longitude": null, "latitude": null}}'
+    )
+  )
+}
+
+function getMeasurementWithNull(): SKDeltaJSON {
+  const measurementDeltaString = JSON.stringify(measurementFixtures[0])
+  const nullMeasurementDeltaString = measurementDeltaString.replace(
+    JSON.stringify(measurementFixtures[0].updates[0].values[0].value),
+    'null'
+  )
+  return JSON.parse(nullMeasurementDeltaString)
+}
