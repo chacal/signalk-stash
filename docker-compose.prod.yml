@@ -31,6 +31,8 @@ services:
     image: yandex/clickhouse-server
     volumes:
       - clickhousedata:/var/lib/clickhouse
+    ports:
+      - 127.0.0.1:8123:8123
   mqtt:
     image: signalkstash/mosquitto:prod
     ports:
