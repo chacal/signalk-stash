@@ -1,6 +1,7 @@
 import Debug from 'debug'
 import { Express, Request, Response } from 'express'
 import * as Joi from 'joi'
+import { LocalDate } from 'js-joda'
 import { asyncHandler } from './API'
 import stash from './db/StashDB'
 import { BBox, Coords, ZoomLevel } from './domain/Geo'
@@ -9,6 +10,7 @@ import { Schemas, validate } from './domain/validation'
 const debug = Debug('stash:track-api')
 
 export default function setupTrackAPIRoutes(app: Express) {
+  app.get('/tracks/daily/stats', asyncHandler(dailyTrackStats))
   app.get('/tracks', asyncHandler(tracks))
 }
 
@@ -21,13 +23,6 @@ async function tracks(req: Request, res: Response) {
 
   const tracks = await stash.getVesselTracks(context, bbox, zoomLevel)
   res.json(tracksToGeoJSON(tracks, zoomLevel))
-
-  function contextFromQuery(req: Request): string {
-    const schema = {
-      context: Joi.string().required()
-    }
-    return validate(req.query, schema).context
-  }
 
   function bboxFromQuery(req: Request): BBox | undefined {
     const q = req.query
@@ -60,4 +55,29 @@ async function tracks(req: Request, res: Response) {
       return undefined
     }
   }
+}
+async function dailyTrackStats(req: Request, res: Response) {
+  debug('Query: %o', req.query)
+
+  const context = contextFromQuery(req)
+  const firstDay = dayFromQuery(req, 'firstDay')
+  const lastDay = dayFromQuery(req, 'lastDay')
+
+  const trackData = await stash.getDailyTrackStatistics(
+    context,
+    firstDay,
+    lastDay
+  )
+  res.json(trackData)
+
+  function dayFromQuery(req: Request, paramName: string): LocalDate {
+    return LocalDate.parse(req.query[paramName])
+  }
+}
+
+function contextFromQuery(req: Request): string {
+  const schema = {
+    context: Joi.string().required()
+  }
+  return validate(req.query, schema).context
 }

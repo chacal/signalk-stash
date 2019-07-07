@@ -1,10 +1,11 @@
 import { QueryCallback, QueryStream } from '@apla/clickhouse'
 import { SKContext } from '@chacal/signalk-ts'
-import { ZonedDateTime } from 'js-joda'
+import { LocalDate, ZonedDateTime } from 'js-joda'
 import { vesselTopic } from '../../delta-inputs/MqttDeltaInput'
 import { MqttAccount, MqttACL, MqttACLLevel } from '../domain/Auth'
 import { BBox, ZoomLevel } from '../domain/Geo'
 import Trackpoint, { Track } from '../domain/Trackpoint'
+import TrackStatistics from '../domain/TrackStatistics'
 import Vessel, { VesselData } from '../domain/Vessel'
 import SKClickHouse from './SKClickHouse'
 import SKPostgis from './SKPostgis'
@@ -44,6 +45,22 @@ export class StashDB {
     zoomLevel?: ZoomLevel
   ): Promise<Track[]> {
     return this.ch.getVesselTracks(context, bbox, zoomLevel)
+  }
+
+  getTrackStatisticsForVesselTimespan(
+    context: SKContext,
+    start: ZonedDateTime,
+    end: ZonedDateTime
+  ): Promise<TrackStatistics> {
+    return this.ch.getTrackStatisticsForVesselTimespan(context, start, end)
+  }
+
+  getDailyTrackStatistics(
+    context: SKContext,
+    firstDate: LocalDate,
+    lastDate: LocalDate
+  ): Promise<TrackStatistics[]> {
+    return this.ch.getDailyTrackStatistics(context, firstDate, lastDate)
   }
 
   deltaWriteStream(cb?: QueryCallback<void>): QueryStream {

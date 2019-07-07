@@ -4,7 +4,8 @@ import ClickHouse, {
   QueryStream
 } from '@apla/clickhouse'
 import { SKContext } from '@chacal/signalk-ts'
-import { ChronoUnit, ZonedDateTime } from 'js-joda'
+import Debug from 'debug'
+import { ChronoUnit, LocalDate, ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
 import BufferingWritableStream from '../BufferingWritableStream'
 import config from '../Config'
@@ -25,6 +26,12 @@ import Trackpoint, {
   Track,
   TrackpointsToClickHouseTSV
 } from '../domain/Trackpoint'
+import TrackStatistics, {
+  getDailyTrackStatistics,
+  getTrackStatisticsForVesselTimespan
+} from '../domain/TrackStatistics'
+
+const debug = Debug('stash:skclickhouse')
 
 export default class SKClickHouse {
   constructor(readonly ch = new ClickHouse(config.clickhouse)) {}
@@ -46,6 +53,22 @@ export default class SKClickHouse {
     zoomLevel?: ZoomLevel
   ): Promise<Trackpoint[]> {
     return getTrackPointsForVessel(this.ch, context, bbox, zoomLevel)
+  }
+
+  getTrackStatisticsForVesselTimespan(
+    context: SKContext,
+    start: ZonedDateTime,
+    end: ZonedDateTime
+  ): Promise<TrackStatistics> {
+    return getTrackStatisticsForVesselTimespan(this.ch, context, start, end)
+  }
+
+  getDailyTrackStatistics(
+    context: SKContext,
+    firstDate: LocalDate,
+    lastDate: LocalDate
+  ): Promise<TrackStatistics[]> {
+    return getDailyTrackStatistics(this.ch, context, firstDate, lastDate)
   }
 
   getVesselTracks(
@@ -162,4 +185,12 @@ export function simplifyThresholdForZoom(zoom?: ZoomLevel) {
   } else {
     return 0.00001
   }
+}
+
+export function chQuery(ch: ClickHouse, query: string) {
+  debug(query)
+  return ch.querying(query).then(x => {
+    debug(JSON.stringify(x.statistics) + ' ' + x.data.length)
+    return x
+  })
 }
