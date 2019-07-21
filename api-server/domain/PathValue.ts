@@ -38,7 +38,7 @@ type PathValueRowColumns = [number, number, string, string, string, number]
 
 export class PathValuesToClickHouseTSV extends Transform {
   constructor() {
-    super({ objectMode: true })
+    super({ objectMode: true, highWaterMark: 1024 })
   }
 
   _transform(pathValue: PathValue, encoding: string, cb: TransformCallback) {
