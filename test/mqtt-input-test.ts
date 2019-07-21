@@ -91,7 +91,7 @@ describe('MQTT input', () => {
       .then(trackpoints => {
         expect(trackpoints).to.have.lengthOf(0)
       })
-  })
+  }).timeout(10000)
 })
 
 function initializeTestDb() {
