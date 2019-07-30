@@ -44,7 +44,27 @@ export default class MqttDeltaInput {
 
     this.mqttClient.handleMessage = this.handleMessage.bind(this)
     return BPromise.fromCallback(cb =>
-      this.mqttClient.subscribe(DELTAWILDCARDTOPIC, { qos: 1 }, cb)
+      this.mqttClient.subscribe(
+        DELTAWILDCARDTOPIC,
+        { qos: 1 },
+        (err, granted) => {
+          if (err) {
+            cb(err)
+          } else if (
+            granted === undefined ||
+            granted.length !== 1 ||
+            granted[0].qos !== 1
+          ) {
+            cb(
+              `Failed to subscribe to ${DELTAWILDCARDTOPIC}. Grant was: ${JSON.stringify(
+                granted
+              )}`
+            )
+          } else {
+            cb(undefined)
+          }
+        }
+      )
     )
   }
 
