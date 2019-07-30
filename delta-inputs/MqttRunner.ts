@@ -39,8 +39,9 @@ export default class MqttRunner {
 
   private insertRunnerAccountIfNeeded() {
     if (!config.isTesting) {
+      // Runner account is an MQTT superuser as wildcard subscriptions don't work with Mosquitto auth plugin at the moment..
       return insertRunnerAccount(
-        new MqttAccount(config.mqtt.username, config.mqtt.password)
+        new MqttAccount(config.mqtt.username, config.mqtt.password, true)
       )
     } else {
       return Promise.resolve()

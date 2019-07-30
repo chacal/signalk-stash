@@ -30,7 +30,8 @@ export const testVessel = new Vessel(
   'S/Y TestVessel',
   vesselMqttPassword
 )
-export const runnerAccount = new MqttAccount('runner', 'runnerpasswort')
+// Runner account is an MQTT superuser as wildcard subscriptions don't work with Mosquitto auth plugin at the moment..
+export const runnerAccount = new MqttAccount('runner', 'runnerpasswort', true)
 
 export const testVesselUuids = [
   vesselUuid,
