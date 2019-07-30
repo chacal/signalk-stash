@@ -10,6 +10,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "mqtt": "^2.18.8",
-    "mqtt-nedb-store": "^0.1.1"
+    "mqtt-level-store": "^3.0.0"
   }
 }

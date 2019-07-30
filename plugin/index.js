@@ -16,7 +16,7 @@
 
 const id = 'signalk-mqtt-stasher'
 const mqtt = require('mqtt')
-const NeDBStore = require('mqtt-nedb-store')
+const levelStore = require('mqtt-level-store');
 const path = require('path')
 
 const nonAlphaNumerics = /((?![a-zA-Z0-9]).)/g
@@ -111,9 +111,7 @@ module.exports = function (app) {
         app.getDataDirPath(),
         stashTarget.remoteHost.replace(nonAlphaNumerics, '_')
       )
-      const manager = NeDBStore(dbPath, {
-        outgoing: { autocompactionInterval: 60 * 1000 }
-      })
+      const manager = levelStore(dbPath)
       const mqttOptions = {
         rejectUnauthorized: options.rejectUnauthorized,
         reconnectPeriod: 60000,
