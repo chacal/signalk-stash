@@ -16,7 +16,7 @@
 
 const id = 'signalk-mqtt-stasher'
 const mqtt = require('mqtt')
-const NeDBStore = require('mqtt-nedb-store')
+const levelStore = require('mqtt-level-store');
 const path = require('path')
 
 const nonAlphaNumerics = /((?![a-zA-Z0-9]).)/g
@@ -68,6 +68,11 @@ module.exports = function (app) {
               default: 100,
               title: 'Maximum number of updates to buffer before sending'
             },
+            throttleTime: {
+              type: 'integer',
+              default: 1000,
+              title: 'Throttle deltas per path and $source by this many ms.'
+            },
             sendAll: {
               type: 'boolean',
               default: true,
@@ -111,9 +116,7 @@ module.exports = function (app) {
         app.getDataDirPath(),
         stashTarget.remoteHost.replace(nonAlphaNumerics, '_')
       )
-      const manager = NeDBStore(dbPath, {
-        outgoing: { autocompactionInterval: 60 * 1000 }
-      })
+      const manager = levelStore(dbPath)
       const mqttOptions = {
         rejectUnauthorized: options.rejectUnauthorized,
         reconnectPeriod: 60000,
@@ -168,10 +171,13 @@ module.exports = function (app) {
           updatesAccumulator = updatesAccumulator.concat(delta.updates)
         }
       }
-      app.signalk.on('delta', deltaHandler)
-      plugin.onStop.push(() =>
-        app.signalk.removeListener('delta', deltaHandler)
-      )
+
+      const unsubscribe = app.streambundle.getSelfBus()
+        .groupBy(v => v.$source + '-' + v.path)
+        .flatMap(bySourceAndPath => bySourceAndPath.throttle(stashTarget.throttleTime))
+        .onValue(v => deltaHandler(toDelta(v)))
+
+      plugin.onStop.push(unsubscribe)
 
       let lastSend = 0
       const sendTimer = setInterval(() => {
@@ -204,3 +210,24 @@ module.exports = function (app) {
 
   return plugin
 }
+
+// TODO: This function should be provided by SignalK server
+function toDelta (normalizedDeltaData) {
+  return {
+    context: normalizedDeltaData.context,
+    updates: [
+      {
+        source: normalizedDeltaData.source,
+        $source: normalizedDeltaData['$source'],
+        timestamp: normalizedDeltaData.timestamp,
+        values: [
+          {
+            path: normalizedDeltaData.path,
+            value: normalizedDeltaData.value
+          }
+        ]
+      }
+    ]
+  }
+}
+
