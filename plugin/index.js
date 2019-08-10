@@ -174,7 +174,7 @@ module.exports = function (app) {
 
       const unsubscribe = app.streambundle.getSelfBus()
         .groupBy(v => v.$source + '-' + v.path)
-        .flatMap(bySourceAndPath => bySourceAndPath.throttle(stashTarget.throttleTime))
+        .flatMap(bySourceAndPath => bySourceAndPath.throttle(stashTarget.throttleTime || 1000))
         .onValue(v => deltaHandler(toDelta(v)))
 
       plugin.onStop.push(unsubscribe)
