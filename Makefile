@@ -102,9 +102,6 @@ e2e-mqtt-input: compile
 e2e-api: compile
 	ENVIRONMENT=e2e node $(API_SERVER_DEV_MAIN)
 
-e2e-clickhouse-cli:
-	@docker exec -it signalk-stash-e2e_clickhouse_1  clickhouse-client
-
 e2e-sub:
 	mosquitto_sub -h localhost -p 21883 -u runner -P runnerpasswort -t signalk/delta/+
 
@@ -135,6 +132,8 @@ clickhouse-client-%:
 clickhouse-dev: clickhouse-client-dev
 
 clickhouse-test: clickhouse-client-test
+
+clickhouse-e2e: clickhouse-client-test
 
 clickhouse-prod: .ensure-inventory
 	@$(SSH_PROD) "docker exec -it signalk-stash-prod_clickhouse_1 clickhouse-client"
