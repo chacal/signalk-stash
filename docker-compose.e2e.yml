@@ -42,7 +42,7 @@ services:
     - --sample-nmea0183-data
     - --override-timestamps
     environment:
-    - DEBUG=signalk-mqtt-gw
+    - DEBUG=@signalk/mqtt-stasher,signalk:interfaces:plugins
     ports:
      - 3002:3000
     volumes:
