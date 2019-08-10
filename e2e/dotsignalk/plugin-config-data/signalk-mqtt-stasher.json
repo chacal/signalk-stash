@@ -10,7 +10,8 @@
         "rejectUnauthorized": false,
         "bufferTime": 5,
         "maxUpdatesToBuffer": 100,
-        "sendAll": true
+        "sendAll": true,
+        "throttleTime": 1000
       }
     ]
   }
