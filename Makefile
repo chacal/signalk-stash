@@ -74,6 +74,13 @@ docker-%-stop:
 docker-%-down:
 	@docker-compose -f docker-compose.$*.yml -p signalk-stash-$* down
 
+purge-docker:
+	@docker system prune -a -f
+
+purge-test: docker-test-down purge-docker clean
+
+purge-all: docker-dev-down docker-e2e-down purge-test
+
 e2e-plugin-install:
 	cd plugin; npm pack; cd ../e2e/dotsignalk; npm install ../../plugin/signalk-mqtt-stasher-*.tgz
 
