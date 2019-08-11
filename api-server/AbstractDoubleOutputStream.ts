@@ -1,5 +1,8 @@
+import Debug from 'debug'
 import { Writable, WritableOptions } from 'stream'
 import CountDownLatch from './CountDownLatch'
+
+const debug = Debug('stash:AbstractDoubleOutputStream')
 
 export type OutputStates = [boolean, boolean]
 
@@ -11,6 +14,7 @@ export default abstract class AbstractDoubleOutputStream<T> extends Writable {
   ) {
     super(opts)
     this.on('finish', () => {
+      debug('finish called')
       output1.end()
       output2.end()
     })
