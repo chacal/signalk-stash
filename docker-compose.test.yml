@@ -7,7 +7,7 @@ services:
      - 48123:8123
      - 49000:9000
   postgis:
-    image: mdillon/postgis:10-alpine
+    image: mdillon/postgis:11-alpine
     ports:
      - 45432:5432
     restart: always
