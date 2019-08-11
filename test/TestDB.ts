@@ -42,21 +42,18 @@ class TestDB {
 
   private waitForClickHouseTables() {
     return Promise.all([
-      waitFor(
-        () => {
-          debug('Waiting for ClickHouse value trackpoint..')
-          return this.ch.querying('SELECT 1 FROM trackpoint')
-        },
-        () => true
-      ),
-      waitFor(
-        () => {
-          debug('Waiting for ClickHouse value table..')
-          return this.ch.querying('SELECT 1 FROM value')
-        },
-        () => true
-      )
+      this.waitTableExists('trackpoint'),
+      this.waitTableExists('value')
     ])
+  }
+
+  private waitTableExists(table: string) {
+    return waitFor(() => this.queryTableExists(table), () => true)
+  }
+
+  private queryTableExists(table: string) {
+    debug(`Checking for ClickHouse table ${table}..`)
+    return this.ch.querying(`SELECT 1 FROM ${table}`)
   }
 }
 
