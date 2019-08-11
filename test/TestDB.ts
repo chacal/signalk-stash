@@ -30,6 +30,7 @@ class TestDB {
       )
       .then(() => this.ch.querying('DROP TABLE IF EXISTS trackpoint'))
       .then(() => this.ch.querying('DROP TABLE IF EXISTS value'))
+      .then(() => this.waitForClickHouseTablesDropped())
       .then(() => StashDB.ensureTables())
       .then(() => this.waitForClickHouseTables())
   }
@@ -47,13 +48,39 @@ class TestDB {
     ])
   }
 
+  private waitForClickHouseTablesDropped() {
+    return Promise.all([
+      this.waitTableDoesntExist('trackpoint'),
+      this.waitTableDoesntExist('value')
+    ])
+  }
+
   private waitTableExists(table: string) {
-    return waitFor(() => this.queryTableExists(table), () => true)
+    return waitFor(
+      () => this.queryTableExists(table),
+      tableExists => tableExists
+    )
+  }
+
+  private waitTableDoesntExist(table: string) {
+    return waitFor(
+      () => this.queryTableExists(table),
+      tableExists => tableExists === false
+    )
   }
 
   private queryTableExists(table: string) {
     debug(`Checking for ClickHouse table ${table}..`)
-    return this.ch.querying(`SELECT 1 FROM ${table}`)
+    return this.ch
+      .querying(`SELECT 1 FROM ${table}`)
+      .then(() => true)
+      .catch(r => {
+        if (r.message.includes(`Table default.${table} doesn't exist.`)) {
+          return false
+        } else {
+          throw r
+        }
+      })
   }
 }
 
