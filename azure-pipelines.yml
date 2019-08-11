@@ -16,8 +16,8 @@ jobs:
           failTaskOnFailedTests: true
           testRunTitle: 'Unit tests'
 
-      - script: make purge-test
-        displayName: 'make purge-test'
+      - script: make docker-test-down
+        displayName: 'make docker-test-down'
         condition: succeededOrFailed()
 
   - job: integration_test
@@ -46,8 +46,8 @@ jobs:
           testRunTitle: 'Integration tests'
           mergeTestResults: true
 
-      - script: make purge-test
-        displayName: 'make purge-test'
+      - script: make docker-test-down
+        displayName: 'make docker-test-down'
         condition: succeededOrFailed()
 
   - job: build_containers
