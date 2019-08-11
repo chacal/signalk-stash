@@ -1,9 +1,12 @@
+import Debug from 'debug'
 import { EventEmitter } from 'events'
 import { Duration } from 'js-joda'
 import _ from 'lodash'
 import { Writable } from 'stream'
 import ArrayReadable from './ArrayReadable'
 import Timeout = NodeJS.Timeout
+
+const debug = Debug('stash:BufferingWritableStream')
 
 export type Callback = (err?: Error) => void
 
@@ -22,6 +25,7 @@ export default class BufferingWritableStream<T> extends Writable {
     super({ highWaterMark: 1, objectMode: true })
     this.intervalId = setInterval(() => {
       if (!this.isFlushing) {
+        debug('Flushing due to timer')
         this.flushCurrentBuffer()
       }
     }, this.flushInterval.toMillis())
@@ -47,6 +51,7 @@ export default class BufferingWritableStream<T> extends Writable {
   }
 
   _final(cb: Callback) {
+    debug('_final')
     clearInterval(this.intervalId)
     if (this.isFlushing) {
       this.flushedEmitter.once('flushed', () => this.flushCurrentBuffer(cb))
@@ -62,6 +67,7 @@ export default class BufferingWritableStream<T> extends Writable {
   }
 
   doFlushBuffer(buffer: T[], done: Callback) {
+    debug('doFlushBuffer')
     const output = this.createNewOutput((err?: Error) => {
       if (err) {
         console.error(err)
@@ -72,6 +78,7 @@ export default class BufferingWritableStream<T> extends Writable {
       } else {
         this.isFlushing = false
         this.flushedEmitter.emit('flushed')
+        debug('flushed')
         done()
       }
     })
