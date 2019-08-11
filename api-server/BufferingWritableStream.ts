@@ -3,6 +3,7 @@ import { Duration } from 'js-joda'
 import _ from 'lodash'
 import { Writable } from 'stream'
 import ArrayReadable from './ArrayReadable'
+import Timeout = NodeJS.Timeout
 
 export type Callback = (err?: Error) => void
 
@@ -10,6 +11,7 @@ export default class BufferingWritableStream<T> extends Writable {
   private buffer: T[] = []
   private flushedEmitter: EventEmitter = new EventEmitter()
   private isFlushing = false
+  private readonly intervalId: Timeout
 
   constructor(
     private readonly createNewOutput: (done: Callback) => Writable,
@@ -18,7 +20,7 @@ export default class BufferingWritableStream<T> extends Writable {
     private readonly retryInterval: Duration = Duration.ofMillis(1000)
   ) {
     super({ highWaterMark: 1, objectMode: true })
-    setInterval(() => {
+    this.intervalId = setInterval(() => {
       if (!this.isFlushing) {
         this.flushCurrentBuffer()
       }
@@ -45,6 +47,7 @@ export default class BufferingWritableStream<T> extends Writable {
   }
 
   _final(cb: Callback) {
+    clearInterval(this.intervalId)
     if (this.isFlushing) {
       this.flushedEmitter.once('flushed', () => this.flushCurrentBuffer(cb))
     } else {
