@@ -2,7 +2,7 @@ jobs:
   - job: unit_test
     displayName: Unit tests
     pool:
-      vmImage: 'Ubuntu-16.04'
+      name: 'Self hosted'
     steps:
       - template: .azure_pipelines/setup-test-environment.yml
 
@@ -16,10 +16,14 @@ jobs:
           failTaskOnFailedTests: true
           testRunTitle: 'Unit tests'
 
+      - script: make purge-test
+        displayName: 'make purge-test'
+        condition: succeededOrFailed()
+
   - job: integration_test
     displayName: Integration tests
     pool:
-      vmImage: 'Ubuntu-16.04'
+      name: 'Self hosted'
     steps:
       - template: .azure_pipelines/setup-test-environment.yml
 
@@ -41,6 +45,10 @@ jobs:
           failTaskOnFailedTests: true
           testRunTitle: 'Integration tests'
           mergeTestResults: true
+
+      - script: make purge-test
+        displayName: 'make purge-test'
+        condition: succeededOrFailed()
 
   - job: build_containers
     displayName: Build containers
