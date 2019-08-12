@@ -112,36 +112,38 @@ export default class MqttDeltaInput {
         undefined
     )
 
-    const latestUpdateWithPosition = _.sortBy(updatesWithPosition, upd =>
-      upd.timestamp.getTime()
-    ).slice(-1)[0]
+    if (updatesWithPosition.length > 0) {
+      const latestUpdateWithPosition = _.sortBy(updatesWithPosition, upd =>
+        upd.timestamp.getTime()
+      ).slice(-1)[0]
 
-    const positionValue = latestUpdateWithPosition.values.find(
-      val => val.path === 'navigation.position'
-    ) as SKValue
+      const positionValue = latestUpdateWithPosition.values.find(
+        val => val.path === 'navigation.position'
+      ) as SKValue
 
-    const newPositionDelta = new SKDelta(delta.context, [
-      new SKUpdate(
-        latestUpdateWithPosition.$source,
-        latestUpdateWithPosition.timestamp,
-        [positionValue],
-        latestUpdateWithPosition.source
+      const newPositionDelta = new SKDelta(delta.context, [
+        new SKUpdate(
+          latestUpdateWithPosition.$source,
+          latestUpdateWithPosition.timestamp,
+          [positionValue],
+          latestUpdateWithPosition.source
+        )
+      ])
+
+      const latestPositionTopic =
+        deltaTopicFor(newPositionDelta.context) +
+        '/latest/' +
+        positionValue.path.replace('.', '/')
+
+      this.mqttClient.publish(
+        latestPositionTopic,
+        JSON.stringify(newPositionDelta),
+        {
+          qos: 0,
+          retain: true
+        }
       )
-    ])
-
-    const latestPositionTopic =
-      deltaTopicFor(newPositionDelta.context) +
-      '/latest/' +
-      positionValue.path.replace('.', '/')
-
-    this.mqttClient.publish(
-      latestPositionTopic,
-      JSON.stringify(newPositionDelta),
-      {
-        qos: 0,
-        retain: true
-      }
-    )
+    }
   }
 }
 
