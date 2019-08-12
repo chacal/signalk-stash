@@ -22,6 +22,7 @@ services:
       dockerfile: Dockerfile.mosquitto
     ports:
      - 41883:1883
+     - 49883:9883
     volumes:
       - mosquitto-data:/var/lib/mosquitto
     restart: always

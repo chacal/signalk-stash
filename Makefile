@@ -113,6 +113,9 @@ mqtt-input: compile docker-dev-up
 psql-dev:
 	@psql 'postgresql://signalk:signalk@localhost:55432/signalk'
 
+psql-e2e:
+	@psql 'postgresql://signalk:signalk@localhost:25432/signalk'
+
 psql-test:
 	@psql 'postgresql://signalk:signalk@localhost:45432/signalk'
 

@@ -21,6 +21,7 @@ services:
     image: signalkstash/mosquitto
     ports:
      - 21883:1883
+     - 29883:9883
     volumes:
       - mosquitto-data-e2e:/var/lib/mosquitto
     restart: always

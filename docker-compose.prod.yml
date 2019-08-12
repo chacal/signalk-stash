@@ -36,8 +36,9 @@ services:
   mqtt:
     image: signalkstash/mosquitto:prod
     ports:
-      - 1883:1883
-      - 8883:8883
+      - 1883:1883  # plaintext mqtt
+      - 8883:8883  # mqtt over tls v1.2
+      - 9883:9883  # mqtt over ws
     volumes:
       - mosquitto-data:/var/lib/mosquitto
       - ./mosquitto_tls.conf:/etc/mosquitto.d/mosquitto_tls.conf

@@ -11,11 +11,10 @@ interface StringIndexable {
   [propName: string]: string | number | boolean | {}
 }
 
-export interface MqttConfig {
+export interface MqttCredentials {
   username: string
   password: string
-  broker: string
-  clientId: string
+  clientId?: string
 }
 
 export interface IConfig extends StringIndexable {
@@ -36,7 +35,11 @@ export interface IConfig extends StringIndexable {
   isUnitTesting: boolean
   isIntegrationTesting: boolean
   isProduction: boolean
-  mqtt: MqttConfig
+  mqtt: {
+    broker: string
+    runner: MqttCredentials
+    latestReader: MqttCredentials
+  }
   deltaWriteStreamBufferSize: number
   deltaWriteStreamFlushPeriod: Duration
   deltaWriteStreamFlushRetryPeriod: Duration
@@ -67,10 +70,16 @@ const baseConfig = {
   isIntegrationTesting,
   isProduction,
   mqtt: {
-    username: 'runner',
-    password: 'runnerpasswort',
-    clientId: 'runner',
-    broker: 'mqtt://localhost:1883'
+    broker: 'mqtt://localhost:1883',
+    runner: {
+      username: 'runner',
+      password: 'runnerpasswort',
+      clientId: 'runner'
+    },
+    latestReader: {
+      username: 'latestreader',
+      password: 'latestreaderpasswort'
+    }
   },
   deltaWriteStreamBufferSize: 100,
   deltaWriteStreamFlushPeriod: Duration.ofMillis(10000),
@@ -89,7 +98,8 @@ const testConfig = {
   mqtt: {
     broker: 'mqtt://localhost:41883'
   },
-  port: 43000
+  port: 43000,
+  deltaWriteStreamFlushPeriod: Duration.ofMillis(100)
 }
 
 const environments: IEnvironments = {

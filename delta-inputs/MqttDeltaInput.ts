@@ -1,6 +1,7 @@
 import { QueryStream } from '@apla/clickhouse'
-import { SKDelta } from '@chacal/signalk-ts'
+import { SKContext, SKDelta, SKUpdate, SKValue } from '@chacal/signalk-ts'
 import BPromise from 'bluebird'
+import _ from 'lodash'
 import * as mqtt from 'mqtt'
 import { IPublishPacket } from 'mqtt-packet'
 
@@ -10,6 +11,8 @@ export const DELTABASETOPIC: MqttTopic = 'signalk/delta'
 const TOPICPREFIXLENGTH: number = DELTABASETOPIC.length + 1
 export const DELTAWILDCARDTOPIC: MqttTopic = DELTABASETOPIC + '/+'
 export const DELTASTATSWILDCARDTOPIC: MqttTopic = DELTABASETOPIC + '/+/stats'
+export const DELTALATESTSWILDCARDTOPIC: MqttTopic =
+  DELTABASETOPIC + '/+/latest/#'
 const VESSELSPREFIX: string = 'vessels.'
 const VESSELSPREFIXLENGTH: number = VESSELSPREFIX.length
 
@@ -26,10 +29,7 @@ export default class MqttDeltaInput {
     setInterval(() => {
       const now = new Date().toISOString()
       Object.keys(this.deltaCounts).forEach(context => {
-        const topic =
-          'signalk/delta/' +
-          context.substring(VESSELSPREFIXLENGTH, context.length) +
-          '/stats'
+        const topic = deltaTopicFor(context) + '/stats'
         this.mqttClient.publish(
           topic,
           JSON.stringify({
@@ -94,6 +94,7 @@ export default class MqttDeltaInput {
         if (contextMatchesTopic(packet.topic, delta)) {
           this.deltaCounts[delta.context] =
             (this.deltaCounts[delta.context] || 0) + 1
+          this.publishToLatestDeltaTopics(delta)
           if (this.deltaWriteStream.write(delta)) {
             done()
           } else {
@@ -103,17 +104,64 @@ export default class MqttDeltaInput {
       }
     }
   }
+
+  publishToLatestDeltaTopics(delta: SKDelta) {
+    const updatesWithPosition = delta.updates.filter(
+      upd =>
+        upd.values.find(value => value.path === 'navigation.position') !==
+        undefined
+    )
+
+    const latestUpdateWithPosition = _.sortBy(updatesWithPosition, upd =>
+      upd.timestamp.getTime()
+    ).slice(-1)[0]
+
+    const positionValue = latestUpdateWithPosition.values.find(
+      val => val.path === 'navigation.position'
+    ) as SKValue
+
+    const newPositionDelta = new SKDelta(delta.context, [
+      new SKUpdate(
+        latestUpdateWithPosition.$source,
+        latestUpdateWithPosition.timestamp,
+        [positionValue],
+        latestUpdateWithPosition.source
+      )
+    ])
+
+    const latestPositionTopic =
+      deltaTopicFor(newPositionDelta.context) +
+      '/latest/' +
+      positionValue.path.replace('.', '/')
+
+    this.mqttClient.publish(
+      latestPositionTopic,
+      JSON.stringify(newPositionDelta),
+      {
+        qos: 0,
+        retain: true
+      }
+    )
+  }
+}
+
+function deltaTopicFor(context: SKContext): string {
+  return `${DELTABASETOPIC}/${context.substring(
+    VESSELSPREFIXLENGTH,
+    context.length
+  )}`
 }
 
 function contextMatchesTopic(topic: string, delta: SKDelta): boolean {
-  return (
-    topic.substring(TOPICPREFIXLENGTH, topic.length) ===
-    delta.context.substring(VESSELSPREFIXLENGTH, delta.context.length)
-  )
+  return topic === deltaTopicFor(delta.context)
 }
 
 export function vesselTopic(vesselUuid: string): string {
   return `${DELTABASETOPIC}/${vesselUuid}`
+}
+
+export function latestDeltaTopic(vesselUuid: string): string {
+  return `${DELTABASETOPIC}/${vesselUuid}/latest`
 }
 
 function isPublishPacket(object: any): object is IPublishPacket {

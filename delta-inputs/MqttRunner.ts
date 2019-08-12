@@ -1,10 +1,11 @@
 import BPromise from 'bluebird'
 import * as mqtt from 'mqtt'
 import { MqttClient } from 'mqtt'
-import config, { MqttConfig } from '../api-server/Config'
+import config, { MqttCredentials } from '../api-server/Config'
 import DB from '../api-server/db/StashDB'
 import { MqttAccount, MqttACL, MqttACLLevel } from '../api-server/domain/Auth'
 import MqttDeltaInput, {
+  DELTALATESTSWILDCARDTOPIC,
   DELTASTATSWILDCARDTOPIC,
   DELTAWILDCARDTOPIC
 } from './MqttDeltaInput'
@@ -15,7 +16,7 @@ export default class MqttRunner {
   start() {
     return DB.ensureTables()
       .then(() => this.insertRunnerAccountIfNeeded())
-      .then(() => startMqttClient(config.mqtt))
+      .then(() => startMqttClient(config.mqtt.broker, config.mqtt.runner))
       .then(mqttClient => {
         this.deltaInput = new MqttDeltaInput(mqttClient, DB.deltaWriteStream())
         this.mqttClient = mqttClient
@@ -39,22 +40,23 @@ export default class MqttRunner {
 
   private insertRunnerAccountIfNeeded() {
     if (!config.isTesting) {
-      // Runner account is an MQTT superuser as wildcard subscriptions don't work with Mosquitto auth plugin at the moment..
-      return insertRunnerAccount(
-        new MqttAccount(config.mqtt.username, config.mqtt.password, true)
-      )
+      return insertRunnerAccountFromConfig()
     } else {
       return Promise.resolve()
     }
   }
 }
 
-export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
-  const client = mqtt.connect(config.broker, {
-    username: config.username,
-    password: config.password,
-    clientId: config.clientId,
-    clean: false
+export async function startMqttClient(
+  broker: string,
+  creds: MqttCredentials,
+  clean: boolean = false
+): Promise<MqttClient> {
+  const client = mqtt.connect(broker, {
+    username: creds.username,
+    password: creds.password,
+    clientId: creds.clientId,
+    clean
   })
   client.on('connect', () => console.log('Connected to MQTT server'))
   client.on('offline', () => console.log('Disconnected from MQTT server'))
@@ -65,12 +67,22 @@ export function startMqttClient(config: MqttConfig): BPromise<MqttClient> {
   ).then(() => client)
 }
 
-export async function insertRunnerAccount(account: MqttAccount) {
+export async function insertRunnerAccountFromConfig() {
+  // Runner account is an MQTT superuser as wildcard subscriptions don't work with Mosquitto auth plugin at the moment..
+  const account = new MqttAccount(
+    config.mqtt.runner.username,
+    config.mqtt.runner.password,
+    true
+  )
+
   await DB.upsertAccount(account)
   await DB.upsertAcl(
     new MqttACL(account.username, DELTAWILDCARDTOPIC, MqttACLLevel.ALL)
   )
   await DB.upsertAcl(
     new MqttACL(account.username, DELTASTATSWILDCARDTOPIC, MqttACLLevel.ALL)
+  )
+  await DB.upsertAcl(
+    new MqttACL(account.username, DELTALATESTSWILDCARDTOPIC, MqttACLLevel.ALL)
   )
 }

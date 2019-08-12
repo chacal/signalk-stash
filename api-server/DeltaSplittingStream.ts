@@ -24,14 +24,14 @@ export default class DeltaSplittingStream extends AbstractDoubleOutputStream<
 
     const { context, updates } = delta
     updates.forEach(update => {
-      const { timestamp, sourceRef } = update
+      const { timestamp, $source } = update
       return update.values.forEach(pathValue => {
         if (pathValue.path === 'navigation.position') {
           const position = pathValue.value as SKPosition // TODO: Add type guard to SKPosition
           const point = new Trackpoint(
             stripVesselsPrefix(context),
             ZonedDateTime.from(nativeJs(timestamp)),
-            sourceRef,
+            $source,
             Coords.fromSKPosition(position)
           )
           canWritePoints = canWritePoints && this.trackPointStream.write(point)
@@ -39,7 +39,7 @@ export default class DeltaSplittingStream extends AbstractDoubleOutputStream<
           const value = new PathValue(
             stripVesselsPrefix(context),
             ZonedDateTime.from(nativeJs(timestamp)),
-            sourceRef,
+            $source,
             pathValue
           )
           canWriteValues = canWriteValues && this.pathValueStream.write(value)
