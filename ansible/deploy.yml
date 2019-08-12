@@ -5,8 +5,8 @@
   vars:
     hostname: "{{ lookup('env','SIGNALK_STASH_PROD_HOST') }}"
     mqtt_runner:
-      username: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_USERNAME') }}"
-      password: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_PASSWORD') }}"
+      username: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_RUNNER_USERNAME') }}"
+      password: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_RUNNER_PASSWORD') }}"
     mqtt_latestreader:
       username: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_LATESTREADER_USERNAME') }}"
       password: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_LATESTREADER_PASSWORD') }}"
@@ -21,20 +21,20 @@
 
     - name: Fail if MQTT runner credentials are missing
       fail:
-        msg: "Mqtt runner credentials are missing. Set SIGNALK_STASH_PROD_MQTT_USERNAME and SIGNALK_STASH_PROD_MQTT_PASSWORD variables."
+        msg: "Mqtt runner credentials are missing. Set SIGNALK_STASH_PROD_MQTT_RUNNER_USERNAME and SIGNALK_STASH_PROD_MQTT_RUNNER_PASSWORD variables."
       when: mqtt_runner.username == "" or mqtt_runner.password == ""
 
     - name: Fail if MQTT latest reader credentials are missing
       fail:
-        msg: "Mqtt latest reader credentials are missing. Set SIGNALK_STASH_PROD_MQTT_LATESTREADER_USERNAME and SIGNALK_STASH_PROD_MQTTLATEST_READER_PASSWORD variables."
+        msg: "Mqtt latest reader credentials are missing. Set SIGNALK_STASH_PROD_MQTT_LATESTREADER_USERNAME and SIGNALK_STASH_PROD_MQTT_LATESTREADER_PASSWORD variables."
       when: mqtt_latestreader.username == "" or mqtt_latestreader.password == ""
 
     - name: Generate Docker environment file
       copy:
         dest: docker-prod.env
         content: |
-          SIGNALK_STASH_PROD_MQTT_USERNAME={{ mqtt_runner.username }}
-          SIGNALK_STASH_PROD_MQTT_PASSWORD={{ mqtt_runner.password }}
+          SIGNALK_STASH_PROD_MQTT_RUNNER_USERNAME={{ mqtt_runner.username }}
+          SIGNALK_STASH_PROD_MQTT_RUNNER_PASSWORD={{ mqtt_runner.password }}
           SIGNALK_STASH_PROD_MQTT_LATESTREADER_USERNAME={{mqtt_latestreader.username}}
           SIGNALK_STASH_PROD_MQTT_LATESTREADER_PASSWORD={{mqtt_latestreader.password}}
 
