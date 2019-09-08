@@ -25,6 +25,7 @@ export
 
 clean:
 	@rm -rf built
+	@rm -rf test_reports
 
 compile: clean
 	@$(TSC)
