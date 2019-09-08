@@ -1,5 +1,12 @@
 import * as React from 'react'
+import { AppState } from './ui-domain'
 
-const App = () => <React.Fragment>Hello World!</React.Fragment>
+interface AppProps {
+  appState: AppState
+}
+
+const App = ({ appState }: AppProps) => (
+  <React.Fragment>Hello World!</React.Fragment>
+)
 
 export default App
