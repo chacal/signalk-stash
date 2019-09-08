@@ -1,12 +1,20 @@
 import * as React from 'react'
-import { AppState } from './ui-domain'
+
+import Map from './Map'
+import { AppState, initialMapCenter } from './ui-domain'
 
 interface AppProps {
   appState: AppState
 }
 
 const App = ({ appState }: AppProps) => (
-  <React.Fragment>Hello World!</React.Fragment>
+  <React.Fragment>
+    <Map
+      center={initialMapCenter}
+      viewportA={appState.viewport}
+      tracksO={appState.renderedTracks}
+    />
+  </React.Fragment>
 )
 
 export default App
