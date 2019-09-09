@@ -1,7 +1,9 @@
 import { combineTemplate, Observable, Property } from 'baconjs'
+import Color = require('color')
+import palette from 'google-palette'
 import _ from 'lodash'
 
-import { VesselId } from '../domain/Vessel'
+import { VesselData, VesselId } from '../domain/Vessel'
 import { loadTracks } from './backend-requests'
 import {
   initialViewport,
@@ -108,4 +110,15 @@ function vesselIdsMissingTracks(
 ) {
   const vesselIdsWithTrack = loadedTracks.map(t => t.vesselId)
   return _.without(selectedVessels, ...vesselIdsWithTrack)
+}
+
+export function assignColors(vessels: VesselData[]): Vessel[] {
+  const colors = palette('mpn65', vessels.length)
+  return vessels.map((v, idx) => ({
+    vesselId: v.vesselId,
+    name: v.name,
+    trackColor: Color(`#${colors[idx % colors.length]}`)
+      .desaturate(0.5)
+      .lighten(0.06)
+  }))
 }

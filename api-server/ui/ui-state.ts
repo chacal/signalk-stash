@@ -4,6 +4,7 @@ import { Atom } from '../domain/Atom'
 import { loadVessels } from './backend-requests'
 import { AppState, initialViewport } from './ui-domain'
 import {
+  assignColors,
   saveSelectedVesselsToLocalStorage,
   selectedVesselsFromLocalStorageOrDefault,
   startTrackLoading,
@@ -38,12 +39,14 @@ export function initializeUiState() {
   appState.selectedVessels.onValue(sv => saveSelectedVesselsToLocalStorage(sv))
 
   // Load vessels and initialize selected vessels list
-  loadVessels().onValue(vessels => {
-    appState.vessels.set(vessels)
-    appState.selectedVessels.set(
-      _.intersection(initialSelectedVessels, vessels.map(v => v.vesselId))
-    )
-  })
+  loadVessels()
+    .map(assignColors)
+    .onValue(vessels => {
+      appState.vessels.set(vessels)
+      appState.selectedVessels.set(
+        _.intersection(initialSelectedVessels, vessels.map(v => v.vesselId))
+      )
+    })
 
   return appState
 }
