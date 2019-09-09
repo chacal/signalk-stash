@@ -4,7 +4,7 @@ import palette from 'google-palette'
 import _ from 'lodash'
 
 import { VesselData, VesselId } from '../domain/Vessel'
-import { loadTracks } from './backend-requests'
+import { loadMissingTracks } from './backend-requests'
 import {
   initialViewport,
   LoadedTrack,
@@ -31,7 +31,7 @@ export function startTrackLoading(
       { viewport: initialViewport, tracks: [] },
       (acc, { selectedVessels, viewport }) => {
         const loadedTracks = !_.isEqual(acc.viewport, viewport)
-          ? loadTracks(selectedVessels, viewport) // Load tracks for all selected vessels
+          ? loadMissingTracks([], selectedVessels, viewport) // Load tracks for all selected vessels
           : loadMissingTracks(acc.tracks, selectedVessels, viewport) // Load missing tracks
         return loadedTracks.map(tracks => ({
           tracks,
@@ -88,28 +88,6 @@ export function selectedVesselsFromLocalStorageOrDefault() {
   } catch {
     return []
   }
-}
-
-function loadMissingTracks(
-  alreadyLoadedTracks: LoadedTrack[],
-  selectedVessels: VesselId[],
-  viewport: Viewport
-) {
-  const vesselsIdsMissingTracks = vesselIdsMissingTracks(
-    alreadyLoadedTracks,
-    selectedVessels
-  )
-  return loadTracks(vesselsIdsMissingTracks, viewport).map(loadedMissing =>
-    _.concat(alreadyLoadedTracks, loadedMissing)
-  )
-}
-
-function vesselIdsMissingTracks(
-  loadedTracks: LoadedTrack[],
-  selectedVessels: VesselId[]
-) {
-  const vesselIdsWithTrack = loadedTracks.map(t => t.vesselId)
-  return _.without(selectedVessels, ...vesselIdsWithTrack)
 }
 
 export function assignColors(vessels: VesselData[]): Vessel[] {

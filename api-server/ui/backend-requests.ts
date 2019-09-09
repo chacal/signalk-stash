@@ -1,5 +1,6 @@
 import { fromPromise, Observable } from 'baconjs'
 import Debug from 'debug'
+import _ from 'lodash'
 
 import { toQueryString } from '../domain/Geo'
 import { VesselData, VesselId } from '../domain/Vessel'
@@ -29,11 +30,19 @@ async function loadTrack(
   }
 }
 
-export function loadTracks(
-  vesselIds: VesselId[],
+export function loadMissingTracks(
+  alreadyLoadedTracks: LoadedTrack[],
+  selectedVessels: VesselId[],
   viewport: Viewport
 ): Observable<LoadedTrack[]> {
+  const vesselIdsWithTrack = alreadyLoadedTracks.map(t => t.vesselId)
+  const vesselsIdsMissingTracks = _.without(
+    selectedVessels,
+    ...vesselIdsWithTrack
+  )
   return fromPromise(
-    Promise.all(vesselIds.map(vesselId => loadTrack(vesselId, viewport)))
+    Promise.all(
+      vesselsIdsMissingTracks.map(vesselId => loadTrack(vesselId, viewport))
+    )
   )
 }
