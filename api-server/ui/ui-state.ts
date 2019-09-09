@@ -34,9 +34,6 @@ export function initializeUiState() {
   const initialSelectedVessels = selectedVesselsFromLocalStorageOrDefault()
   const appState = createAppState()
 
-  appState.tracksToRender.log('RenderedTracks')
-  appState.loadedTracks.log('LoadedTracks')
-
   // Save vessel selections to local storage
   appState.selectedVessels.onValue(sv => saveSelectedVesselsToLocalStorage(sv))
 
