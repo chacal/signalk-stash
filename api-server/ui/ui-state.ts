@@ -40,8 +40,8 @@ export function initializeUiState() {
 
   // Load vessels and initialize selected vessels list
   loadVessels()
-    .map(assignColors)
-    .onValue(vessels => {
+    .then(assignColors)
+    .then(vessels => {
       appState.vessels.set(vessels)
       appState.selectedVessels.set(
         _.intersection(initialSelectedVessels, vessels.map(v => v.vesselId))

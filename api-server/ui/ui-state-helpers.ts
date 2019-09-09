@@ -1,4 +1,4 @@
-import { combineTemplate, Observable, Property } from 'baconjs'
+import { combineTemplate, fromPromise, Observable, Property } from 'baconjs'
 import Color = require('color')
 import palette from 'google-palette'
 import _ from 'lodash'
@@ -33,7 +33,7 @@ export function startTrackLoading(
         const loadedTracks = !_.isEqual(acc.viewport, viewport)
           ? loadMissingTracks([], selectedVessels, viewport) // Load tracks for all selected vessels
           : loadMissingTracks(acc.tracks, selectedVessels, viewport) // Load missing tracks
-        return loadedTracks.map(tracks => ({
+        return fromPromise(loadedTracks).map(tracks => ({
           tracks,
           viewport
         }))

@@ -1,4 +1,3 @@
-import { fromPromise, Observable } from 'baconjs'
 import Debug from 'debug'
 import _ from 'lodash'
 
@@ -8,9 +7,9 @@ import { LoadedTrack, Viewport } from './ui-domain'
 
 const debug = Debug('stash:backend-requests')
 
-export function loadVessels(): Observable<VesselData[]> {
+export function loadVessels(): Promise<VesselData[]> {
   debug('Loading vessels..')
-  return fromPromise(fetch(`/contexts`).then(res => res.json()))
+  return fetch(`/contexts`).then(res => res.json())
 }
 
 async function loadTrack(
@@ -34,15 +33,13 @@ export function loadMissingTracks(
   alreadyLoadedTracks: LoadedTrack[],
   selectedVessels: VesselId[],
   viewport: Viewport
-): Observable<LoadedTrack[]> {
+): Promise<LoadedTrack[]> {
   const vesselIdsWithTrack = alreadyLoadedTracks.map(t => t.vesselId)
   const vesselsIdsMissingTracks = _.without(
     selectedVessels,
     ...vesselIdsWithTrack
   )
-  return fromPromise(
-    Promise.all(
-      vesselsIdsMissingTracks.map(vesselId => loadTrack(vesselId, viewport))
-    )
+  return Promise.all(
+    vesselsIdsMissingTracks.map(vesselId => loadTrack(vesselId, viewport))
   )
 }
