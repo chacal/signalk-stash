@@ -47,6 +47,7 @@ export function initializeUiState() {
         _.intersection(initialSelectedVessels, vessels.map(v => v.vesselId))
       )
     })
+    .catch(e => console.error('Error loading vessels!', e))
 
   return appState
 }
