@@ -16,7 +16,7 @@ interface TracksWithViewport {
   tracks: LoadedTrack[]
 }
 
-export function getLoadedTracks(
+export function startTrackLoading(
   selectedVessels: Observable<VesselId[]>,
   viewport: Observable<Viewport>
 ): Property<LoadedTrack[]> {
@@ -41,7 +41,7 @@ export function getLoadedTracks(
     .map(acc => acc.tracks)
 }
 
-export function getRenderedTracks(
+export function toTracksToRender(
   allVessels: Observable<Vessel[]>,
   selectedVessels: Observable<VesselId[]>,
   loadedTracks: Observable<LoadedTrack[]>
@@ -79,7 +79,7 @@ export function saveSelectedVesselsToLocalStorage(selectedVessels: VesselId[]) {
   }
 }
 
-export function selectedStateFromLocalStorageOrDefault() {
+export function selectedVesselsFromLocalStorageOrDefault() {
   try {
     const state = localStorage.getItem('selectedVessels')
     return !!state ? (JSON.parse(state) as VesselId[]) : []

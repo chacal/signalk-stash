@@ -13,7 +13,7 @@ const App = ({ appState }: AppProps) => (
     <Map
       center={initialMapCenter}
       viewportA={appState.viewport}
-      tracksO={appState.renderedTracks}
+      tracksO={appState.tracksToRender}
     />
     <VesselSelectionPanel
       vesselsP={appState.vessels}

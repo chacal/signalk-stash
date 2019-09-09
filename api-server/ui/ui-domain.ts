@@ -15,7 +15,7 @@ export interface AppState {
   vessels: Atom<Vessel[]>
   selectedVessels: Atom<VesselId[]>
   loadedTracks: Property<LoadedTrack[]>
-  renderedTracks: Property<RenderedTrack[]>
+  tracksToRender: Property<RenderedTrack[]>
 }
 
 export interface Vessel {

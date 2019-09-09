@@ -4,18 +4,18 @@ import { Atom } from '../domain/Atom'
 import { loadVessels } from './backend-requests'
 import { AppState, initialViewport } from './ui-domain'
 import {
-  getLoadedTracks,
-  getRenderedTracks,
   saveSelectedVesselsToLocalStorage,
-  selectedStateFromLocalStorageOrDefault
+  selectedVesselsFromLocalStorageOrDefault,
+  startTrackLoading,
+  toTracksToRender
 } from './ui-state-helpers'
 
 function createAppState(): AppState {
   const vessels = Atom([])
   const selectedVessels = Atom([])
   const viewport = Atom(initialViewport)
-  const loadedTracks = getLoadedTracks(selectedVessels, viewport)
-  const renderedTracks = getRenderedTracks(
+  const loadedTracks = startTrackLoading(selectedVessels, viewport)
+  const tracksToRender = toTracksToRender(
     vessels,
     selectedVessels,
     loadedTracks
@@ -26,15 +26,15 @@ function createAppState(): AppState {
     vessels,
     selectedVessels,
     loadedTracks,
-    renderedTracks
+    tracksToRender
   }
 }
 
 export function initializeUiState() {
-  const previouslySavedVesselSelection = selectedStateFromLocalStorageOrDefault()
+  const initialSelectedVessels = selectedVesselsFromLocalStorageOrDefault()
   const appState = createAppState()
 
-  appState.renderedTracks.log('RenderedTracks')
+  appState.tracksToRender.log('RenderedTracks')
   appState.loadedTracks.log('LoadedTracks')
 
   // Save vessel selections to local storage
@@ -44,10 +44,7 @@ export function initializeUiState() {
   loadVessels().onValue(vessels => {
     appState.vessels.set(vessels)
     appState.selectedVessels.set(
-      _.intersection(
-        previouslySavedVesselSelection,
-        vessels.map(v => v.vesselId)
-      )
+      _.intersection(initialSelectedVessels, vessels.map(v => v.vesselId))
     )
   })
 
