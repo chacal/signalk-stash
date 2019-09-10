@@ -1,10 +1,20 @@
-import { SKContext } from '@chacal/signalk-ts'
-import { createStyles, WithStyles, withStyles } from '@material-ui/core'
-import Color = require('color')
-import * as React from 'karet'
-import * as U from 'karet.util'
-import { Atom } from 'kefir.atom'
-import * as K from './karet-components'
+import {
+  Checkbox,
+  createStyles,
+  List,
+  ListItem,
+  ListItemText,
+  Paper,
+  WithStyles,
+  withStyles
+} from '@material-ui/core'
+import { Property } from 'baconjs'
+import _ from 'lodash'
+import * as React from 'react'
+
+import { Atom } from '../domain/Atom'
+import { VesselId } from '../domain/Vessel'
+import { useObservable } from './bacon-react'
 import { Vessel } from './ui-domain'
 
 //
@@ -16,34 +26,31 @@ const vsStyles = createStyles({
   }
 })
 interface VSProps extends WithStyles<typeof vsStyles> {
-  vessel: Atom<Vessel>
+  vessel: Vessel
+  selected: boolean
+  selectionChanged: (selected: boolean) => void
 }
 
-const VesselSelection = withStyles(vsStyles)(({ vessel, classes }: VSProps) => {
-  const checked = U.view<Atom<boolean>>('selected', vessel)
-  const name = U.view<Atom<SKContext>>('name', vessel)
-  const color = U.view<Atom<Color>>('trackColor', vessel)
-
-  const onClick = () => checked.modify(currentValue => !currentValue)
-
-  return (
-    <K.ListItem
-      button
-      classes={classes}
-      onClick={onClick}
-      data-cy="vessel-selection-panel__vessel"
-    >
-      <K.ListItemText primary={name} />
-      <K.CheckBox
-        color={'primary'}
-        checked={checked}
-        onChange={U.getProps({ checked })}
-        style={{ color }}
-        data-cy="vessel-selection-panel__vessel_checkbox"
-      />
-    </K.ListItem>
-  )
-})
+const VesselSelection = withStyles(vsStyles)(
+  ({ vessel, selected, selectionChanged, classes }: VSProps) => {
+    return (
+      <ListItem
+        button
+        classes={classes}
+        onClick={() => selectionChanged(!selected)}
+        data-cy="vessel-selection-panel__vessel"
+      >
+        <ListItemText primary={vessel.name} />
+        <Checkbox
+          color={'primary'}
+          checked={selected}
+          style={{ color: vessel.trackColor.hex() }}
+          data-cy="vessel-selection-panel__vessel_checkbox"
+        />
+      </ListItem>
+    )
+  }
+)
 
 //
 //   VesselSelectionPanel
@@ -58,23 +65,37 @@ const vspStyles = createStyles({
 })
 
 interface VSPProps extends WithStyles<typeof vspStyles> {
-  vessels: Atom<Vessel[]>
+  vesselsP: Property<Vessel[]>
+  selectedVesselsA: Atom<VesselId[]>
 }
 
 const VesselSelectionPanel = withStyles(vspStyles)(
-  ({ vessels, classes }: VSPProps) => (
-    <K.Paper classes={classes}>
-      <K.List>
-        {U.mapElemsWithIds(
-          'context',
-          (vessel, context) => (
-            <VesselSelection key={context} vessel={vessel} />
-          ),
-          vessels
-        )}
-      </K.List>
-    </K.Paper>
-  )
+  ({ vesselsP, selectedVesselsA, classes }: VSPProps) => {
+    const vessels = useObservable(vesselsP)
+    const selectedVessels = useObservable(selectedVesselsA)
+
+    const vesselSelectionChanged = (vessel: Vessel) => (selected: boolean) => {
+      const newSelection = selected
+        ? _.concat(selectedVessels, vessel.vesselId)
+        : _.without(selectedVessels, vessel.vesselId)
+      selectedVesselsA.set(newSelection)
+    }
+
+    return (
+      <Paper classes={classes}>
+        <List>
+          {vessels.map(v => (
+            <VesselSelection
+              key={v.vesselId}
+              vessel={v}
+              selected={selectedVessels.includes(v.vesselId)}
+              selectionChanged={vesselSelectionChanged(v)}
+            />
+          ))}
+        </List>
+      </Paper>
+    )
+  }
 )
 
 export default VesselSelectionPanel

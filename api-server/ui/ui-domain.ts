@@ -1,62 +1,40 @@
-import { SKContext } from '@chacal/signalk-ts'
+import { Property } from 'baconjs'
 import Color = require('color')
-import * as U from 'karet.util'
-import { Observable } from 'kefir'
-import { Atom } from 'kefir.atom'
 import { LatLngBounds } from 'leaflet'
-import * as L from 'partial.lenses'
+
+import { Atom } from '../domain/Atom'
 import { Coords, TrackGeoJSON } from '../domain/Geo'
+import { VesselId } from '../domain/Vessel'
+
+export const emptyBounds = new LatLngBounds([[0, 0], [0, 0]])
+export const initialViewport = { zoom: 8, bounds: emptyBounds }
+export const initialMapCenter = new Coords({ lat: 60, lng: 22 })
 
 export interface AppState {
-  vessels: Vessel[]
-  map: {
-    center: Coords
-    zoom: number
-    bounds: LatLngBounds
-  }
+  viewport: Atom<Viewport>
+  vessels: Atom<Vessel[]>
+  selectedVessels: Atom<VesselId[]>
+  loadedTracks: Property<LoadedTrack[]>
+  tracksToRender: Property<RenderedTrack[]>
 }
-
-export const bounds = (appState: Atom<AppState>) =>
-  U.view<Atom<LatLngBounds>>(['map', 'bounds'], appState)
-export const zoom = (appState: Atom<AppState>) =>
-  U.view<Atom<number>>(['map', 'zoom'], appState)
-export const vessels = (appState: Atom<AppState>) =>
-  U.view<Atom<Vessel[]>>('vessels', appState)
-export const trackLoadStates = (appState: Atom<AppState>) =>
-  U.view<Atom<LoadState>>([L.elems, 'trackLoadState'], vessels(appState))
-export const selectedVesselsWithTracks = (appState: Atom<AppState>) =>
-  vessels(appState).map(vessels =>
-    vessels.filter(vesselHasTracks).filter(vesselSelected)
-  )
 
 export interface Vessel {
-  context: SKContext
+  vesselId: VesselId
   name: string
-  selected: boolean
-  trackLoadState: LoadState
   trackColor: Color
-  trackLoadTime?: Date
-  track?: TrackGeoJSON
 }
 
-export enum LoadState {
-  NOT_LOADED,
-  LOADING,
-  LOADED
-}
-export const emptyBounds = new LatLngBounds([[0, 0], [0, 0]])
-
-export function mapArrayInObs<T, S>(
-  arrayObs: Observable<T[], any>,
-  mapper: (item: T, index?: number) => S
-) {
-  return arrayObs.map(items => items.map(mapper))
+export interface Viewport {
+  zoom: number
+  bounds: LatLngBounds
 }
 
-function vesselHasTracks(v: Vessel) {
-  return v.track && v.track.coordinates.length > 0
+export interface LoadedTrack {
+  vesselId: VesselId
+  track: TrackGeoJSON
+  loadTime: Date
 }
 
-function vesselSelected(v: Vessel) {
-  return v.selected
+export interface RenderedTrack extends LoadedTrack {
+  color: Color
 }
