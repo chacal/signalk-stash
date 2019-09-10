@@ -35,11 +35,16 @@ export function loadMissingTracks(
   viewport: Viewport
 ): Promise<LoadedTrack[]> {
   const vesselIdsWithTrack = alreadyLoadedTracks.map(t => t.vesselId)
-  const vesselsIdsMissingTracks = _.without(
+  const vesselIdsMissingTracks = _.without(
     selectedVessels,
     ...vesselIdsWithTrack
   )
-  return Promise.all(
-    vesselsIdsMissingTracks.map(vesselId => loadTrack(vesselId, viewport))
-  )
+
+  if (_.isEmpty(vesselIdsMissingTracks)) {
+    return Promise.resolve(alreadyLoadedTracks)
+  } else {
+    return Promise.all(
+      vesselIdsMissingTracks.map(vesselId => loadTrack(vesselId, viewport))
+    ).then(loadedTracks => _.concat(alreadyLoadedTracks, loadedTracks))
+  }
 }
