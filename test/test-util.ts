@@ -1,5 +1,4 @@
 import { SKDelta, SKDeltaJSON } from '@chacal/signalk-ts'
-import BPromise from 'bluebird'
 import { expect } from 'chai'
 import Debug from 'debug'
 import express from 'express'
@@ -35,25 +34,6 @@ export const testVesselUuids = [
   'urn:mrn:signalk:uuid:7434c104-feae-48c8-ab3a-fd3bf4ad552f',
   'urn:mrn:signalk:uuid:7434c104-feae-48c8-ab3a-deadbeefdead'
 ]
-
-export function waitFor<T>(
-  action: () => Promise<T>,
-  predicate: (t: T) => boolean
-): Promise<T> {
-  return action()
-    .then(res => {
-      if (predicate(res)) {
-        return BPromise.resolve(res)
-      } else {
-        return retryAfterDelay()
-      }
-    })
-    .catch(retryAfterDelay)
-
-  function retryAfterDelay() {
-    return BPromise.delay(100).then(() => waitFor(action, predicate))
-  }
-}
 
 export function writeDeltasFromPositionFixture(): Promise<void> {
   debug('Inserting positionFixtures..')

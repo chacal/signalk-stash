@@ -1,7 +1,7 @@
 import Debug from 'debug'
 import Config from '../api-server/Config'
 import StashDB from '../api-server/db/StashDB'
-import { waitFor } from './test-util'
+import { waitFor } from './waiting'
 
 const debug = Debug('stash:TestDB')
 

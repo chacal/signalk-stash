@@ -21,10 +21,10 @@ import {
   positionFixtures,
   testVessel,
   testVesselUuids,
-  vesselMqttPassword,
-  waitFor
+  vesselMqttPassword
 } from './test-util'
 import testdb from './TestDB'
+import { waitFor } from './waiting'
 
 describe('MQTT input', () => {
   const mqttRunner = new MqttRunner()

@@ -7,7 +7,7 @@ import BufferingWritableStream, {
 } from '../api-server/BufferingWritableStream'
 import CountDownLatch from '../api-server/CountDownLatch'
 import EventEmitter = NodeJS.EventEmitter
-import { waitFor } from './test-util'
+import { waitFor } from './waiting'
 
 class TestWritable extends Writable {
   static endFailCount: number = 0
