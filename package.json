@@ -55,7 +55,7 @@
     "react-leaflet": "^2.2.1",
     "style-loader": "^0.23.1",
     "ts-loader": "^5.3.3",
-    "typescript": "^3.3.3333",
+    "typescript": "^3.6.3",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.2.3"
   },

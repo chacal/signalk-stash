@@ -11,10 +11,10 @@ import {
   measurementFixtures,
   positionFixtures,
   testVesselUuids,
-  waitFor,
   writeDeltasFromPositionFixture
 } from './test-util'
 import TestDB from './TestDB'
+import { waitFor } from './waiting'
 
 describe('StashDBB', () => {
   beforeEach(() => TestDB.resetTables())
