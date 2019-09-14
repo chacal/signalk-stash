@@ -150,6 +150,9 @@ ansible-deploy-prod: .ensure-prod-ssh-keypair .check-tag-set  .ensure-inventory
 ssh-prod: .ensure-prod-ssh-keypair  .ensure-inventory
 	@$(SSH_PROD)
 
+tunnel-prod: .ensure-prod-ssh-keypair  .ensure-inventory
+	@$(SSH_PROD) -L38123:127.0.0.1:8123 -L35432:127.0.0.1:5432
+
 docker-build-apiserver:
 	@docker build -t signalkstash/api-server:latest -f Dockerfile.api-server .
 
