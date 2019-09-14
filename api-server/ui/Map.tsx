@@ -6,7 +6,7 @@ import { GeoJSON, Map as LeafletMap, TileLayer } from 'react-leaflet'
 import { Atom } from '../domain/Atom'
 import { Coords } from '../domain/Geo'
 import { useObservable } from './bacon-react'
-import { LoadedTrack, RenderedTrack, Viewport } from './ui-domain'
+import { LoadedTrack, RenderedTrack, Viewport } from './mappanel-domain'
 
 interface MapProps {
   center: Coords

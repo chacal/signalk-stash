@@ -1,25 +1,7 @@
 import * as React from 'react'
+import { loadVessels } from './backend-requests'
+import MapPanel from './MapPanel'
 
-import Map from './Map'
-import { AppState, initialMapCenter } from './ui-domain'
-import VesselSelectionPanel from './VesselSelectionPanel'
-
-interface AppProps {
-  appState: AppState
-}
-
-const App = ({ appState }: AppProps) => (
-  <React.Fragment>
-    <Map
-      center={initialMapCenter}
-      viewportA={appState.viewport}
-      tracksO={appState.tracksToRender}
-    />
-    <VesselSelectionPanel
-      vesselsP={appState.vessels}
-      selectedVesselsA={appState.selectedVessels}
-    />
-  </React.Fragment>
-)
+const App = () => <MapPanel loadVessels={loadVessels} />
 
 export default App
