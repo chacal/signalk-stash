@@ -37,7 +37,10 @@ const Map = ({ center, viewportA, tracksO }: MapProps) => {
       onmoveend={updateBoundsFromEvent}
       ref={updateBoundsFromMap}
     >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        detectRetina={true}
+      />
       <TileLayer url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png" />
       {tracks.map(track => (
         // GeoJSON can't re-render itself when its props change ->
