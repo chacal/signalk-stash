@@ -3,7 +3,7 @@ import _ from 'lodash'
 
 import { toQueryString } from '../domain/Geo'
 import { VesselData, VesselId } from '../domain/Vessel'
-import { LoadedTrack, Viewport } from './ui-domain'
+import { LoadedTrack, Viewport } from './mappanel-domain'
 
 const debug = Debug('stash:backend-requests')
 

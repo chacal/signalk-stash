@@ -6,7 +6,7 @@ import * as React from 'react'
 
 import { Atom } from '../../api-server/domain/Atom'
 import { asVesselId, VesselId } from '../../api-server/domain/Vessel'
-import { Vessel } from '../../api-server/ui/ui-domain'
+import { Vessel } from '../../api-server/ui/mappanel-domain'
 import VesselSelectionPanel from '../../api-server/ui/VesselSelectionPanel'
 import { waitFor } from '../../test/waiting'
 

@@ -1,8 +1,9 @@
-import { combineTemplate, fromPromise, Observable, Property } from 'baconjs'
-import Color = require('color')
-import palette from 'google-palette'
 import _ from 'lodash'
 
+import { combineTemplate, fromPromise, Observable, Property } from 'baconjs'
+import Color from 'color'
+import palette from 'google-palette'
+import { Atom } from '../domain/Atom'
 import { VesselData, VesselId } from '../domain/Vessel'
 import { loadMissingTracks } from './backend-requests'
 import {
@@ -11,14 +12,44 @@ import {
   RenderedTrack,
   Vessel,
   Viewport
-} from './ui-domain'
+} from './mappanel-domain'
+
+export class MapPanelState {
+  vessels: Atom<Vessel[]> = Atom([])
+  selectedVessels: Atom<VesselId[]> = Atom([])
+  viewport: Atom<Viewport> = Atom(initialViewport)
+  loadedTracks: Property<LoadedTrack[]> = startTrackLoading(
+    this.selectedVessels,
+    this.viewport
+  )
+  tracksToRender: Property<RenderedTrack[]> = toTracksToRender(
+    this.vessels,
+    this.selectedVessels,
+    this.loadedTracks
+  )
+
+  initVessels(loadVessels: () => Promise<VesselData[]>) {
+    const initialSelectedVessels = selectedVesselsFromLocalStorageOrDefault()
+    this.selectedVessels.onValue(sv => saveSelectedVesselsToLocalStorage(sv))
+
+    loadVessels()
+      .then(assignColors)
+      .then(vessels => {
+        this.vessels.set(vessels)
+        this.selectedVessels.set(
+          _.intersection(initialSelectedVessels, vessels.map(v => v.vesselId))
+        )
+      })
+      .catch((e: Error) => console.error('Error loading vessels!', e))
+  }
+}
 
 interface TracksWithViewport {
   viewport: Viewport
   tracks: LoadedTrack[]
 }
 
-export function startTrackLoading(
+function startTrackLoading(
   selectedVessels: Observable<VesselId[]>,
   viewport: Observable<Viewport>
 ): Property<LoadedTrack[]> {
@@ -43,7 +74,7 @@ export function startTrackLoading(
     .map(acc => acc.tracks)
 }
 
-export function toTracksToRender(
+function toTracksToRender(
   allVessels: Observable<Vessel[]>,
   selectedVessels: Observable<VesselId[]>,
   loadedTracks: Observable<LoadedTrack[]>
@@ -75,13 +106,13 @@ export function toTracksToRender(
     .skipDuplicates(_.isEqual)
 }
 
-export function saveSelectedVesselsToLocalStorage(selectedVessels: VesselId[]) {
+function saveSelectedVesselsToLocalStorage(selectedVessels: VesselId[]) {
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem('selectedVessels', JSON.stringify(selectedVessels))
   }
 }
 
-export function selectedVesselsFromLocalStorageOrDefault() {
+function selectedVesselsFromLocalStorageOrDefault() {
   try {
     const state = localStorage.getItem('selectedVessels')
     return !!state ? (JSON.parse(state) as VesselId[]) : []
@@ -90,7 +121,7 @@ export function selectedVesselsFromLocalStorageOrDefault() {
   }
 }
 
-export function assignColors(vessels: VesselData[]): Vessel[] {
+function assignColors(vessels: VesselData[]): Vessel[] {
   const colors = palette('mpn65', vessels.length)
   return vessels.map((v, idx) => ({
     vesselId: v.vesselId,

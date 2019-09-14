@@ -8,7 +8,10 @@ import { Atom } from '../../api-server/domain/Atom'
 import { Coords } from '../../api-server/domain/Geo'
 import { asVesselId } from '../../api-server/domain/Vessel'
 import Map from '../../api-server/ui/Map'
-import { initialViewport, RenderedTrack } from '../../api-server/ui/ui-domain'
+import {
+  initialViewport,
+  RenderedTrack
+} from '../../api-server/ui/mappanel-domain'
 import { waitFor } from '../../test/waiting'
 
 configure({ adapter: new Adapter() })
