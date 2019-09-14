@@ -168,8 +168,7 @@ export function getTrackPointsForVessel(
   bbox?: BBox,
   zoomLevel?: ZoomLevel
 ): Promise<Trackpoint[]> {
-  let selectFields =
-    'toUnixTimestamp(ts) as t, millis, context, sourceRef, lat, lng'
+  let selectFields = 'toUnixTimestamp(ts) as t, millis, lat, lng'
   let bboxClause = ''
   let groupByClause = ''
   let orderBy = 't, millis'
@@ -179,8 +178,6 @@ export function getTrackPointsForVessel(
     selectFields = `
         (intDiv(toUnixTimestamp(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) as t,
         0,
-        '${context}',
-        '',
         avg(lat),
         avg(lng)`
     groupByClause = 'GROUP BY t'
@@ -212,5 +209,9 @@ export function getTrackPointsForVessel(
       debug(JSON.stringify(x.statistics) + ' ' + x.data.length)
       return x
     })
-    .then(x => x.data.map(columnsToTrackpoint))
+    .then(x =>
+      x.data.map(([unixTime, millis, lat, lng]: number[]) =>
+        columnsToTrackpoint([unixTime, millis, context, '', lat, lng, ''])
+      )
+    )
 }
