@@ -143,16 +143,17 @@ if (!environments[environment]) {
   )
 }
 const config = _.merge(baseConfig, environments[environment])
-if (config.isProduction) {
-  overrideFromEnvironment(config)
-}
+overrideFromEnvironment(
+  config,
+  config.isProduction ? 'SIGNALK_STASH_PROD_' : 'SIGNALK_STASH_'
+)
 console.log(`Using ${environment} config:\n${JSON.stringify(config, null, 2)}`)
 
 export default config
 
 export function overrideFromEnvironment(
   values: StringIndexable,
-  prefix: string = 'SIGNALK_STASH_PROD_'
+  prefix: string
 ) {
   Object.keys(values).forEach(key => {
     const value = values[key]
