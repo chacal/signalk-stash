@@ -3,16 +3,19 @@ import _ from 'lodash'
 import { combineTemplate, fromPromise, Observable, Property } from 'baconjs'
 import Color from 'color'
 import palette from 'google-palette'
+import { LatLngBounds } from 'leaflet'
 import { Atom } from '../domain/Atom'
+import { Coords } from '../domain/Geo'
 import { VesselData, VesselId } from '../domain/Vessel'
 import { loadMissingTracks } from './backend-requests'
-import {
-  initialViewport,
-  LoadedTrack,
-  RenderedTrack,
-  Vessel,
-  Viewport
-} from './mappanel-domain'
+import { LoadedTrack, RenderedTrack, Vessel, Viewport } from './mappanel-domain'
+
+const emptyBounds = new LatLngBounds([[0, 0], [0, 0]])
+const defaultCenter = new Coords({ lat: 60, lng: 22 })
+export const initialViewport = {
+  zoom: zoomFromLocalStorageOrDefault(),
+  bounds: emptyBounds
+}
 
 export class MapPanelState {
   vessels: Atom<Vessel[]> = Atom([])
@@ -27,6 +30,11 @@ export class MapPanelState {
     this.selectedVessels,
     this.loadedTracks
   )
+  initialMapCenter: Coords = centerFromLocalStorageOrDefault()
+
+  constructor() {
+    this.viewport.onValue(saveViewportToLocalStorage)
+  }
 
   initVessels(loadVessels: () => Promise<VesselData[]>) {
     const initialSelectedVessels = selectedVesselsFromLocalStorageOrDefault()
@@ -51,7 +59,7 @@ interface TracksWithViewport {
 
 function startTrackLoading(
   selectedVessels: Observable<VesselId[]>,
-  viewport: Observable<Viewport>
+  viewport: Atom<Viewport>
 ): Property<LoadedTrack[]> {
   return combineTemplate({
     selectedVessels,
@@ -59,7 +67,7 @@ function startTrackLoading(
   })
     .changes()
     .flatScan<TracksWithViewport>(
-      { viewport: initialViewport, tracks: [] },
+      { viewport: viewport.get(), tracks: [] },
       (acc, { selectedVessels, viewport }) => {
         const loadedTracks = !_.isEqual(acc.viewport, viewport)
           ? loadMissingTracks([], selectedVessels, viewport) // Load tracks for all selected vessels
@@ -118,6 +126,38 @@ function selectedVesselsFromLocalStorageOrDefault() {
     return !!state ? (JSON.parse(state) as VesselId[]) : []
   } catch {
     return []
+  }
+}
+
+function saveViewportToLocalStorage({ zoom, bounds }: Viewport) {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(
+      'tracksmapzoomandcenter',
+      JSON.stringify({
+        zoom,
+        center: bounds.getCenter()
+      })
+    )
+  }
+}
+
+function centerFromLocalStorageOrDefault(): Coords {
+  try {
+    const zoomAndCenter = localStorage.getItem('tracksmapzoomandcenter')
+    return !!zoomAndCenter
+      ? new Coords(JSON.parse(zoomAndCenter).center)
+      : defaultCenter
+  } catch {
+    return defaultCenter
+  }
+}
+
+function zoomFromLocalStorageOrDefault(): number {
+  try {
+    const zoomAndCenter = localStorage.getItem('tracksmapzoomandcenter')
+    return !!zoomAndCenter ? JSON.parse(zoomAndCenter).zoom : 8
+  } catch {
+    return 8
   }
 }
 
