@@ -30,7 +30,7 @@ describe('StashDBB', () => {
       undefined,
       10
     )
-    expect(points).to.have.lengthOf(5)
+    expect(points).to.have.lengthOf(4)
     expect(points[0].timestamp.toString()).to.equal('2014-08-15T19:00Z')
   })
 

@@ -133,10 +133,12 @@ export function timeResolutionForZoom(zoom: ZoomLevel) {
   } else if (zoom >= 11) {
     return 30
   } else if (zoom >= 9) {
-    return 2 * 60
-  } else if (zoom >= 7) {
     return 4 * 60
-  } else {
+  } else if (zoom >= 7) {
     return 10 * 60
+  } else {
+    return 30 * 60
+  }
+}
   }
 }
