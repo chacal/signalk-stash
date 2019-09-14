@@ -48,3 +48,14 @@ export function loadMissingTracks(
     ).then(loadedTracks => _.concat(alreadyLoadedTracks, loadedTracks))
   }
 }
+
+export function fetchTrackLengths(vesselId: VesselId) {
+  const params = new URLSearchParams({
+    context: vesselId,
+    firstDay: '2019-06-01',
+    lastDay: '2019-09-01'
+  })
+  return fetch(`/tracks/daily/stats?${params.toString()}`).then(res =>
+    res.json()
+  )
+}
