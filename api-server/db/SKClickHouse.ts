@@ -140,5 +140,12 @@ export function timeResolutionForZoom(zoom: ZoomLevel) {
     return 30 * 60
   }
 }
+
+export function simplifyThresholdForZoom(zoom?: ZoomLevel) {
+  const maxThreshold = 0.003
+  if (zoom !== undefined) {
+    return maxThreshold / Math.pow(zoom, 2)
+  } else {
+    return 0.00001
   }
 }

@@ -26,3 +26,15 @@ declare module 'google-palette' {
 
   export default function palette(name: string, size: number): RGBString[]
 }
+
+declare module 'simplify-js' {
+  export interface Point {
+    x: number
+    y: number
+  }
+  export default function simplify(
+    points: Point[],
+    tolerance?: number,
+    highQuality?: boolean
+  ): Point[]
+}

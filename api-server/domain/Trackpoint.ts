@@ -11,8 +11,14 @@ import {
   ZoneId
 } from 'js-joda'
 import QK from 'quadkeytools'
+import simplify from 'simplify-js'
 import { Transform, TransformCallback } from 'stream'
-import SKClickHouse, { timeResolutionForZoom } from '../db/SKClickHouse'
+
+import Config from '../Config'
+import SKClickHouse, {
+  simplifyThresholdForZoom,
+  timeResolutionForZoom
+} from '../db/SKClickHouse'
 import { BBox, Coords, TrackGeoJSON, ZoomLevel } from './Geo'
 const debug = Debug('stash:skclickhouse')
 
@@ -38,16 +44,45 @@ const trackPauseThreshold = (zoomLevel?: number) => {
   return Duration.of(thresholdSeconds, ChronoUnit.SECONDS)
 }
 
-export function tracksToGeoJSON(tracks: Track[]): TrackGeoJSON {
-  let lastTrackpointTimestamp = ZonedDateTime.ofInstant(
-    Instant.ofEpochSecond(0),
-    ZoneId.UTC
+export function tracksToGeoJSON(
+  tracks: Track[],
+  zoomLevel?: number
+): TrackGeoJSON {
+  const startTime = new Date()
+
+  const splitTracks = splitTracksByTime(tracks)
+
+  // Simplification works with Points not [x, y] coords. Thus we need to convert
+  // tracks temporarily to Point[] and then back to number[].
+  const pointTracks = splitTracks.map(track =>
+    track.map(coords => ({ x: coords[0], y: coords[1] }))
   )
-  let currentTrack: number[][]
+  const threshold = simplifyThresholdForZoom(zoomLevel)
+  const simplifiedPointTracks = pointTracks.map(t => simplify(t, threshold))
+  const simplifiedNumberTracks = simplifiedPointTracks.map(track =>
+    track.map(p => [p.x, p.y])
+  )
+
+  debug(
+    `Simplified GeoJSON from ${countElems(tracks)} to ${countElems(
+      simplifiedNumberTracks
+    )} points with threshold ${threshold} in ${msDiff(startTime)}ms.`
+  )
+
   return {
     type: 'MultiLineString',
-    coordinates: tracks.reduce((acc: number[][][], track) => {
-      track.forEach((trackpoint: Trackpoint) => {
+    coordinates: !Config.isTesting ? simplifiedNumberTracks : splitTracks // Use simplified tracks only when not testing
+  }
+
+  function splitTracksByTime(tracks: Track[]) {
+    let lastTrackpointTimestamp = ZonedDateTime.ofInstant(
+      Instant.ofEpochSecond(0),
+      ZoneId.UTC
+    )
+    let currentTrack: number[][]
+
+    return tracks.reduce((acc: number[][][], track) => {
+      track.forEach(trackpoint => {
         if (
           Duration.between(
             lastTrackpointTimestamp,
@@ -62,6 +97,14 @@ export function tracksToGeoJSON(tracks: Track[]): TrackGeoJSON {
       })
       return acc
     }, [])
+  }
+
+  function countElems(input: any[][]) {
+    return input.reduce((count, a) => count + a.length, 0)
+  }
+
+  function msDiff(d: Date) {
+    return new Date().getTime() - d.getTime()
   }
 }
 

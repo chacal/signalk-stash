@@ -20,7 +20,7 @@ async function tracks(req: Request, res: Response) {
   const zoomLevel = zoomLevelFromQuery(req)
 
   const tracks = await stash.getVesselTracks(context, bbox, zoomLevel)
-  res.json(tracksToGeoJSON(tracks))
+  res.json(tracksToGeoJSON(tracks, zoomLevel))
 
   function contextFromQuery(req: Request): string {
     const schema = {
