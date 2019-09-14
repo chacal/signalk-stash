@@ -23,6 +23,8 @@ endif
 -include env
 export
 
+SSH_PROD := ssh -i $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -t stash@$$(cat ./ansible/inventory | cut -d' ' -f1)
+
 clean:
 	@rm -rf built
 	@rm -rf test_reports
@@ -121,7 +123,7 @@ psql-test:
 	@psql 'postgresql://signalk:signalk@localhost:45432/signalk'
 
 psql-prod: .ensure-inventory
-	@ssh -i $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -t stash@$$(cat ./ansible/inventory) "docker exec -it signalk-stash-prod_postgis_1 /usr/local/bin/psql -U signalk"
+	@$(SSH_PROD) "docker exec -it signalk-stash-prod_postgis_1 /usr/local/bin/psql -U signalk"
 
 clickhouse-client-%:
 	@docker exec -it signalk-stash-$*_clickhouse_1 clickhouse-client
@@ -131,7 +133,7 @@ clickhouse-dev: clickhouse-client-dev
 clickhouse-test: clickhouse-client-test
 
 clickhouse-prod: .ensure-inventory
-	@ssh -i $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) -t stash@$$(cat ./ansible/inventory) "docker exec -it signalk-stash-prod_clickhouse_1 clickhouse-client"
+	@$(SSH_PROD) "docker exec -it signalk-stash-prod_clickhouse_1 clickhouse-client"
 
 ansible-initialize-prod: .ensure-inventory .ensure-prod-ssh-keypair
 	@echo You must have passwordless SSH \& sudo to the destination host for this to work properly.
@@ -146,7 +148,7 @@ ansible-deploy-prod: .ensure-prod-ssh-keypair .check-tag-set  .ensure-inventory
 	@$(ANSIBLE_WITH_AUTH) -e docker_tag=$(TAG) -i ./ansible/inventory ./ansible/deploy.yml -D
 
 ssh-prod: .ensure-prod-ssh-keypair  .ensure-inventory
-	@ssh -i $(SIGNALK_STASH_PROD_SSH_PRIVATE_KEY) stash@$$(cat ./ansible/inventory | cut -d' ' -f1)
+	@$(SSH_PROD)
 
 docker-build-apiserver:
 	@docker build -t signalkstash/api-server:latest -f Dockerfile.api-server .
