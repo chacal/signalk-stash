@@ -4,7 +4,6 @@ import { useEffect } from 'react'
 
 import { VesselData } from '../domain/Vessel'
 import Map from './Map'
-import { initialMapCenter } from './mappanel-domain'
 import { MapPanelState } from './mappanel-state'
 import VesselSelectionPanel from './VesselSelectionPanel'
 
@@ -21,7 +20,7 @@ const MapPanel = ({ loadVessels }: MapPanelProps) => {
   return (
     <React.Fragment>
       <Map
-        center={initialMapCenter}
+        center={panelState.initialMapCenter}
         viewportA={panelState.viewport}
         tracksO={panelState.tracksToRender}
       />

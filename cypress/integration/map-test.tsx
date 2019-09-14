@@ -8,10 +8,8 @@ import { Atom } from '../../api-server/domain/Atom'
 import { Coords } from '../../api-server/domain/Geo'
 import { asVesselId } from '../../api-server/domain/Vessel'
 import Map from '../../api-server/ui/Map'
-import {
-  initialViewport,
-  RenderedTrack
-} from '../../api-server/ui/mappanel-domain'
+import { RenderedTrack } from '../../api-server/ui/mappanel-domain'
+import { initialViewport } from '../../api-server/ui/mappanel-state'
 import { waitFor } from '../../test/waiting'
 
 configure({ adapter: new Adapter() })
@@ -43,6 +41,28 @@ describe('Stash Map', () => {
       done()
     })
   })
+
+  it('zoom is recalled from localstorage', () => {
+    cy.viewport(1440, 900)
+    cy.visit('/')
+    cy.get('.leaflet-control-zoom-in').click()
+    waitForZoomLevel('9')
+    cy.get('.leaflet-control-zoom-in').click()
+    waitForZoomLevel('10')
+    cy.visit('/')
+    waitForZoomLevel('10')
+  })
+
+  function waitForZoomLevel(zoom: string) {
+    const matchZoomLevel = new RegExp(`\\/${zoom}\\/\\d*\\/\\d*\.`)
+    cy.get('.leaflet-tile-container.leaflet-zoom-animated > img').should(
+      imgSrcs => {
+        // first tile image src has specified zoom level
+        expect(matchZoomLevel.test(imgSrcs[0].getAttribute('src') || '')).to.be
+          .true
+      }
+    )
+  }
 
   it('renders tracks as colored GeoJSON', async done => {
     const p = defaultProps()
