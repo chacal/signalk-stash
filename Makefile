@@ -110,6 +110,10 @@ e2e-sub:
 
 dev: docker-dev-up watch
 
+dev-tunnel: SIGNALK_STASH_CLICKHOUSE_PORT=38123
+dev-tunnel: SIGNALK_STASH_DB_PORT=35432
+dev-tunnel: dev
+
 mqtt-input: compile docker-dev-up
 	@node built/delta-inputs/mqtt-runner.js
 
