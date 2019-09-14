@@ -29,7 +29,14 @@ export default class Trackpoint {
 export type Track = Trackpoint[]
 
 // Class B AIS transmits every 3 minutes when going < 2 knots
-const trackPauseThreshold = Duration.of(4, ChronoUnit.MINUTES)
+const trackPauseThreshold = (zoomLevel?: number) => {
+  const defaultThreshold = 3 * 60
+  const thresholdSeconds =
+    zoomLevel !== undefined
+      ? Math.max(timeResolutionForZoom(zoomLevel), defaultThreshold)
+      : defaultThreshold
+  return Duration.of(thresholdSeconds, ChronoUnit.SECONDS)
+}
 
 export function tracksToGeoJSON(tracks: Track[]): TrackGeoJSON {
   let lastTrackpointTimestamp = ZonedDateTime.ofInstant(
@@ -45,7 +52,7 @@ export function tracksToGeoJSON(tracks: Track[]): TrackGeoJSON {
           Duration.between(
             lastTrackpointTimestamp,
             trackpoint.timestamp
-          ).compareTo(trackPauseThreshold) > 0
+          ).compareTo(trackPauseThreshold(zoomLevel)) > 0
         ) {
           currentTrack = []
           acc.push(currentTrack)
