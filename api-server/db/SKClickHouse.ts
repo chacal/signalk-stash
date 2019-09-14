@@ -133,10 +133,19 @@ export function timeResolutionForZoom(zoom: ZoomLevel) {
   } else if (zoom >= 11) {
     return 30
   } else if (zoom >= 9) {
-    return 2 * 60
-  } else if (zoom >= 7) {
     return 4 * 60
-  } else {
+  } else if (zoom >= 7) {
     return 10 * 60
+  } else {
+    return 30 * 60
+  }
+}
+
+export function simplifyThresholdForZoom(zoom?: ZoomLevel) {
+  const maxThreshold = 0.003
+  if (zoom !== undefined) {
+    return maxThreshold / Math.pow(zoom, 2)
+  } else {
+    return 0.00001
   }
 }
