@@ -221,8 +221,8 @@ export function getTrackPointsForVessel(
     selectFields = `
         (intDiv(toUnixTimestamp(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) as t,
         0,
-        avg(lat),
-        avg(lng)`
+        round(avg(lat),5),
+        round(avg(lng),5)`
     groupByClause = 'GROUP BY t'
     orderBy = 't'
   }
