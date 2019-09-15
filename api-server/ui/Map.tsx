@@ -38,23 +38,24 @@ const Map = ({ center, viewportA, tracksO }: MapProps) => {
       ref={updateBoundsFromMap}
     >
       <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        url={'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'}
         minZoom={0}
         maxZoom={20}
       />
       <TileLayer
-        url="https://signalk-stash.chacal.fi/map/v1/{z}/{x}/{y}.png"
+        url={'https://signalk-stash.chacal.fi/map/v1/{z}/{x}/{y}.png'}
         minZoom={5}
         maxZoom={15}
       />
       <TileLayer
-        url="http://tiles.kartat.kapsi.fi/ortokuva/{z}/{x}/{y}.jpg"
+        url={'http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'}
         minZoom={16}
+        maxNativeZoom={20}
         maxZoom={21}
-        maxNativeZoom={19}
+        subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
       />
       <TileLayer
-        url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png"
+        url={'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png'}
         minZoom={16}
         maxZoom={21}
         maxNativeZoom={18}
