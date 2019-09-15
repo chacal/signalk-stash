@@ -1,22 +1,12 @@
-import { Property } from 'baconjs'
 import Color = require('color')
 import { LatLngBounds } from 'leaflet'
 
-import { Atom } from '../domain/Atom'
 import { Coords, TrackGeoJSON } from '../domain/Geo'
 import { VesselId } from '../domain/Vessel'
 
 export const emptyBounds = new LatLngBounds([[0, 0], [0, 0]])
 export const initialViewport = { zoom: 8, bounds: emptyBounds }
 export const initialMapCenter = new Coords({ lat: 60, lng: 22 })
-
-export interface AppState {
-  viewport: Atom<Viewport>
-  vessels: Atom<Vessel[]>
-  selectedVessels: Atom<VesselId[]>
-  loadedTracks: Property<LoadedTrack[]>
-  tracksToRender: Property<RenderedTrack[]>
-}
 
 export interface Vessel {
   vesselId: VesselId
