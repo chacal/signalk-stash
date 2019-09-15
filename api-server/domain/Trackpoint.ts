@@ -16,6 +16,7 @@ import { Transform, TransformCallback } from 'stream'
 
 import Config from '../Config'
 import SKClickHouse, {
+  coordinateDecimalsForZoom,
   simplifyThresholdForZoom,
   timeResolutionForZoom
 } from '../db/SKClickHouse'
@@ -218,11 +219,12 @@ export function getTrackPointsForVessel(
 
   if (zoomLevel) {
     const timeResolutionSeconds = timeResolutionForZoom(zoomLevel)
+    const coordinateDecimals = coordinateDecimalsForZoom(zoomLevel)
     selectFields = `
         (intDiv(toUnixTimestamp(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) as t,
         0,
-        round(avg(lat),5),
-        round(avg(lng),5)`
+        round(avg(lat),${coordinateDecimals}),
+        round(avg(lng),${coordinateDecimals})`
     groupByClause = 'GROUP BY t'
     orderBy = 't'
   }

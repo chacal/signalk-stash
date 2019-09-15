@@ -39,9 +39,26 @@ const Map = ({ center, viewportA, tracksO }: MapProps) => {
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        detectRetina={true}
+        minZoom={0}
+        maxZoom={20}
       />
-      <TileLayer url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png" />
+      <TileLayer
+        url="https://signalk-stash.chacal.fi/map/v1/{z}/{x}/{y}.png"
+        minZoom={5}
+        maxZoom={15}
+      />
+      <TileLayer
+        url="http://tiles.kartat.kapsi.fi/ortokuva/{z}/{x}/{y}.jpg"
+        minZoom={16}
+        maxZoom={21}
+        maxNativeZoom={19}
+      />
+      <TileLayer
+        url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png"
+        minZoom={16}
+        maxZoom={21}
+        maxNativeZoom={18}
+      />
       {tracks.map(track => (
         // GeoJSON can't re-render itself when its props change ->
         // use context + track load time as key to force re-render when new track

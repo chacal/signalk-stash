@@ -141,10 +141,24 @@ export function timeResolutionForZoom(zoom: ZoomLevel) {
   }
 }
 
+export function coordinateDecimalsForZoom(zoom: ZoomLevel) {
+  if (zoom >= 18) {
+    return 6
+  } else if (zoom >= 14) {
+    return 5
+  } else if (zoom >= 11) {
+    return 4
+  } else if (zoom >= 9) {
+    return 3
+  } else {
+    return 3
+  }
+}
+
 export function simplifyThresholdForZoom(zoom?: ZoomLevel) {
   const maxThreshold = 0.003
   if (zoom !== undefined) {
-    return maxThreshold / Math.pow(zoom, 2)
+    return maxThreshold / Math.pow(zoom, 3)
   } else {
     return 0.00001
   }
