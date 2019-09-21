@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 import { SKDelta, SKDeltaJSON } from '@chacal/signalk-ts'
 import { expect } from 'chai'
+import { LocalDate } from 'js-joda'
 import _ from 'lodash'
 import * as L from 'partial.lenses'
 import DB from '../api-server/db/StashDB'
@@ -11,6 +12,7 @@ import {
   measurementFixtures,
   positionFixtures,
   testVesselUuids,
+  vesselUuid,
   writeDeltasFromPositionFixture
 } from './test-util'
 import TestDB from './TestDB'
@@ -38,6 +40,21 @@ describe('StashDBB', () => {
     await writeDeltasFromPositionFixture()
     const result = await DB.getVesselTracks(testVesselUuids[0])
     expect(result).to.have.lengthOf(3)
+  })
+
+  it('returns track lengths', async () => {
+    await writeDeltasFromPositionFixture()
+    const result = await DB.getDailyTrackStatistics(
+      vesselUuid,
+      LocalDate.parse('2014-08-15'),
+      LocalDate.parse('2014-08-18')
+    )
+    expect(result).to.have.lengthOf(2)
+
+    expect(result[0].length).to.be.closeTo(585.299, 0.001)
+    expect(result[0].start.toString()).to.equal('2014-08-15T00:00Z')
+    expect(result[1].length).to.be.closeTo(35.308, 0.001)
+    expect(result[1].start.toString()).to.equal('2014-08-16T00:00Z')
   })
 
   it('returns daily tracks by bbox', async () => {
