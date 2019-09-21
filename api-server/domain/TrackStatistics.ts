@@ -57,7 +57,7 @@ export function getTrackStatisticsForVesselTimespan(
 }
 
 function trackLength(coordinates: number[][]): number {
-  if (coordinates.length === 0) {
+  if (coordinates.length <= 1) {
     return 0
   }
   const linestring = simplify(lineString(coordinates), {
