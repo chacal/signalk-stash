@@ -12,6 +12,7 @@ import TableCell from '@material-ui/core/TableCell'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import { Property } from 'baconjs'
+import { flatten } from 'lodash'
 import * as React from 'react'
 import { Atom } from '../domain/Atom'
 import { VesselData } from '../domain/Vessel'
@@ -39,8 +40,6 @@ interface TLPProps extends WithStyles<typeof trackLengthStyles> {
   trackLengthsStateP: Property<TrackLengthsState>
 }
 
-// {"context":"test","start":"2019-09-01T00:00Z","end":"2019-09-02T00:00Z","length":0
-
 interface TrackLength {
   context: string
   start: string
@@ -64,27 +63,11 @@ const TrackLengthsPanel = () => {
   })
   React.useEffect(() => {
     loadVessels()
-      .then((vessels: VesselData[]) => {
-        return Promise.all(
-          vessels.map(({ vesselId, name }: VesselData) =>
-            fetchTrackLengths(vesselId).then((trackLengthsA: TrackLength[]) =>
-              trackLengthsA.map(
-                trackLength => ({ name, ...trackLength } as TrackLengthWithName)
-              )
-            )
-          )
-        )
-      })
-      // flatten to a single array
-      .then((trackLengthsArray: TrackLengthWithName[][]) =>
-        ([] as TrackLengthWithName[]).concat(...trackLengthsArray)
-      )
-      .then(trackLengths =>
-        trackLengths.filter(tl => tl.length > hasMovedThresholdMeters)
-      )
-      .then(trackLengths =>
-        trackLengths.sort((a, b) => a.start.localeCompare(b.start))
-      )
+      .then(fetchTrackLengthsWithNames)
+      // flatten: single list for all vessels
+      .then(flatten)
+      .then(filterByMinLength)
+      .then(sortByStartDay)
       .then((trackLengths: TrackLengthWithName[]) =>
         listState.set({ isLoading: false, tracks: trackLengths })
       )
@@ -134,5 +117,25 @@ const TrackLengthList = withStyles(trackLengthStyles)(
     )
   }
 )
+
+const fetchTrackLengthsWithNames = (
+  vessels: VesselData[]
+): Promise<TrackLengthWithName[][]> => {
+  return Promise.all(
+    vessels.map(({ vesselId, name }: VesselData) =>
+      fetchTrackLengths(vesselId).then((trackLengthsA: TrackLength[]) =>
+        trackLengthsA.map(
+          trackLength => ({ name, ...trackLength } as TrackLengthWithName)
+        )
+      )
+    )
+  )
+}
+
+const filterByMinLength = (trackLengths: TrackLengthWithName[]) =>
+  trackLengths.filter(tl => tl.length > hasMovedThresholdMeters)
+
+const sortByStartDay = (trackLengths: TrackLengthWithName[]) =>
+  trackLengths.sort((a, b) => a.start.localeCompare(b.start))
 
 export default TrackLengthsPanel
