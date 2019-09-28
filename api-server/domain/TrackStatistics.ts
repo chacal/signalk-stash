@@ -3,6 +3,7 @@ import { SKContext } from '@chacal/signalk-ts'
 import { lineString } from '@turf/helpers'
 import length from '@turf/length'
 import simplify from '@turf/simplify'
+import BPromise from 'bluebird'
 import { LocalDate, ZonedDateTime, ZoneOffset } from 'js-joda'
 import { chQuery } from '../db/SKClickHouse'
 
@@ -79,6 +80,23 @@ export function getDailyTrackStatistics(
     )
   }
 
+  let jobs: Array<() => Promise<TrackStatistics>>
+  jobs = fetchJobsForAllDays(ch, context, firstDate, lastDate)
+  return Promise.resolve(
+    BPromise.map(jobs, job => job(), {
+      concurrency: 5
+    }).then((trackStats: TrackStatistics[]) =>
+      trackStats.filter(t => t.length > 0)
+    )
+  )
+}
+
+const fetchJobsForAllDays = (
+  ch: ClickHouse,
+  context: SKContext,
+  firstDate: LocalDate,
+  lastDate: LocalDate
+) => {
   let aDate = firstDate
   const jobs: Array<() => Promise<TrackStatistics>> = []
   while (!aDate.isAfter(lastDate)) {
@@ -93,29 +111,5 @@ export function getDailyTrackStatistics(
     )
     aDate = aDate.plusDays(1)
   }
-  return new Promise((resolve, reject) => {
-    // execute the calls in order
-    const result: TrackStatistics[] = []
-    jobs.reduce(
-      (acc: any, f: any, index: number) =>
-        acc
-          .then(() => {
-            const statsP: Promise<TrackStatistics> = f()
-            statsP
-              .then((stats: TrackStatistics) => {
-                if (stats.length > 0) {
-                  result.push(stats)
-                }
-                // this is the last one, so resolve the Promise we returned
-                if (index === jobs.length - 1) {
-                  resolve(result)
-                }
-              })
-              .catch((err: Error) => reject(err))
-            return statsP
-          })
-          .catch((err: Error) => reject(err)),
-      Promise.resolve()
-    )
-  })
+  return jobs
 }
