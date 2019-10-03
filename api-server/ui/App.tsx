@@ -8,6 +8,7 @@ import {
   withRouter
 } from 'react-router-dom'
 import { loadVessels } from './backend-requests'
+import ErrorBoundary from './ErrorBoundary'
 import MapPanel from './MapPanel'
 import TrackLengthsPanel from './TrackLengthsPanel'
 
@@ -40,7 +41,12 @@ const App = () => {
       <Redirect exact from="/" to="map" />
       <Switch>
         <Route path="/map">
-          <MapPanel loadVessels={loadVessels} />
+          <ErrorBoundary>
+            {
+              // https://github.com/PaulLeCam/react-leaflet/issues/625
+            }
+            <MapPanel loadVessels={loadVessels} />
+          </ErrorBoundary>
         </Route>
         <Route path="/tracklengths">
           <TrackLengthsPanel />
