@@ -1,6 +1,8 @@
 import {
   CircularProgress,
   createStyles,
+  Snackbar,
+  SnackbarContent,
   WithStyles,
   withStyles
 } from '@material-ui/core'
@@ -53,12 +55,14 @@ interface TrackLengthWithName extends TrackLength {
 
 interface TrackLengthsState {
   isLoading: boolean
+  isError: boolean
   tracks: TrackLengthWithName[]
 }
 
 const TrackLengthsPanel = () => {
   const listState = Atom<TrackLengthsState>({
     isLoading: true,
+    isError: false,
     tracks: []
   })
   React.useEffect(() => {
@@ -69,9 +73,19 @@ const TrackLengthsPanel = () => {
       .then(filterByMinLength)
       .then(sortByStartDay)
       .then((trackLengths: TrackLengthWithName[]) =>
-        listState.set({ isLoading: false, tracks: trackLengths })
+        listState.set({
+          isLoading: false,
+          isError: false,
+          tracks: trackLengths
+        })
       )
-      .catch((e: Error) => console.error('Error loading vessels!', e))
+      .catch((e: Error) =>
+        listState.set({
+          isLoading: false,
+          isError: true,
+          tracks: []
+        })
+      )
   })
 
   return <TrackLengthList trackLengthsStateP={listState} />
@@ -86,6 +100,17 @@ const TrackLengthList = withStyles(trackLengthStyles)(
           <Container>
             <CircularProgress className={classes.progress} />
           </Container>
+        )}
+        {trackLengthsState.isError && (
+          <Snackbar
+            open={true}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left'
+            }}
+          >
+            <SnackbarContent message={'Could not load track lengths.'} />
+          </Snackbar>
         )}
         {!trackLengthsState.isLoading && (
           <Table className={classes.table}>
