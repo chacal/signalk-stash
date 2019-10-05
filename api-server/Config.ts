@@ -172,9 +172,7 @@ export function overrideFromEnvironment(
         newValue = process.env[keyPrefix] as string
       }
       console.log(
-        `Using ${keyPrefix} to override config. Old value: ${
-          values[key]
-        } New value: ${newValue}`
+        `Using ${keyPrefix} to override config. Old value: ${values[key]} New value: ${newValue}`
       )
       values[key] = newValue
     } else if (typeof value === 'object') {
