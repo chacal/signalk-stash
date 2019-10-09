@@ -1,14 +1,13 @@
 import _ from 'lodash'
 
 import { combineTemplate, fromPromise, Observable, Property } from 'baconjs'
-import Color from 'color'
-import palette from 'google-palette'
 import { LatLngBounds } from 'leaflet'
 import { Atom } from '../domain/Atom'
 import { Coords } from '../domain/Geo'
-import { VesselData, VesselId } from '../domain/Vessel'
+import { VesselId } from '../domain/Vessel'
 import { loadMissingTracks } from './backend-requests'
-import { LoadedTrack, RenderedTrack, Vessel, Viewport } from './mappanel-domain'
+import { LoadedTrack, RenderedTrack, Viewport } from './mappanel-domain'
+import { Vessel, VesselSelectionState } from './vesselselection-state'
 
 const emptyBounds = new LatLngBounds([[0, 0], [0, 0]])
 const defaultCenter = new Coords({ lat: 60, lng: 22 })
@@ -18,16 +17,15 @@ export const initialViewport = {
 }
 
 export class MapPanelState {
-  vessels: Atom<Vessel[]> = Atom([])
-  selectedVessels: Atom<VesselId[]> = Atom([])
+  vesselSelectionState: VesselSelectionState = new VesselSelectionState()
   viewport: Atom<Viewport> = Atom(initialViewport)
   loadedTracks: Property<LoadedTrack[]> = startTrackLoading(
-    this.selectedVessels,
+    this.vesselSelectionState.selectedVessels,
     this.viewport
   )
   tracksToRender: Property<RenderedTrack[]> = toTracksToRender(
-    this.vessels,
-    this.selectedVessels,
+    this.vesselSelectionState.vessels,
+    this.vesselSelectionState.selectedVessels,
     this.loadedTracks
   )
   initialMapCenter: Coords = centerFromLocalStorageOrDefault()
@@ -35,20 +33,8 @@ export class MapPanelState {
   constructor() {
     this.viewport.onValue(saveViewportToLocalStorage)
   }
-
-  initVessels(loadVessels: () => Promise<VesselData[]>) {
-    const initialSelectedVessels = selectedVesselsFromLocalStorageOrDefault()
-    this.selectedVessels.onValue(sv => saveSelectedVesselsToLocalStorage(sv))
-
-    loadVessels()
-      .then(assignColors)
-      .then(vessels => {
-        this.vessels.set(vessels)
-        this.selectedVessels.set(
-          _.intersection(initialSelectedVessels, vessels.map(v => v.vesselId))
-        )
-      })
-      .catch((e: Error) => console.error('Error loading vessels!', e))
+  initVessels() {
+    this.vesselSelectionState.initVessels()
   }
 }
 
@@ -114,21 +100,6 @@ function toTracksToRender(
     .skipDuplicates(_.isEqual)
 }
 
-function saveSelectedVesselsToLocalStorage(selectedVessels: VesselId[]) {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('selectedVessels', JSON.stringify(selectedVessels))
-  }
-}
-
-function selectedVesselsFromLocalStorageOrDefault() {
-  try {
-    const state = localStorage.getItem('selectedVessels')
-    return !!state ? (JSON.parse(state) as VesselId[]) : []
-  } catch {
-    return []
-  }
-}
-
 function saveViewportToLocalStorage({ zoom, bounds }: Viewport) {
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem(
@@ -159,15 +130,4 @@ function zoomFromLocalStorageOrDefault(): number {
   } catch {
     return 8
   }
-}
-
-function assignColors(vessels: VesselData[]): Vessel[] {
-  const colors = palette('mpn65', vessels.length)
-  return vessels.map((v, idx) => ({
-    vesselId: v.vesselId,
-    name: v.name,
-    trackColor: Color(`#${colors[idx % colors.length]}`)
-      .desaturate(0.5)
-      .lighten(0.06)
-  }))
 }
