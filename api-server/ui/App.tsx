@@ -27,7 +27,7 @@ const Navi = withRouter(props => {
     <AppBar position="static">
       <Tabs value={value} onChange={handleChange}>
         {navigation.map(({ label }) => (
-          <Tab label={label} />
+          <Tab key={label} label={label} />
         ))}
       </Tabs>
     </AppBar>
