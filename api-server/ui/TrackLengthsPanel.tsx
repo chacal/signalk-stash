@@ -1,12 +1,17 @@
 import {
+  Checkbox,
   CircularProgress,
   createStyles,
+  FormControl,
+  FormGroup,
+  FormLabel,
   Snackbar,
   SnackbarContent,
   WithStyles,
   withStyles
 } from '@material-ui/core'
 import Container from '@material-ui/core/Container'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Paper from '@material-ui/core/Paper'
 import Table from '@material-ui/core/Table'
 import TableBody from '@material-ui/core/TableBody'
@@ -15,11 +20,13 @@ import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import { Property } from 'baconjs'
 import { flatten } from 'lodash'
+import _ from 'lodash'
 import * as React from 'react'
 import { Atom } from '../domain/Atom'
 import { VesselData } from '../domain/Vessel'
 import { fetchTrackLengths, loadVessels } from './backend-requests'
 import { useObservable } from './bacon-react'
+import { Vessel, VesselSelectionState } from './vesselselection-state'
 
 const meters2nm = 0.000539957
 const hasMovedThresholdMeters = 0.05 / meters2nm
@@ -65,8 +72,13 @@ const TrackLengthsPanel = () => {
     isError: false,
     tracks: []
   })
+  const vesselSelectionState = new VesselSelectionState()
   React.useEffect(() => {
     loadVessels()
+      .then((vessels: VesselData[]) => {
+        vesselSelectionState.setVessels(vessels)
+        return vessels
+      })
       .then(fetchTrackLengthsWithNames)
       // flatten: single list for all vessels
       .then(flatten)
@@ -88,7 +100,12 @@ const TrackLengthsPanel = () => {
       )
   })
 
-  return <TrackLengthList trackLengthsStateP={listState} />
+  return (
+    <React.Fragment>
+      <VesselSelectionPanel selectionState={vesselSelectionState} />
+      <TrackLengthList trackLengthsStateP={listState} />
+    </React.Fragment>
+  )
 }
 
 const TrackLengthList = withStyles(trackLengthStyles)(
@@ -142,6 +159,48 @@ const TrackLengthList = withStyles(trackLengthStyles)(
     )
   }
 )
+
+interface VesselSelectionPanelProps {
+  selectionState: VesselSelectionState
+}
+
+const VesselSelectionPanel = ({
+  selectionState
+}: VesselSelectionPanelProps) => {
+  const vessels = useObservable(selectionState.vessels)
+  const selectedVessels = useObservable(selectionState.selectedVessels)
+
+  const vesselSelectionChanged = (vessel: Vessel) => (
+    event: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean
+  ) => {
+    const newSelection = checked
+      ? _.concat(selectedVessels, vessel.vesselId)
+      : _.without(selectedVessels, vessel.vesselId)
+    selectionState.selectedVessels.set(newSelection)
+  }
+
+  return (
+    <FormControl component="fieldset">
+      <FormLabel component="legend">Assign responsibility</FormLabel>
+      <FormGroup>
+        {vessels.map(v => (
+          <FormControlLabel
+            key={v.vesselId}
+            control={
+              <Checkbox
+                checked={selectedVessels.includes(v.vesselId)}
+                onChange={vesselSelectionChanged(v)}
+                value={v.name}
+              />
+            }
+            label={v.name}
+          />
+        ))}
+      </FormGroup>
+    </FormControl>
+  )
+}
 
 const fetchTrackLengthsWithNames = (
   vessels: VesselData[]

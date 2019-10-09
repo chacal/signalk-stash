@@ -14,7 +14,7 @@ interface MapPanelProps {
 const MapPanel = ({ loadVessels }: MapPanelProps) => {
   const panelState = new MapPanelState()
   useEffect(() => {
-    panelState.initVessels(loadVessels)
+    panelState.initVessels()
   })
 
   return (
@@ -25,8 +25,8 @@ const MapPanel = ({ loadVessels }: MapPanelProps) => {
         tracksO={panelState.tracksToRender}
       />
       <VesselSelectionPanel
-        vesselsP={panelState.vessels}
-        selectedVesselsA={panelState.selectedVessels}
+        vesselsP={panelState.vesselSelectionState.vessels}
+        selectedVesselsA={panelState.vesselSelectionState.selectedVessels}
       />
     </React.Fragment>
   )

@@ -15,7 +15,7 @@ import * as React from 'react'
 import { Atom } from '../domain/Atom'
 import { VesselId } from '../domain/Vessel'
 import { useObservable } from './bacon-react'
-import { Vessel } from './mappanel-domain'
+import { Vessel } from './vesselselection-state'
 
 //
 //   VesselSelection
