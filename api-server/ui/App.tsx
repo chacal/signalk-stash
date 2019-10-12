@@ -7,10 +7,10 @@ import {
   Switch,
   withRouter
 } from 'react-router-dom'
-import { loadVessels } from './backend-requests'
 import ErrorBoundary from './ErrorBoundary'
 import MapPanel from './MapPanel'
 import TrackLengthsPanel from './TrackLengthsPanel'
+import { VesselSelectionState } from './vesselselection-state'
 
 const navigation = [
   { label: 'Map', path: '/map' },
@@ -34,6 +34,8 @@ const Navi = withRouter(props => {
   )
 })
 
+const vesselSelectionState = new VesselSelectionState()
+
 const App = () => {
   return (
     <Router>
@@ -45,11 +47,11 @@ const App = () => {
             {
               // https://github.com/PaulLeCam/react-leaflet/issues/625
             }
-            <MapPanel loadVessels={loadVessels} />
+            <MapPanel vesselSelection={vesselSelectionState} />
           </ErrorBoundary>
         </Route>
         <Route path="/tracklengths">
-          <TrackLengthsPanel />
+          <TrackLengthsPanel vesselSelection={vesselSelectionState} />
         </Route>
       </Switch>
     </Router>

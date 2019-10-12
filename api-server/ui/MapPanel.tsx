@@ -2,17 +2,17 @@ import _ from 'lodash'
 import * as React from 'react'
 import { useEffect } from 'react'
 
-import { VesselData } from '../domain/Vessel'
 import Map from './Map'
 import { MapPanelState } from './mappanel-state'
+import { VesselSelectionState } from './vesselselection-state'
 import VesselSelectionPanel from './VesselSelectionPanel'
 
 interface MapPanelProps {
-  loadVessels: () => Promise<VesselData[]>
+  vesselSelection: VesselSelectionState
 }
 
-const MapPanel = ({ loadVessels }: MapPanelProps) => {
-  const panelState = new MapPanelState()
+const MapPanel = ({ vesselSelection }: MapPanelProps) => {
+  const panelState = new MapPanelState(vesselSelection)
   useEffect(() => {
     panelState.initVessels()
   })

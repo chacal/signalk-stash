@@ -18,12 +18,11 @@ import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
-import { Property } from 'baconjs'
-import { flatten } from 'lodash'
+import { combineTemplate, fromPromise, Property } from 'baconjs'
 import _ from 'lodash'
 import * as React from 'react'
 import { Atom } from '../domain/Atom'
-import { VesselData } from '../domain/Vessel'
+import { VesselData, VesselId } from '../domain/Vessel'
 import { fetchTrackLengths, loadVessels } from './backend-requests'
 import { useObservable } from './bacon-react'
 import { Vessel, VesselSelectionState } from './vesselselection-state'
@@ -45,10 +44,6 @@ const trackLengthStyles = createStyles({
   }
 })
 
-interface TLPProps extends WithStyles<typeof trackLengthStyles> {
-  trackLengthsStateP: Property<TrackLengthsState>
-}
-
 interface TrackLength {
   context: string
   start: string
@@ -60,65 +55,76 @@ interface TrackLengthWithName extends TrackLength {
   name: string
 }
 
-interface TrackLengthsState {
-  isLoading: boolean
-  isError: boolean
-  tracks: TrackLengthWithName[]
+class TrackLengthsPanelState {
+  vesselSelectionState: VesselSelectionState
+  isLoading: Atom<boolean> = Atom(true)
+  isError: Atom<boolean> = Atom(false)
+  tracks: Property<TrackLengthWithName[][]>
+  constructor(vesselSelectionState: VesselSelectionState) {
+    this.vesselSelectionState = vesselSelectionState
+    this.tracks = startTrackLengthLoading(
+      vesselSelectionState.vessels,
+      vesselSelectionState.selectedVessels
+    )
+  }
 }
 
-const TrackLengthsPanel = () => {
-  const listState = Atom<TrackLengthsState>({
-    isLoading: true,
-    isError: false,
-    tracks: []
-  })
-  const vesselSelectionState = new VesselSelectionState()
+function startTrackLengthLoading(
+  vessels: Property<Vessel[]>,
+  selectedVesselIds: Property<VesselId[]>
+): Property<TrackLengthWithName[][]> {
+  return combineTemplate({ vessels, selectedVesselIds })
+    .changes()
+    .flatMap(({ vessels, selectedVesselIds }) => {
+      const lenghtsPromise = fetchTrackLengthsWithNames(
+        vessels.filter(v => selectedVesselIds.includes(v.vesselId))
+      )
+      return fromPromise(lenghtsPromise)
+    })
+    .toProperty([])
+}
+
+const TrackLengthsPanel = ({
+  vesselSelection
+}: {
+  vesselSelection: VesselSelectionState
+}) => {
+  const panelState = new TrackLengthsPanelState(vesselSelection)
   React.useEffect(() => {
     loadVessels()
       .then((vessels: VesselData[]) => {
-        vesselSelectionState.setVessels(vessels)
+        panelState.vesselSelectionState.setVessels(vessels)
         return vessels
       })
-      .then(fetchTrackLengthsWithNames)
-      // flatten: single list for all vessels
-      .then(flatten)
-      .then(filterByMinLength)
-      .then(sortByStartDay)
-      .then((trackLengths: TrackLengthWithName[]) =>
-        listState.set({
-          isLoading: false,
-          isError: false,
-          tracks: trackLengths
-        })
-      )
-      .catch((e: Error) =>
-        listState.set({
-          isLoading: false,
-          isError: true,
-          tracks: []
-        })
-      )
+      .catch((e: Error) => console.log(e))
   })
 
   return (
     <React.Fragment>
-      <VesselSelectionPanel selectionState={vesselSelectionState} />
-      <TrackLengthList trackLengthsStateP={listState} />
+      <VesselSelectionPanel selectionState={panelState.vesselSelectionState} />
+      <TrackLengthList trackLengthsPanelState={panelState} />
     </React.Fragment>
   )
 }
 
+interface TLPProps extends WithStyles<typeof trackLengthStyles> {
+  trackLengthsPanelState: TrackLengthsPanelState
+}
+
 const TrackLengthList = withStyles(trackLengthStyles)(
-  ({ trackLengthsStateP, classes }: TLPProps) => {
-    const trackLengthsState = useObservable(trackLengthsStateP)
+  ({ trackLengthsPanelState, classes }: TLPProps) => {
+    const isLoading = useObservable(trackLengthsPanelState.isLoading)
+    const isError = useObservable(trackLengthsPanelState.isError)
+    const tracks = useObservable(trackLengthsPanelState.tracks)
+
     return (
       <Paper className={classes.root}>
-        {trackLengthsState.isLoading && (
+        {isLoading && (
           <Container>
             <CircularProgress className={classes.progress} />
           </Container>
         )}
-        {trackLengthsState.isError && (
+        {isError && (
           <Snackbar
             open={true}
             anchorOrigin={{
@@ -129,7 +135,7 @@ const TrackLengthList = withStyles(trackLengthStyles)(
             <SnackbarContent message={'Could not load track lengths.'} />
           </Snackbar>
         )}
-        {!trackLengthsState.isLoading && (
+        {
           <Table className={classes.table}>
             <TableHead>
               <TableRow>
@@ -139,22 +145,25 @@ const TrackLengthList = withStyles(trackLengthStyles)(
               </TableRow>
             </TableHead>
             <TableBody>
-              {trackLengthsState.tracks.map(row => (
-                <TableRow key={`${row.context}${row.start}`}>
-                  <TableCell component="th" scope="row">
-                    {row.name}
-                  </TableCell>
-                  <TableCell align="right">
-                    {row.start.substring(0, 10)}
-                  </TableCell>
-                  <TableCell align="right">
-                    {(row.length * meters2nm).toFixed(1)}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {_.flatten(tracks)
+                .filter(tl => tl.length > hasMovedThresholdMeters)
+                .sort((a, b) => a.start.localeCompare(b.start))
+                .map(row => (
+                  <TableRow key={`${row.context}${row.start}`}>
+                    <TableCell component="th" scope="row">
+                      {row.name}
+                    </TableCell>
+                    <TableCell align="right">
+                      {row.start.substring(0, 10)}
+                    </TableCell>
+                    <TableCell align="right">
+                      {(row.length * meters2nm).toFixed(1)}
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
-        )}
+        }
       </Paper>
     )
   }
@@ -215,11 +224,5 @@ const fetchTrackLengthsWithNames = (
     )
   )
 }
-
-const filterByMinLength = (trackLengths: TrackLengthWithName[]) =>
-  trackLengths.filter(tl => tl.length > hasMovedThresholdMeters)
-
-const sortByStartDay = (trackLengths: TrackLengthWithName[]) =>
-  trackLengths.sort((a, b) => a.start.localeCompare(b.start))
 
 export default TrackLengthsPanel

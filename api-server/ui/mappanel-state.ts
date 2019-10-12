@@ -17,21 +17,24 @@ export const initialViewport = {
 }
 
 export class MapPanelState {
-  vesselSelectionState: VesselSelectionState = new VesselSelectionState()
+  vesselSelectionState: VesselSelectionState
   viewport: Atom<Viewport> = Atom(initialViewport)
-  loadedTracks: Property<LoadedTrack[]> = startTrackLoading(
-    this.vesselSelectionState.selectedVessels,
-    this.viewport
-  )
-  tracksToRender: Property<RenderedTrack[]> = toTracksToRender(
-    this.vesselSelectionState.vessels,
-    this.vesselSelectionState.selectedVessels,
-    this.loadedTracks
-  )
+  loadedTracks: Property<LoadedTrack[]>
+  tracksToRender: Property<RenderedTrack[]>
   initialMapCenter: Coords = centerFromLocalStorageOrDefault()
 
-  constructor() {
+  constructor(vesselSelectionState: VesselSelectionState) {
+    this.vesselSelectionState = vesselSelectionState
     this.viewport.onValue(saveViewportToLocalStorage)
+    this.loadedTracks = startTrackLoading(
+      this.vesselSelectionState.selectedVessels,
+      this.viewport
+    )
+    this.tracksToRender = toTracksToRender(
+      this.vesselSelectionState.vessels,
+      this.vesselSelectionState.selectedVessels,
+      this.loadedTracks
+    )
   }
   initVessels() {
     this.vesselSelectionState.initVessels()
