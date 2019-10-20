@@ -40,7 +40,6 @@ const App = () => {
   return (
     <Router>
       <Navi />
-      <Redirect exact from="/" to="map" />
       <Switch>
         <Route path="/map">
           <ErrorBoundary>
@@ -53,6 +52,7 @@ const App = () => {
         <Route path="/tracklengths">
           <TrackLengthsPanel vesselSelection={vesselSelectionState} />
         </Route>
+        <Redirect from="/" to="/map" />
       </Switch>
     </Router>
   )
