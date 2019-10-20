@@ -18,10 +18,12 @@ const navigation = [
   { label: 'Track lengths', path: '/tracklengths' }
 ]
 
-const Navi = withRouter(props => {
-  const [value, setValue] = React.useState(0)
+const Navi = withRouter(({ location, history }) => {
+  const [value, setValue] = React.useState(
+    navigation.findIndex(e => e.path === location.pathname)
+  )
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-    props.history.push(navigation[newValue].path)
+    history.push(navigation[newValue].path)
     setValue(newValue)
   }
   return (
