@@ -140,7 +140,7 @@ const VesselSelectionPanel = ({
 
   return (
     <FormControl component="fieldset">
-      <FormLabel component="legend">Assign responsibility</FormLabel>
+      <FormLabel component="legend">Select vessels</FormLabel>
       <FormGroup>
         {vessels.map(v => (
           <FormControlLabel
