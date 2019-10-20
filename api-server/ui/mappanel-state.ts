@@ -36,9 +36,6 @@ export class MapPanelState {
       this.loadedTracks
     )
   }
-  initVessels() {
-    this.vesselSelectionState.initVessels()
-  }
 }
 
 interface TracksWithViewport {

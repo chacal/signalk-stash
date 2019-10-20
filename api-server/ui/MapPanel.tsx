@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import * as React from 'react'
-import { useEffect } from 'react'
 
 import Map from './Map'
 import { MapPanelState } from './mappanel-state'
@@ -13,9 +12,6 @@ interface MapPanelProps {
 
 const MapPanel = ({ vesselSelection }: MapPanelProps) => {
   const panelState = new MapPanelState(vesselSelection)
-  useEffect(() => {
-    panelState.initVessels()
-  })
 
   return (
     <React.Fragment>
