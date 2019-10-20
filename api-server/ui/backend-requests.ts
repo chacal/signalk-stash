@@ -55,7 +55,6 @@ export function fetchTrackLengths(vesselId: VesselId) {
     firstDay: '2019-06-01',
     lastDay: '2019-09-01'
   })
-  console.log(vesselId)
   return fetch(`/tracks/daily/stats?${params.toString()}`).then(res =>
     res.json()
   )
