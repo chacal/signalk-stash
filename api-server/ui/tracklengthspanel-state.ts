@@ -1,13 +1,12 @@
 import { combineTemplate, fromPromise, Property } from 'baconjs'
-import { Atom } from '../domain/Atom'
 import { VesselData, VesselId } from '../domain/Vessel'
 import { fetchTrackLengths } from './backend-requests'
 import { Vessel, VesselSelectionState } from './vesselselection-state'
 
 export class TrackLengthsPanelState {
   vesselSelectionState: VesselSelectionState
-  isLoading: Atom<boolean> = Atom(true)
-  isError: Atom<boolean> = Atom(false)
+  isLoading: Property<boolean>
+  isError: Property<boolean>
   tracks: Property<TrackLengthWithName[][]>
   constructor(vesselSelectionState: VesselSelectionState) {
     this.vesselSelectionState = vesselSelectionState
@@ -15,6 +14,21 @@ export class TrackLengthsPanelState {
       vesselSelectionState.vessels,
       vesselSelectionState.selectedVessels
     )
+    this.isLoading = vesselSelectionState.selectedVessels
+      .changes()
+      .map(true)
+      .merge(
+        this.tracks
+          .changes()
+          .skip(1) // first output is the initial value []
+          .map(false)
+      )
+      .toProperty(false)
+    this.isError = this.tracks
+      .errors()
+      .changes()
+      .map(true)
+      .toProperty(false)
   }
 }
 
