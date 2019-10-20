@@ -18,13 +18,10 @@ import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
-import { combineTemplate, fromPromise, Property } from 'baconjs'
 import _ from 'lodash'
 import * as React from 'react'
-import { Atom } from '../domain/Atom'
-import { VesselData, VesselId } from '../domain/Vessel'
-import { fetchTrackLengths, loadVessels } from './backend-requests'
 import { useObservable } from './bacon-react'
+import { TrackLengthsPanelState } from './tracklengthspanel-state'
 import { Vessel, VesselSelectionState } from './vesselselection-state'
 
 const meters2nm = 0.000539957
@@ -43,46 +40,6 @@ const trackLengthStyles = createStyles({
     margin: 10
   }
 })
-
-interface TrackLength {
-  context: string
-  start: string
-  end: string
-  length: number
-}
-
-interface TrackLengthWithName extends TrackLength {
-  name: string
-}
-
-class TrackLengthsPanelState {
-  vesselSelectionState: VesselSelectionState
-  isLoading: Atom<boolean> = Atom(true)
-  isError: Atom<boolean> = Atom(false)
-  tracks: Property<TrackLengthWithName[][]>
-  constructor(vesselSelectionState: VesselSelectionState) {
-    this.vesselSelectionState = vesselSelectionState
-    this.tracks = startTrackLengthLoading(
-      vesselSelectionState.vessels,
-      vesselSelectionState.selectedVessels
-    )
-  }
-}
-
-function startTrackLengthLoading(
-  vessels: Property<Vessel[]>,
-  selectedVesselIds: Property<VesselId[]>
-): Property<TrackLengthWithName[][]> {
-  return combineTemplate({ vessels, selectedVesselIds })
-    .changes()
-    .flatMap(({ vessels, selectedVesselIds }) => {
-      const lenghtsPromise = fetchTrackLengthsWithNames(
-        vessels.filter(v => selectedVesselIds.includes(v.vesselId))
-      )
-      return fromPromise(lenghtsPromise)
-    })
-    .toProperty([])
-}
 
 const TrackLengthsPanel = ({
   vesselSelection
@@ -200,20 +157,6 @@ const VesselSelectionPanel = ({
         ))}
       </FormGroup>
     </FormControl>
-  )
-}
-
-const fetchTrackLengthsWithNames = (
-  vessels: VesselData[]
-): Promise<TrackLengthWithName[][]> => {
-  return Promise.all(
-    vessels.map(({ vesselId, name }: VesselData) =>
-      fetchTrackLengths(vesselId).then((trackLengthsA: TrackLength[]) =>
-        trackLengthsA.map(
-          trackLength => ({ name, ...trackLength } as TrackLengthWithName)
-        )
-      )
-    )
   )
 }
 
