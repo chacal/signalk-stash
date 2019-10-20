@@ -1,7 +1,7 @@
 import { combineTemplate, fromPromise, Property } from 'baconjs'
-import { VesselData, VesselId } from '../domain/Vessel'
-import { fetchTrackLengths } from './backend-requests'
-import { Vessel, VesselSelectionState } from './vesselselection-state'
+import { VesselData, VesselId } from '../../domain/Vessel'
+import { fetchTrackLengths } from '../backend-requests'
+import { Vessel, VesselSelectionState } from '../vesselselection-state'
 
 export class TrackLengthsPanelState {
   vesselSelectionState: VesselSelectionState
