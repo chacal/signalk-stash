@@ -1,28 +1,21 @@
 import {
-  Checkbox,
   CircularProgress,
+  Container,
   createStyles,
-  FormControl,
-  FormGroup,
-  FormLabel,
+  Paper,
   Snackbar,
   SnackbarContent,
-  WithStyles,
-  withStyles
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow
 } from '@material-ui/core'
-import Container from '@material-ui/core/Container'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Paper from '@material-ui/core/Paper'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
+import { WithStyles, withStyles } from '@material-ui/styles'
 import _ from 'lodash'
 import * as React from 'react'
-import { useObservable } from './bacon-react'
+import { useObservable } from '../bacon-react'
 import { TrackLengthsPanelState } from './tracklengthspanel-state'
-import { Vessel, VesselSelectionState } from './vesselselection-state'
 
 const meters2nm = 0.000539957
 const hasMovedThresholdMeters = 0.05 / meters2nm
@@ -41,27 +34,12 @@ const trackLengthStyles = createStyles({
   }
 })
 
-const TrackLengthsPanel = ({
-  vesselSelection
-}: {
-  vesselSelection: VesselSelectionState
-}) => {
-  const panelState = new TrackLengthsPanelState(vesselSelection)
-
-  return (
-    <React.Fragment>
-      <VesselSelectionPanel selectionState={panelState.vesselSelectionState} />
-      <TrackLengthList trackLengthsPanelState={panelState} />
-    </React.Fragment>
-  )
-}
-
-interface TLPProps extends WithStyles<typeof trackLengthStyles> {
+interface TLLProps extends WithStyles<typeof trackLengthStyles> {
   trackLengthsPanelState: TrackLengthsPanelState
 }
 
 const TrackLengthList = withStyles(trackLengthStyles)(
-  ({ trackLengthsPanelState, classes }: TLPProps) => {
+  ({ trackLengthsPanelState, classes }: TLLProps) => {
     const isLoading = useObservable(trackLengthsPanelState.isLoading)
     const isError = useObservable(trackLengthsPanelState.isError)
     const tracks = useObservable(trackLengthsPanelState.tracks)
@@ -118,46 +96,4 @@ const TrackLengthList = withStyles(trackLengthStyles)(
   }
 )
 
-interface VesselSelectionPanelProps {
-  selectionState: VesselSelectionState
-}
-
-const VesselSelectionPanel = ({
-  selectionState
-}: VesselSelectionPanelProps) => {
-  const vessels = useObservable(selectionState.vessels)
-  const selectedVessels = useObservable(selectionState.selectedVessels)
-
-  const vesselSelectionChanged = (vessel: Vessel) => (
-    event: React.ChangeEvent<HTMLInputElement>,
-    checked: boolean
-  ) => {
-    const newSelection = checked
-      ? _.concat(selectedVessels, vessel.vesselId)
-      : _.without(selectedVessels, vessel.vesselId)
-    selectionState.selectedVessels.set(newSelection)
-  }
-
-  return (
-    <FormControl component="fieldset">
-      <FormLabel component="legend">Select vessels</FormLabel>
-      <FormGroup>
-        {vessels.map(v => (
-          <FormControlLabel
-            key={v.vesselId}
-            control={
-              <Checkbox
-                checked={selectedVessels.includes(v.vesselId)}
-                onChange={vesselSelectionChanged(v)}
-                value={v.name}
-              />
-            }
-            label={v.name}
-          />
-        ))}
-      </FormGroup>
-    </FormControl>
-  )
-}
-
-export default TrackLengthsPanel
+export default TrackLengthList

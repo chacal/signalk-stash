@@ -10,7 +10,7 @@ import {
 } from 'react-router-dom'
 import ErrorBoundary from './ErrorBoundary'
 import MapPanel from './MapPanel'
-import TrackLengthsPanel from './TrackLengthsPanel'
+import TrackLengthsPanel from './tracklengths/TrackLengthsPanel'
 import { VesselSelectionState } from './vesselselection-state'
 
 const navigation = [
