@@ -1,5 +1,6 @@
 import { AppBar, Tab, Tabs } from '@material-ui/core'
 import * as React from 'react'
+import { useEffect } from 'react'
 import {
   HashRouter as Router,
   Redirect,
@@ -37,6 +38,10 @@ const Navi = withRouter(props => {
 const vesselSelectionState = new VesselSelectionState()
 
 const App = () => {
+  useEffect(() => {
+    vesselSelectionState.initVessels()
+  })
+
   return (
     <Router>
       <Navi />

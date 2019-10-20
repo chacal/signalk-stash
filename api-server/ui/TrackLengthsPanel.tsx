@@ -90,14 +90,6 @@ const TrackLengthsPanel = ({
   vesselSelection: VesselSelectionState
 }) => {
   const panelState = new TrackLengthsPanelState(vesselSelection)
-  React.useEffect(() => {
-    loadVessels()
-      .then((vessels: VesselData[]) => {
-        panelState.vesselSelectionState.setVessels(vessels)
-        return vessels
-      })
-      .catch((e: Error) => console.log(e))
-  })
 
   return (
     <React.Fragment>
