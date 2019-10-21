@@ -19,16 +19,19 @@ const navigation = [
 ]
 
 const Navi = withRouter(({ location, history }) => {
-  const [value, setValue] = React.useState(
+  const [tabIndex, setTabIndex] = React.useState(
     navigation.findIndex(e => e.path === location.pathname)
   )
+  useEffect(() => {
+    setTabIndex(navigation.findIndex(e => e.path === location.pathname))
+  })
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     history.push(navigation[newValue].path)
-    setValue(newValue)
+    setTabIndex(newValue)
   }
   return (
     <AppBar position="static">
-      <Tabs value={value} onChange={handleChange}>
+      <Tabs value={tabIndex} onChange={handleChange}>
         {navigation.map(({ label }) => (
           <Tab label={label} />
         ))}
