@@ -1,6 +1,6 @@
 import { combineTemplate, fromPromise, Property } from 'baconjs'
 import { VesselData, VesselId } from '../../domain/Vessel'
-import { fetchTrackLengths } from '../backend-requests'
+import { fetchTrackLengths, TrackLengthsFetcher } from '../backend-requests'
 import { Vessel, VesselSelectionState } from '../vesselselection-state'
 
 export class TrackLengthsPanelState {
@@ -8,11 +8,15 @@ export class TrackLengthsPanelState {
   isLoading: Property<boolean>
   isError: Property<boolean>
   tracks: Property<TrackLengthWithName[][]>
-  constructor(vesselSelectionState: VesselSelectionState) {
+  constructor(
+    vesselSelectionState: VesselSelectionState,
+    fetchTrackLenghtsParam: TrackLengthsFetcher = fetchTrackLengths
+  ) {
     this.vesselSelectionState = vesselSelectionState
     this.tracks = startTrackLengthLoading(
       vesselSelectionState.vessels,
-      vesselSelectionState.selectedVessels
+      vesselSelectionState.selectedVessels,
+      fetchTrackLenghtsParam
     )
     this.isLoading = vesselSelectionState.selectedVessels
       .changes()
@@ -34,13 +38,15 @@ export class TrackLengthsPanelState {
 
 function startTrackLengthLoading(
   vessels: Property<Vessel[]>,
-  selectedVesselIds: Property<VesselId[]>
+  selectedVesselIds: Property<VesselId[]>,
+  fetchTrackLengths: TrackLengthsFetcher
 ): Property<TrackLengthWithName[][]> {
   return combineTemplate({ vessels, selectedVesselIds })
     .toEventStream()
     .flatMap(({ vessels, selectedVesselIds }) => {
       const lenghtsPromise = fetchTrackLengthsWithNames(
-        vessels.filter(v => selectedVesselIds.includes(v.vesselId))
+        vessels.filter(v => selectedVesselIds.includes(v.vesselId)),
+        fetchTrackLengths
       )
       return fromPromise(lenghtsPromise)
     })
@@ -59,7 +65,8 @@ export interface TrackLengthWithName extends TrackLength {
 }
 
 const fetchTrackLengthsWithNames = (
-  vessels: VesselData[]
+  vessels: VesselData[],
+  fetchTrackLengths: TrackLengthsFetcher
 ): Promise<TrackLengthWithName[][]> => {
   return Promise.all(
     vessels.map(({ vesselId, name }: VesselData) =>

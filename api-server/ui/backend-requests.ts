@@ -4,6 +4,7 @@ import _ from 'lodash'
 import { toQueryString } from '../domain/Geo'
 import { VesselData, VesselId } from '../domain/Vessel'
 import { LoadedTrack, Viewport } from './mappanel-domain'
+import { TrackLength } from './tracklengths/tracklengthspanel-state'
 
 const debug = Debug('stash:backend-requests')
 
@@ -49,7 +50,9 @@ export function loadMissingTracks(
   }
 }
 
-export function fetchTrackLengths(vesselId: VesselId) {
+export type TrackLengthsFetcher = (vesselId: VesselId) => Promise<TrackLength[]>
+
+export function fetchTrackLengths(vesselId: VesselId): Promise<TrackLength[]> {
   const params = new URLSearchParams({
     context: vesselId,
     firstDay: '2019-06-01',
