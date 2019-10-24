@@ -52,6 +52,7 @@ function startTrackLoading(
     viewport
   })
     .toEventStream()
+    .filter(e => e.viewport.bounds !== emptyBounds)
     .flatScan<TracksWithViewport>(
       { viewport: viewport.get(), tracks: [] },
       (acc, { selectedVessels, viewport }) => {
