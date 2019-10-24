@@ -37,7 +37,7 @@ function startTrackLengthLoading(
   selectedVesselIds: Property<VesselId[]>
 ): Property<TrackLengthWithName[][]> {
   return combineTemplate({ vessels, selectedVesselIds })
-    .changes()
+    .toEventStream()
     .flatMap(({ vessels, selectedVesselIds }) => {
       const lenghtsPromise = fetchTrackLengthsWithNames(
         vessels.filter(v => selectedVesselIds.includes(v.vesselId))
