@@ -68,6 +68,7 @@
     "@cypress/webpack-preprocessor": "^4.0.3",
     "@types/enzyme": "^3.9.1",
     "@types/enzyme-adapter-react-16": "^1.0.5",
+    "@types/sinon": "^7.5.0",
     "@types/supertest": "^2.0.7",
     "@types/webpack-dev-middleware": "^2.0.2",
     "@types/webpack-hot-middleware": "^2.16.5",
