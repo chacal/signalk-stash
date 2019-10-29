@@ -133,7 +133,7 @@ clickhouse-dev: clickhouse-client-dev
 
 clickhouse-test: clickhouse-client-test
 
-clickhouse-e2e: clickhouse-client-test
+clickhouse-e2e: clickhouse-client-e2e
 
 clickhouse-prod: .ensure-inventory
 	@$(SSH_PROD) "docker exec -it signalk-stash-prod_clickhouse_1 clickhouse-client"
