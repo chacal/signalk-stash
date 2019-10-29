@@ -5,6 +5,7 @@ import Liner from '@signalk/streams/liner'
 import S3Stream from '@signalk/streams/s3'
 import program from 'commander'
 import { Transform } from 'stream'
+import { createGunzip } from 'zlib'
 import stashDB from '../api-server/db/StashDB'
 import SKDeserializingStream from '../delta-inputs/SKDeserializingStream'
 
@@ -20,6 +21,7 @@ program
     'Vessel id without prefix, eg. urn:mrn:signalk:uuid:2204ae24-c911-5ffe-4d1d-4d411c9cea2e'
   )
   .option('-A --all [true]', 'import all data (default: only self)')
+  .option('-z --gzip [true]', 'data is gzipped (default: not compressed)')
 program.parse(process.argv)
 
 if (!program.bucket) {
@@ -94,7 +96,9 @@ class SetSelfVesselId extends Transform {
 
 const setSelfVesselId = new SetSelfVesselId(program.selfVesselId, program.all)
 
-s3Stream
+const datastream = program.gzip ? s3Stream.pipe(createGunzip()) : s3Stream
+
+datastream
   .pipe(liner)
   .pipe(autodetect)
   .pipe(new SKDeserializingStream())
