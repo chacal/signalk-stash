@@ -3,6 +3,7 @@ import { LeafletEvent } from 'leaflet'
 import * as React from 'react'
 import { GeoJSON, Map as LeafletMap, TileLayer } from 'react-leaflet'
 
+import { useMediaQuery } from '@material-ui/core'
 import { Atom } from '../domain/Atom'
 import { Coords } from '../domain/Geo'
 import { useObservable } from './bacon-react'
@@ -32,7 +33,7 @@ const Map = ({ center, viewportA, tracksO }: MapProps) => {
 
   const leafletCss = `
   .leaflet-container {
-    height: 100%;
+    height: ${useMediaQuery('(min-width: 1000px)') ? 100 : 90}%;
     width: 100%;
     margin: 0 auto;
     }
