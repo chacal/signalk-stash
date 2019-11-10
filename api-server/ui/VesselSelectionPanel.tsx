@@ -4,7 +4,9 @@ import {
   List,
   ListItem,
   ListItemText,
+  makeStyles,
   Paper,
+  useMediaQuery,
   WithStyles,
   withStyles
 } from '@material-ui/core'
@@ -55,47 +57,57 @@ const VesselSelection = withStyles(vsStyles)(
 //
 //   VesselSelectionPanel
 //
-const vspStyles = createStyles({
-  root: {
-    position: 'absolute',
-    bottom: '10px',
-    left: '10px',
-    'z-index': 2000
+interface Props {
+  showOnTheMap: boolean
+}
+const vspStyles = makeStyles({
+  root: ({ showOnTheMap: overtheMap }: Props) => {
+    if (overtheMap) {
+      return {
+        position: 'absolute',
+        bottom: '10px',
+        left: '10px',
+        'z-index': 2000
+      }
+    } else {
+      return {}
+    }
   }
 })
 
-interface VSPProps extends WithStyles<typeof vspStyles> {
+interface VSPProps {
   vesselsP: Property<Vessel[]>
   selectedVesselsA: Atom<VesselId[]>
 }
 
-const VesselSelectionPanel = withStyles(vspStyles)(
-  ({ vesselsP, selectedVesselsA, classes }: VSPProps) => {
-    const vessels = useObservable(vesselsP)
-    const selectedVessels = useObservable(selectedVesselsA)
+const VesselSelectionPanel = ({ vesselsP, selectedVesselsA }: VSPProps) => {
+  const vessels = useObservable(vesselsP)
+  const selectedVessels = useObservable(selectedVesselsA)
+  const classes = vspStyles({
+    showOnTheMap: useMediaQuery('(min-width: 1000px)')
+  })
 
-    const vesselSelectionChanged = (vessel: Vessel) => (selected: boolean) => {
-      const newSelection = selected
-        ? _.concat(selectedVessels, vessel.vesselId)
-        : _.without(selectedVessels, vessel.vesselId)
-      selectedVesselsA.set(newSelection)
-    }
-
-    return (
-      <Paper classes={classes}>
-        <List>
-          {vessels.map(v => (
-            <VesselSelection
-              key={v.vesselId}
-              vessel={v}
-              selected={selectedVessels.includes(v.vesselId)}
-              selectionChanged={vesselSelectionChanged(v)}
-            />
-          ))}
-        </List>
-      </Paper>
-    )
+  const vesselSelectionChanged = (vessel: Vessel) => (selected: boolean) => {
+    const newSelection = selected
+      ? _.concat(selectedVessels, vessel.vesselId)
+      : _.without(selectedVessels, vessel.vesselId)
+    selectedVesselsA.set(newSelection)
   }
-)
+
+  return (
+    <Paper classes={classes}>
+      <List>
+        {vessels.map(v => (
+          <VesselSelection
+            key={v.vesselId}
+            vessel={v}
+            selected={selectedVessels.includes(v.vesselId)}
+            selectionChanged={vesselSelectionChanged(v)}
+          />
+        ))}
+      </List>
+    </Paper>
+  )
+}
 
 export default VesselSelectionPanel
