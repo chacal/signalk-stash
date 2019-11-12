@@ -1,26 +1,26 @@
-import { Property } from 'baconjs'
 import { LeafletEvent } from 'leaflet'
 import * as React from 'react'
 import { GeoJSON, Map as LeafletMap, TileLayer } from 'react-leaflet'
 
-import { Atom } from '../domain/Atom'
+import { Observable, Subject } from 'rxjs'
+import { useObservable } from 'rxjs-hooks'
 import { Coords } from '../domain/Geo'
-import { useObservable } from './bacon-react'
 import { LoadedTrack, RenderedTrack, Viewport } from './mappanel-domain'
+import { initialViewport } from './mappanel-state'
 
 interface MapProps {
   center: Coords
-  viewportA: Atom<Viewport>
-  tracksO: Property<RenderedTrack[]>
+  viewportA: Subject<Viewport>
+  tracksO: Observable<RenderedTrack[]>
 }
 
 const Map = ({ center, viewportA, tracksO }: MapProps) => {
-  const viewport = useObservable(viewportA)
-  const tracks = useObservable(tracksO)
+  const viewport = useObservable(() => viewportA) || initialViewport
+  const tracks = useObservable(() => tracksO) || []
 
   const updateBoundsFromMap = (comp: LeafletMap) => {
     if (comp !== null) {
-      viewportA.set({
+      viewportA.next({
         zoom: comp.leafletElement.getZoom(),
         bounds: comp.leafletElement.getBounds()
       })
@@ -28,7 +28,7 @@ const Map = ({ center, viewportA, tracksO }: MapProps) => {
   }
 
   const updateBoundsFromEvent = (e: LeafletEvent) =>
-    viewportA.set({ zoom: e.target.getZoom(), bounds: e.target.getBounds() })
+    viewportA.next({ zoom: e.target.getZoom(), bounds: e.target.getBounds() })
 
   return (
     <LeafletMap

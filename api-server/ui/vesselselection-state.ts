@@ -1,7 +1,7 @@
 import Color from 'color'
 import palette from 'google-palette'
 import _ from 'lodash'
-import { Atom } from '../domain/Atom'
+import { Subject } from 'rxjs'
 import { VesselData, VesselId } from '../domain/Vessel'
 import { loadVessels } from './backend-requests'
 
@@ -12,25 +12,25 @@ export interface Vessel {
 }
 
 export class VesselSelectionState {
-  vessels: Atom<Vessel[]> = Atom([])
-  selectedVessels: Atom<VesselId[]> = Atom([])
+  vessels: Subject<Vessel[]> = new Subject<Vessel[]>()
+  selectedVessels: Subject<VesselId[]> = new Subject<VesselId[]>()
 
   initVessels() {
     const initialSelectedVessels = selectedVesselsFromLocalStorageOrDefault()
-    this.selectedVessels.onValue(sv => saveSelectedVesselsToLocalStorage(sv))
+    this.selectedVessels.subscribe(sv => saveSelectedVesselsToLocalStorage(sv))
 
     loadVessels()
       .then(assignColors)
       .then(vessels => {
-        this.vessels.set(vessels)
-        this.selectedVessels.set(
+        this.vessels.next(vessels)
+        this.selectedVessels.next(
           _.intersection(initialSelectedVessels, vessels.map(v => v.vesselId))
         )
       })
       .catch((e: Error) => console.error('Error loading vessels!', e))
   }
   setVessels(vessels: VesselData[]) {
-    this.vessels.set(assignColors(vessels))
+    this.vessels.next(assignColors(vessels))
   }
 }
 

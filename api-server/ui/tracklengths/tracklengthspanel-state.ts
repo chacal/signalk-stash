@@ -1,13 +1,14 @@
-import { combineTemplate, fromPromise, Property } from 'baconjs'
+import { combineLatest, from, Observable, Subject } from 'rxjs'
+import { switchMap } from 'rxjs/operators'
 import { VesselData, VesselId } from '../../domain/Vessel'
 import { fetchTrackLengths, TrackLengthsFetcher } from '../backend-requests'
 import { Vessel, VesselSelectionState } from '../vesselselection-state'
 
 export class TrackLengthsPanelState {
   vesselSelectionState: VesselSelectionState
-  isLoading: Property<boolean>
-  isError: Property<boolean>
-  tracks: Property<TrackLengthWithName[][]>
+  isLoading: Subject<boolean>
+  isError: Subject<boolean>
+  tracks: Observable<TrackLengthWithName[][]>
   constructor(
     vesselSelectionState: VesselSelectionState,
     fetchTrackLenghtsParam: TrackLengthsFetcher = fetchTrackLengths
@@ -18,39 +19,42 @@ export class TrackLengthsPanelState {
       vesselSelectionState.selectedVessels,
       fetchTrackLenghtsParam
     )
-    this.isLoading = vesselSelectionState.selectedVessels
-      .changes()
-      .map(true)
-      .merge(
-        this.tracks
-          .changes()
-          .skip(1) // first output is the initial value []
-          .map(false)
-      )
-      .toProperty(false)
-    this.isError = this.tracks
-      .errors()
-      .changes()
-      .map(true)
-      .toProperty(false)
+    this.isLoading = new Subject()
+    this.isLoading.next(false)
+    this.isError = new Subject()
+    this.isError.next(false)
+    // this.isLoading = vesselSelectionState.selectedVessels
+    //   .changes()
+    //   .map(true)
+    //   .merge(
+    //     this.tracks
+    //       .changes()
+    //       .skip(1) // first output is the initial value []
+    //       .map(false)
+    //   )
+    //   .toProperty(false)
+    // this.isError = this.tracks
+    //   .errors()
+    //   .changes()
+    //   .map(true)
+    //   .toProperty(false)
   }
 }
 
 function startTrackLengthLoading(
-  vessels: Property<Vessel[]>,
-  selectedVesselIds: Property<VesselId[]>,
+  vessels: Subject<Vessel[]>,
+  selectedVesselIds: Subject<VesselId[]>,
   fetchTrackLengths: TrackLengthsFetcher
-): Property<TrackLengthWithName[][]> {
-  return combineTemplate({ vessels, selectedVesselIds })
-    .toEventStream()
-    .flatMap(({ vessels, selectedVesselIds }) => {
+): Observable<TrackLengthWithName[][]> {
+  return combineLatest([vessels, selectedVesselIds]).pipe(
+    switchMap(([vessels, selectedVesselIds]) => {
       const lenghtsPromise = fetchTrackLengthsWithNames(
         vessels.filter(v => selectedVesselIds.includes(v.vesselId)),
         fetchTrackLengths
       )
-      return fromPromise(lenghtsPromise)
+      return from(lenghtsPromise)
     })
-    .toProperty([])
+  )
 }
 
 export interface TrackLength {
