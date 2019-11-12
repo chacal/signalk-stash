@@ -8,13 +8,12 @@ import {
   WithStyles,
   withStyles
 } from '@material-ui/core'
-import { Property } from 'baconjs'
 import _ from 'lodash'
 import * as React from 'react'
 
-import { Atom } from '../domain/Atom'
+import { Subject } from 'rxjs'
+import { useObservable } from 'rxjs-hooks'
 import { VesselId } from '../domain/Vessel'
-import { useObservable } from './bacon-react'
 import { Vessel } from './vesselselection-state'
 
 //
@@ -65,30 +64,30 @@ const vspStyles = createStyles({
 })
 
 interface VSPProps extends WithStyles<typeof vspStyles> {
-  vesselsP: Property<Vessel[]>
-  selectedVesselsA: Atom<VesselId[]>
+  vesselsP: Subject<Vessel[]>
+  selectedVesselsA: Subject<VesselId[]>
 }
 
 const VesselSelectionPanel = withStyles(vspStyles)(
   ({ vesselsP, selectedVesselsA, classes }: VSPProps) => {
-    const vessels = useObservable(vesselsP)
-    const selectedVessels = useObservable(selectedVesselsA)
+    const vessels = useObservable(() => vesselsP)
+    const selectedVessels = useObservable(() => selectedVesselsA)
 
     const vesselSelectionChanged = (vessel: Vessel) => (selected: boolean) => {
       const newSelection = selected
         ? _.concat(selectedVessels, vessel.vesselId)
         : _.without(selectedVessels, vessel.vesselId)
-      selectedVesselsA.set(newSelection)
+      selectedVesselsA.next(newSelection as VesselId[])
     }
 
     return (
       <Paper classes={classes}>
         <List>
-          {vessels.map(v => (
+          {(vessels || []).map(v => (
             <VesselSelection
               key={v.vesselId}
               vessel={v}
-              selected={selectedVessels.includes(v.vesselId)}
+              selected={(selectedVessels || []).includes(v.vesselId)}
               selectionChanged={vesselSelectionChanged(v)}
             />
           ))}

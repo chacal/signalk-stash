@@ -1,13 +1,14 @@
-import { combineTemplate, fromPromise, Property } from 'baconjs'
+import { combineLatest, from, merge, Observable, of, Subject } from 'rxjs'
+import { catchError, map, shareReplay, switchMap } from 'rxjs/operators'
 import { VesselData, VesselId } from '../../domain/Vessel'
 import { fetchTrackLengths, TrackLengthsFetcher } from '../backend-requests'
 import { Vessel, VesselSelectionState } from '../vesselselection-state'
 
 export class TrackLengthsPanelState {
   vesselSelectionState: VesselSelectionState
-  isLoading: Property<boolean>
-  isError: Property<boolean>
-  tracks: Property<TrackLengthWithName[][]>
+  isLoading: Observable<boolean>
+  isError: Observable<boolean>
+  tracks: Observable<TrackLengthWithName[][]>
   constructor(
     vesselSelectionState: VesselSelectionState,
     fetchTrackLenghtsParam: TrackLengthsFetcher = fetchTrackLengths
@@ -18,39 +19,39 @@ export class TrackLengthsPanelState {
       vesselSelectionState.selectedVessels,
       fetchTrackLenghtsParam
     )
-    this.isLoading = vesselSelectionState.selectedVessels
-      .changes()
-      .map(true)
-      .merge(
-        this.tracks
-          .changes()
-          .skip(1) // first output is the initial value []
-          .map(false)
+    this.isLoading = merge(
+      vesselSelectionState.selectedVessels.pipe(map(() => true)),
+      this.tracks.pipe(map(() => false, catchError(() => of(false))))
+    )
+
+    this.isError = this.tracks.pipe(
+      map(
+        () => false,
+        catchError(err => {
+          console.log(err)
+          return of(true)
+        })
       )
-      .toProperty(false)
-    this.isError = this.tracks
-      .errors()
-      .changes()
-      .map(true)
-      .toProperty(false)
+    )
   }
 }
 
 function startTrackLengthLoading(
-  vessels: Property<Vessel[]>,
-  selectedVesselIds: Property<VesselId[]>,
+  vessels: Subject<Vessel[]>,
+  selectedVesselIds: Subject<VesselId[]>,
   fetchTrackLengths: TrackLengthsFetcher
-): Property<TrackLengthWithName[][]> {
-  return combineTemplate({ vessels, selectedVesselIds })
-    .toEventStream()
-    .flatMap(({ vessels, selectedVesselIds }) => {
+): Observable<TrackLengthWithName[][]> {
+  return combineLatest([vessels, selectedVesselIds]).pipe(
+    switchMap(([vessels, selectedVesselIds]) => {
       const lenghtsPromise = fetchTrackLengthsWithNames(
         vessels.filter(v => selectedVesselIds.includes(v.vesselId)),
         fetchTrackLengths
       )
-      return fromPromise(lenghtsPromise)
-    })
-    .toProperty([])
+      lenghtsPromise.catch(e => console.log(e))
+      return from(lenghtsPromise)
+    }),
+    shareReplay(1)
+  )
 }
 
 export interface TrackLength {

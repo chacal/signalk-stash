@@ -17,7 +17,7 @@ const MapPanel = ({ vesselSelection }: MapPanelProps) => {
     <React.Fragment>
       <Map
         center={panelState.initialMapCenter}
-        viewportA={panelState.viewport}
+        viewport={panelState.viewport}
         tracksO={panelState.tracksToRender}
       />
       <VesselSelectionPanel

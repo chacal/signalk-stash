@@ -14,7 +14,7 @@ import {
 import { WithStyles, withStyles } from '@material-ui/styles'
 import _ from 'lodash'
 import * as React from 'react'
-import { useObservable } from '../bacon-react'
+import { useObservable } from 'rxjs-hooks'
 import { TrackLengthsPanelState } from './tracklengthspanel-state'
 
 const meters2nm = 0.000539957
@@ -40,9 +40,11 @@ interface TLLProps extends WithStyles<typeof trackLengthStyles> {
 
 const TrackLengthList = withStyles(trackLengthStyles)(
   ({ trackLengthsPanelState, classes }: TLLProps) => {
-    const isLoading = useObservable(trackLengthsPanelState.isLoading)
-    const isError = useObservable(trackLengthsPanelState.isError)
-    const tracks = useObservable(trackLengthsPanelState.tracks)
+    const isLoading = useObservable<boolean>(
+      () => trackLengthsPanelState.isLoading
+    )
+    const isError = useObservable<boolean>(() => trackLengthsPanelState.isError)
+    const tracks = useObservable(() => trackLengthsPanelState.tracks)
 
     return (
       <Paper className={classes.root}>
