@@ -4,11 +4,11 @@ import Adapter from 'enzyme-adapter-react-16'
 import * as React from 'react'
 import { GeoJSON, Map as LeafletMap } from 'react-leaflet'
 
-import { Atom } from '../../api-server/domain/Atom'
+import { BehaviorSubject } from 'rxjs'
 import { Coords } from '../../api-server/domain/Geo'
 import { asVesselId } from '../../api-server/domain/Vessel'
 import Map from '../../api-server/ui/Map'
-import { RenderedTrack } from '../../api-server/ui/mappanel-domain'
+import { RenderedTrack, Viewport } from '../../api-server/ui/mappanel-domain'
 import { initialViewport } from '../../api-server/ui/mappanel-state'
 import { waitFor } from '../../test/waiting'
 
@@ -16,8 +16,8 @@ configure({ adapter: new Adapter() })
 
 const defaultProps = () => ({
   center: new Coords({ lat: 60, lng: 22 }),
-  viewportA: Atom(initialViewport),
-  tracksO: Atom<RenderedTrack[]>([])
+  viewport: new BehaviorSubject<Viewport>(initialViewport),
+  tracksO: new BehaviorSubject<RenderedTrack[]>([])
 })
 
 describe('Stash Map', () => {
@@ -33,10 +33,10 @@ describe('Stash Map', () => {
 
   it('updates bounds in app state', done => {
     const p = defaultProps()
-    expect(p.viewportA.get().bounds.toBBoxString()).to.equal('0,0,0,0')
+    expect(p.viewport.value.bounds.toBBoxString()).to.equal('0,0,0,0')
 
     mount(<Map {...p} />)
-    p.viewportA.onValue(vp => {
+    p.viewport.subscribe(vp => {
       expect(vp.bounds.toBBoxString()).to.not.equal('0,0,0,0')
       done()
     })
@@ -70,8 +70,7 @@ describe('Stash Map', () => {
     const geoJson = () => map.find(GeoJSON)
 
     expect(geoJson()).to.have.lengthOf(0)
-    p.tracksO.log('Tracks')
-    p.tracksO.set([
+    p.tracksO.next([
       {
         vesselId: asVesselId('urn:mrn:imo:mmsi:200000000'),
         loadTime: new Date(),

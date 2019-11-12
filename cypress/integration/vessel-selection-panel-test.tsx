@@ -4,7 +4,7 @@ import { configure, mount, ReactWrapper } from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'
 import * as React from 'react'
 
-import { Atom } from '../../api-server/domain/Atom'
+import { BehaviorSubject } from 'rxjs'
 import { asVesselId, VesselId } from '../../api-server/domain/Vessel'
 import { Vessel } from '../../api-server/ui/vesselselection-state'
 import VesselSelectionPanel from '../../api-server/ui/VesselSelectionPanel'
@@ -13,8 +13,8 @@ import { waitFor } from '../../test/waiting'
 configure({ adapter: new Adapter() })
 
 const defaultProps = (vessels: Vessel[] = []) => ({
-  vesselsP: Atom(vessels),
-  selectedVesselsA: Atom<VesselId[]>([])
+  vesselsP: new BehaviorSubject<Vessel[]>(vessels),
+  selectedVesselsA: new BehaviorSubject<VesselId[]>([])
 })
 
 const defaultId = 'urn:mrn:imo:mmsi:200000000'
@@ -32,7 +32,7 @@ describe('VesselSelectionPanel', () => {
     const F = itemFinder(vsp)
 
     expect(F.items()).to.have.lengthOf(0)
-    props.vesselsP.set([testVessel()])
+    props.vesselsP.next([testVessel()])
 
     await updateAndWait(vsp, () => F.items(), items => items.length === 1)
 
@@ -40,7 +40,7 @@ describe('VesselSelectionPanel', () => {
     expect(F.item(0).text()).to.equal(defaultId)
     expect(F.checkbox(0).prop('style')).to.deep.equal({ color: '#0000AA' })
 
-    props.vesselsP.set([
+    props.vesselsP.next([
       testVessel(),
       testVessel(asVesselId('urn:mrn:imo:mmsi:200000001'))
     ])
@@ -66,7 +66,7 @@ describe('VesselSelectionPanel', () => {
       checked => checked === true
     )
 
-    expect(props.selectedVesselsA.get()).to.have.members([
+    expect(props.selectedVesselsA.value).to.have.members([
       asVesselId(defaultId)
     ])
 
@@ -78,7 +78,7 @@ describe('VesselSelectionPanel', () => {
       checked => checked === false
     )
 
-    expect(props.selectedVesselsA.get()).to.have.members([])
+    expect(props.selectedVesselsA.value).to.have.members([])
 
     done()
   })

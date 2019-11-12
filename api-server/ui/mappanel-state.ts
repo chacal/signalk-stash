@@ -1,8 +1,8 @@
 import _ from 'lodash'
 
-import { combineTemplate, fromPromise, Observable, Property } from 'baconjs'
 import { LatLngBounds } from 'leaflet'
-import { Atom } from '../domain/Atom'
+import { combineLatest, from, Observable, ReplaySubject, Subject } from 'rxjs'
+import { distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators'
 import { Coords } from '../domain/Geo'
 import { VesselId } from '../domain/Vessel'
 import { loadMissingTracks } from './backend-requests'
@@ -18,14 +18,15 @@ export const initialViewport = {
 
 export class MapPanelState {
   vesselSelectionState: VesselSelectionState
-  viewport: Atom<Viewport> = Atom(initialViewport)
-  loadedTracks: Property<LoadedTrack[]>
-  tracksToRender: Property<RenderedTrack[]>
+  viewport: Subject<Viewport> = new ReplaySubject(1)
+  loadedTracks: Observable<LoadedTrack[]>
+  tracksToRender: Observable<RenderedTrack[]>
   initialMapCenter: Coords = centerFromLocalStorageOrDefault()
 
   constructor(vesselSelectionState: VesselSelectionState) {
+    this.viewport.next(initialViewport)
     this.vesselSelectionState = vesselSelectionState
-    this.viewport.onValue(saveViewportToLocalStorage)
+    this.viewport.subscribe(saveViewportToLocalStorage)
     this.loadedTracks = startTrackLoading(
       this.vesselSelectionState.selectedVessels,
       this.viewport
@@ -38,49 +39,39 @@ export class MapPanelState {
   }
 }
 
-interface TracksWithViewport {
-  viewport: Viewport
-  tracks: LoadedTrack[]
-}
-
 function startTrackLoading(
   selectedVessels: Observable<VesselId[]>,
-  viewport: Atom<Viewport>
-): Property<LoadedTrack[]> {
-  return combineTemplate({
-    selectedVessels,
-    viewport
-  })
-    .toEventStream()
-    .filter(e => e.viewport.bounds !== emptyBounds)
-    .flatScan<TracksWithViewport>(
-      { viewport: viewport.get(), tracks: [] },
-      (acc, { selectedVessels, viewport }) => {
-        const loadedTracks = !_.isEqual(acc.viewport, viewport)
-          ? loadMissingTracks([], selectedVessels, viewport) // Load tracks for all selected vessels
-          : loadMissingTracks(acc.tracks, selectedVessels, viewport) // Load missing tracks
-        return fromPromise(loadedTracks).map(tracks => ({
-          tracks,
-          viewport
-        }))
+  viewport: Observable<Viewport>
+): Observable<LoadedTrack[]> {
+  let loadedTracks: LoadedTrack[] = []
+  let previousViewport: Viewport
+  return combineLatest([selectedVessels, viewport]).pipe(
+    filter(([, viewport]) => viewport.bounds !== emptyBounds),
+    distinctUntilChanged(_.isEqual),
+    switchMap(([selectedVessels, viewport]) => {
+      if (!_.isEqual(viewport, previousViewport)) {
+        loadedTracks = []
       }
-    )
-    .skipDuplicates(_.isEqual)
-    .map(acc => acc.tracks)
+      previousViewport = viewport
+      return from(
+        loadMissingTracks(loadedTracks, selectedVessels, viewport).then(
+          tracks => {
+            loadedTracks = tracks
+            return tracks
+          }
+        )
+      ) as Observable<LoadedTrack[]>
+    })
+  )
 }
 
 function toTracksToRender(
   allVessels: Observable<Vessel[]>,
   selectedVessels: Observable<VesselId[]>,
   loadedTracks: Observable<LoadedTrack[]>
-): Property<RenderedTrack[]> {
-  return combineTemplate({
-    allVessels,
-    selectedVessels,
-    loadedTracks
-  })
-    .changes()
-    .map(({ allVessels, selectedVessels, loadedTracks }) => {
+): Observable<RenderedTrack[]> {
+  return combineLatest([allVessels, selectedVessels, loadedTracks]).pipe(
+    map(([allVessels, selectedVessels, loadedTracks]) => {
       const selectedTracks = loadedTracks.filter(t =>
         selectedVessels.includes(t.vesselId)
       )
@@ -97,8 +88,7 @@ function toTracksToRender(
         }
       })
     })
-    .toProperty([])
-    .skipDuplicates(_.isEqual)
+  )
 }
 
 function saveViewportToLocalStorage({ zoom, bounds }: Viewport) {

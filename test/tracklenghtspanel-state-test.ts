@@ -16,8 +16,8 @@ describe('TrackLengthsPanelState', () => {
   it('calls fetch for initially selected vessels and produces track lengths with names', () => {
     const vesselSelectionState = new VesselSelectionState()
     const threeVessels = [...Array(3)].map(nextVessel) as Vessel[]
-    vesselSelectionState.vessels.set(threeVessels)
-    vesselSelectionState.selectedVessels.set([
+    vesselSelectionState.vessels.next(threeVessels)
+    vesselSelectionState.selectedVessels.next([
       asVesselId(threeVessels[1].vesselId)
     ])
 
@@ -39,6 +39,7 @@ describe('TrackLengthsPanelState', () => {
     ]
     trackFetcher
       .withArgs(selectedVesselId)
+      .onFirstCall()
       .returns(
         new Promise<TrackLength[]>(resolve =>
           process.nextTick(() => resolve(trackLengthsResult))
@@ -50,42 +51,22 @@ describe('TrackLengthsPanelState', () => {
       trackFetcher
     )
     return new Promise((resolve, reject) => {
-      tlpState.tracks
-        .take(1)
-        .onValue((trackLengths: TrackLengthWithName[][]) => {
-          try {
-            expect(trackFetcher.callCount).to.equal(0)
-            expect(trackLengths).to.have.lengthOf(0)
-          } catch (e) {
-            console.log(e)
-            reject(e)
-          }
-        })
-      // console.log('take 1 done')
-      const unsubscribe = tlpState.tracks
-        .skip(1)
-        .onValue((trackLengths: TrackLengthWithName[][]) => {
-          unsubscribe()
-          try {
-            expect(trackFetcher.callCount).to.equal(1)
-            expect(trackLengths).to.have.lengthOf(1)
-            expect(trackLengths[0]).to.have.lengthOf(2)
-            expect(trackLengths[0][0]).to.deep.equal({
-              name: 'vessel2',
-              ...trackLengthsResult[0]
-            })
-          } catch (e) {
-            reject(e)
-          }
-        })
-      // console.log('skip done')
-      let count = 0
-      tlpState.tracks.onValue(x => {
-        console.log(`count ${++count}`)
+      tlpState.tracks.subscribe((trackLengths: TrackLengthWithName[][]) => {
+        try {
+          expect(trackFetcher.callCount).to.equal(1)
+          expect(trackLengths).to.have.lengthOf(1)
+          expect(trackLengths[0]).to.have.lengthOf(2)
+          expect(trackLengths[0][0]).to.deep.equal({
+            name: 'vessel2',
+            ...trackLengthsResult[0]
+          })
+        } catch (e) {
+          reject(e)
+        }
       })
       setTimeout(() => {
         try {
-          expect(trackFetcher.callCount).to.equal(1) // should be 1
+          expect(trackFetcher.callCount).to.equal(1)
         } catch (e) {
           reject(e)
         }
