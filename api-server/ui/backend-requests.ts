@@ -13,7 +13,7 @@ export function loadVessels(): Promise<VesselData[]> {
   return fetch(`/contexts`).then(res => res.json())
 }
 
-async function loadTrack(
+export async function loadTrack(
   vesselId: VesselId,
   viewport: Viewport
 ): Promise<LoadedTrack> {
@@ -27,26 +27,6 @@ async function loadTrack(
     vesselId,
     track,
     loadTime: new Date()
-  }
-}
-
-export function loadMissingTracks(
-  alreadyLoadedTracks: LoadedTrack[],
-  selectedVessels: VesselId[],
-  viewport: Viewport
-): Promise<LoadedTrack[]> {
-  const vesselIdsWithTrack = alreadyLoadedTracks.map(t => t.vesselId)
-  const vesselIdsMissingTracks = _.without(
-    selectedVessels,
-    ...vesselIdsWithTrack
-  )
-
-  if (_.isEmpty(vesselIdsMissingTracks)) {
-    return Promise.resolve(alreadyLoadedTracks)
-  } else {
-    return Promise.all(
-      vesselIdsMissingTracks.map(vesselId => loadTrack(vesselId, viewport))
-    ).then(loadedTracks => _.concat(alreadyLoadedTracks, loadedTracks))
   }
 }
 

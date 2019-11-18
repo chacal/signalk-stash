@@ -5,7 +5,7 @@ import { combineLatest, from, Observable, ReplaySubject, Subject } from 'rxjs'
 import { distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators'
 import { Coords } from '../domain/Geo'
 import { VesselId } from '../domain/Vessel'
-import { loadMissingTracks } from './backend-requests'
+import { loadTrack } from './backend-requests'
 import { LoadedTrack, RenderedTrack, Viewport } from './mappanel-domain'
 import { Vessel, VesselSelectionState } from './vesselselection-state'
 
@@ -43,24 +43,27 @@ function startTrackLoading(
   selectedVessels: Observable<VesselId[]>,
   viewport: Observable<Viewport>
 ): Observable<LoadedTrack[]> {
-  let loadedTracks: LoadedTrack[] = []
+  let loadedTracks: Map<VesselId, Promise<LoadedTrack>> = new Map<
+    VesselId,
+    Promise<LoadedTrack>
+  >()
   let previousViewport: Viewport
   return combineLatest([selectedVessels, viewport]).pipe(
     filter(([, viewport]) => viewport.bounds !== emptyBounds),
     distinctUntilChanged(_.isEqual),
     switchMap(([selectedVessels, viewport]) => {
       if (!_.isEqual(viewport, previousViewport)) {
-        loadedTracks = []
+        loadedTracks = new Map<VesselId, Promise<LoadedTrack>>()
       }
       previousViewport = viewport
-      return from(
-        loadMissingTracks(loadedTracks, selectedVessels, viewport).then(
-          tracks => {
-            loadedTracks = tracks
-            return tracks
-          }
-        )
-      ) as Observable<LoadedTrack[]>
+      selectedVessels.forEach((vesselId: VesselId) => {
+        if (!loadedTracks.get(vesselId)) {
+          loadedTracks.set(vesselId, loadTrack(vesselId, viewport))
+        }
+      })
+      return from(Promise.all(loadedTracks.values())) as Observable<
+        LoadedTrack[]
+      >
     })
   )
 }
