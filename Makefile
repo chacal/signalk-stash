@@ -59,6 +59,9 @@ test-integration: cypress-run
 
 test-all: test test-integration
 
+cypress-compile-watch:
+	@$(TSC) -b cypress/tsconfig.json --watch
+
 cypress-run:
 	@$(CYPRESS) run $(CYPRESS_CI_PARAMS)
 
