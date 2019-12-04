@@ -64,30 +64,30 @@ const vspStyles = createStyles({
 })
 
 interface VSPProps extends WithStyles<typeof vspStyles> {
-  vesselsP: Subject<Vessel[]>
-  selectedVesselsA: Subject<VesselId[]>
+  vessels: Subject<Vessel[]>
+  selectedVessels: Subject<VesselId[]>
 }
 
 const VesselSelectionPanel = withStyles(vspStyles)(
-  ({ vesselsP, selectedVesselsA, classes }: VSPProps) => {
-    const vessels = useObservable(() => vesselsP)
-    const selectedVessels = useObservable(() => selectedVesselsA)
+  ({ vessels, selectedVessels, classes }: VSPProps) => {
+    const theVessels = useObservable(() => vessels)
+    const theSelectedVessels = useObservable(() => selectedVessels)
 
     const vesselSelectionChanged = (vessel: Vessel) => (selected: boolean) => {
       const newSelection = selected
-        ? _.concat(selectedVessels, vessel.vesselId)
-        : _.without(selectedVessels, vessel.vesselId)
-      selectedVesselsA.next(newSelection as VesselId[])
+        ? _.concat(theSelectedVessels, vessel.vesselId)
+        : _.without(theSelectedVessels, vessel.vesselId)
+      selectedVessels.next(newSelection as VesselId[])
     }
 
     return (
       <Paper classes={classes}>
         <List>
-          {(vessels || []).map(v => (
+          {(theVessels || []).map(v => (
             <VesselSelection
               key={v.vesselId}
               vessel={v}
-              selected={(selectedVessels || []).includes(v.vesselId)}
+              selected={(theSelectedVessels || []).includes(v.vesselId)}
               selectionChanged={vesselSelectionChanged(v)}
             />
           ))}

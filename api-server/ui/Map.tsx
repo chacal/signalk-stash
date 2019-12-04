@@ -13,14 +13,14 @@ import { initialViewport } from './mappanel-state'
 interface MapProps {
   center: Coords
   viewport: Subject<Viewport>
-  tracksO: Observable<RenderedTrack[]>
+  tracks: Observable<RenderedTrack[]>
 }
 
-const Map = ({ center, viewport, tracksO }: MapProps) => {
-  const viewportO =
+const Map = ({ center, viewport, tracks }: MapProps) => {
+  const theViewport =
     useObservable(() => viewport.pipe(distinctUntilChanged(_.isEqual))) ||
     initialViewport
-  const tracks = useObservable(() => tracksO) || []
+  const theTracks = useObservable(() => tracks) || []
 
   const updateBoundsFromMap = (comp: LeafletMap) => {
     if (comp !== null) {
@@ -37,7 +37,7 @@ const Map = ({ center, viewport, tracksO }: MapProps) => {
   return (
     <LeafletMap
       center={center}
-      zoom={viewportO.zoom}
+      zoom={theViewport.zoom}
       onmoveend={updateBoundsFromEvent}
       ref={updateBoundsFromMap}
     >
@@ -64,7 +64,7 @@ const Map = ({ center, viewport, tracksO }: MapProps) => {
         maxZoom={21}
         maxNativeZoom={18}
       />
-      {tracks.map(track => (
+      {theTracks.map(track => (
         // GeoJSON can't re-render itself when its props change ->
         // use context + track load time as key to force re-render when new track
         // for a vessel is loaded
