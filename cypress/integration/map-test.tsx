@@ -17,7 +17,7 @@ configure({ adapter: new Adapter() })
 const defaultProps = () => ({
   center: new Coords({ lat: 60, lng: 22 }),
   viewport: new BehaviorSubject<Viewport>(initialViewport),
-  tracksO: new BehaviorSubject<RenderedTrack[]>([])
+  tracks: new BehaviorSubject<RenderedTrack[]>([])
 })
 
 describe('Stash Map', () => {
@@ -70,7 +70,7 @@ describe('Stash Map', () => {
     const geoJson = () => map.find(GeoJSON)
 
     expect(geoJson()).to.have.lengthOf(0)
-    p.tracksO.next([
+    p.tracks.next([
       {
         vesselId: asVesselId('urn:mrn:imo:mmsi:200000000'),
         loadTime: new Date(),
