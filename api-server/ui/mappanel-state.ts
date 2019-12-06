@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { LatLngBounds } from 'leaflet'
-import { combineLatest, from, Observable, ReplaySubject, Subject } from 'rxjs'
+import { BehaviorSubject, combineLatest, from, Observable, Subject } from 'rxjs'
 import { distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators'
 import { Coords } from '../domain/Geo'
 import { VesselId } from '../domain/Vessel'
@@ -18,7 +18,7 @@ export const initialViewport = {
 
 export class MapPanelState {
   vesselSelectionState: VesselSelectionState
-  viewport: Subject<Viewport> = new ReplaySubject(1)
+  viewport: Subject<Viewport> = new BehaviorSubject(initialViewport)
   loadedTracks: Observable<LoadedTrack[]>
   tracksToRender: Observable<RenderedTrack[]>
   initialMapCenter: Coords = centerFromLocalStorageOrDefault()

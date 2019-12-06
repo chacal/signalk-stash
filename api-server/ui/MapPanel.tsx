@@ -20,10 +20,7 @@ const MapPanel = ({ vesselSelection }: MapPanelProps) => {
         viewport={panelState.viewport}
         tracks={panelState.tracksToRender}
       />
-      <VesselSelectionPanel
-        vessels={panelState.vesselSelectionState.vessels}
-        selectedVessels={panelState.vesselSelectionState.selectedVessels}
-      />
+      <VesselSelectionPanel selectionState={panelState.vesselSelectionState} />
     </React.Fragment>
   )
 }
