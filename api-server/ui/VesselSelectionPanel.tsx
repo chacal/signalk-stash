@@ -11,10 +11,9 @@ import {
 import _ from 'lodash'
 import * as React from 'react'
 
-import { Subject } from 'rxjs'
 import { useObservable } from 'rxjs-hooks'
 import { VesselId } from '../domain/Vessel'
-import { Vessel } from './vesselselection-state'
+import { Vessel, VesselSelectionState } from './vesselselection-state'
 
 //
 //   VesselSelection
@@ -64,20 +63,21 @@ const vspStyles = createStyles({
 })
 
 interface VSPProps extends WithStyles<typeof vspStyles> {
-  vessels: Subject<Vessel[]>
-  selectedVessels: Subject<VesselId[]>
+  selectionState: VesselSelectionState
 }
 
 const VesselSelectionPanel = withStyles(vspStyles)(
-  ({ vessels, selectedVessels, classes }: VSPProps) => {
-    const theVessels = useObservable(() => vessels)
-    const theSelectedVessels = useObservable(() => selectedVessels)
+  ({ selectionState, classes }: VSPProps) => {
+    const theVessels = useObservable(() => selectionState.vessels)
+    const theSelectedVessels = useObservable(
+      () => selectionState.selectedVessels
+    )
 
     const vesselSelectionChanged = (vessel: Vessel) => (selected: boolean) => {
       const newSelection = selected
         ? _.concat(theSelectedVessels, vessel.vesselId)
         : _.without(theSelectedVessels, vessel.vesselId)
-      selectedVessels.next(newSelection as VesselId[])
+      selectionState.selectedVessels.next(newSelection as VesselId[])
     }
 
     return (

@@ -1,7 +1,7 @@
 import Color from 'color'
 import palette from 'google-palette'
 import _ from 'lodash'
-import { ReplaySubject, Subject } from 'rxjs'
+import { BehaviorSubject } from 'rxjs'
 import { VesselData, VesselId } from '../domain/Vessel'
 import { loadVessels } from './backend-requests'
 
@@ -12,8 +12,10 @@ export interface Vessel {
 }
 
 export class VesselSelectionState {
-  vessels: Subject<Vessel[]> = new ReplaySubject<Vessel[]>(1)
-  selectedVessels: Subject<VesselId[]> = new ReplaySubject<VesselId[]>(1)
+  vessels: BehaviorSubject<Vessel[]> = new BehaviorSubject<Vessel[]>([])
+  selectedVessels: BehaviorSubject<VesselId[]> = new BehaviorSubject<
+    VesselId[]
+  >([])
 
   initVessels() {
     const initialSelectedVessels = selectedVesselsFromLocalStorageOrDefault()
