@@ -1,5 +1,5 @@
 import { combineLatest, from, merge, Observable, of, Subject } from 'rxjs'
-import { catchError, map, shareReplay, switchMap } from 'rxjs/operators'
+import { catchError, map, share, switchMap } from 'rxjs/operators'
 import { VesselData, VesselId } from '../../domain/Vessel'
 import { fetchTrackLengths, TrackLengthsFetcher } from '../backend-requests'
 import { Vessel, VesselSelectionState } from '../vesselselection-state'
@@ -50,7 +50,7 @@ function startTrackLengthLoading(
       lenghtsPromise.catch(e => console.log(e))
       return from(lenghtsPromise)
     }),
-    shareReplay(1)
+    share()
   )
 }
 
