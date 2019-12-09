@@ -74,7 +74,8 @@ describe('BufferingWritableStream', () => {
       latch.signal()
     })
 
-    streamToTest.end()
+    // Node > 11 doesn't emit 'drain' event if .end() is called synchronously here
+    setTimeout(() => streamToTest.end(), 0)
   })
 
   it('flushes to output when buffer gets full', async () => {
