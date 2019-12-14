@@ -9,9 +9,9 @@
         "password": "vesselpassword",
         "rejectUnauthorized": false,
         "bufferTime": 5,
-        "maxUpdatesToBuffer": 100,
+        "maxUpdatesToBuffer": 1,
         "sendAll": true,
-        "throttleTime": 1000
+        "throttleTime": 1
       }
     ]
   }

@@ -8,14 +8,12 @@ import {
   WithStyles,
   withStyles
 } from '@material-ui/core'
-import { Property } from 'baconjs'
 import _ from 'lodash'
 import * as React from 'react'
 
-import { Atom } from '../domain/Atom'
+import { useObservable } from 'rxjs-hooks'
 import { VesselId } from '../domain/Vessel'
-import { useObservable } from './bacon-react'
-import { Vessel } from './mappanel-domain'
+import { Vessel, VesselSelectionState } from './vesselselection-state'
 
 //
 //   VesselSelection
@@ -65,30 +63,31 @@ const vspStyles = createStyles({
 })
 
 interface VSPProps extends WithStyles<typeof vspStyles> {
-  vesselsP: Property<Vessel[]>
-  selectedVesselsA: Atom<VesselId[]>
+  selectionState: VesselSelectionState
 }
 
 const VesselSelectionPanel = withStyles(vspStyles)(
-  ({ vesselsP, selectedVesselsA, classes }: VSPProps) => {
-    const vessels = useObservable(vesselsP)
-    const selectedVessels = useObservable(selectedVesselsA)
+  ({ selectionState, classes }: VSPProps) => {
+    const theVessels = useObservable(() => selectionState.vessels)
+    const theSelectedVessels = useObservable(
+      () => selectionState.selectedVessels
+    )
 
     const vesselSelectionChanged = (vessel: Vessel) => (selected: boolean) => {
       const newSelection = selected
-        ? _.concat(selectedVessels, vessel.vesselId)
-        : _.without(selectedVessels, vessel.vesselId)
-      selectedVesselsA.set(newSelection)
+        ? _.concat(theSelectedVessels, vessel.vesselId)
+        : _.without(theSelectedVessels, vessel.vesselId)
+      selectionState.selectedVessels.next(newSelection as VesselId[])
     }
 
     return (
       <Paper classes={classes}>
         <List>
-          {vessels.map(v => (
+          {(theVessels || []).map(v => (
             <VesselSelection
               key={v.vesselId}
               vessel={v}
-              selected={selectedVessels.includes(v.vesselId)}
+              selected={(theSelectedVessels || []).includes(v.vesselId)}
               selectionChanged={vesselSelectionChanged(v)}
             />
           ))}

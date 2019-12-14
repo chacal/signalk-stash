@@ -1,14 +1,13 @@
 import _ from 'lodash'
 
-import { combineTemplate, fromPromise, Observable, Property } from 'baconjs'
-import Color from 'color'
-import palette from 'google-palette'
 import { LatLngBounds } from 'leaflet'
-import { Atom } from '../domain/Atom'
+import { BehaviorSubject, combineLatest, from, Observable, Subject } from 'rxjs'
+import { distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators'
 import { Coords } from '../domain/Geo'
-import { VesselData, VesselId } from '../domain/Vessel'
-import { loadMissingTracks } from './backend-requests'
-import { LoadedTrack, RenderedTrack, Vessel, Viewport } from './mappanel-domain'
+import { VesselId } from '../domain/Vessel'
+import { loadTrack } from './backend-requests'
+import { LoadedTrack, RenderedTrack, Viewport } from './mappanel-domain'
+import { Vessel, VesselSelectionState } from './vesselselection-state'
 
 const emptyBounds = new LatLngBounds([[0, 0], [0, 0]])
 const defaultCenter = new Coords({ lat: 60, lng: 22 })
@@ -18,82 +17,64 @@ export const initialViewport = {
 }
 
 export class MapPanelState {
-  vessels: Atom<Vessel[]> = Atom([])
-  selectedVessels: Atom<VesselId[]> = Atom([])
-  viewport: Atom<Viewport> = Atom(initialViewport)
-  loadedTracks: Property<LoadedTrack[]> = startTrackLoading(
-    this.selectedVessels,
-    this.viewport
-  )
-  tracksToRender: Property<RenderedTrack[]> = toTracksToRender(
-    this.vessels,
-    this.selectedVessels,
-    this.loadedTracks
-  )
+  vesselSelectionState: VesselSelectionState
+  viewport: Subject<Viewport> = new BehaviorSubject(initialViewport)
+  loadedTracks: Observable<LoadedTrack[]>
+  tracksToRender: Observable<RenderedTrack[]>
   initialMapCenter: Coords = centerFromLocalStorageOrDefault()
 
-  constructor() {
-    this.viewport.onValue(saveViewportToLocalStorage)
+  constructor(vesselSelectionState: VesselSelectionState) {
+    this.viewport.next(initialViewport)
+    this.vesselSelectionState = vesselSelectionState
+    this.viewport.subscribe(saveViewportToLocalStorage)
+    this.loadedTracks = startTrackLoading(
+      this.vesselSelectionState.selectedVessels,
+      this.viewport
+    )
+    this.tracksToRender = toTracksToRender(
+      this.vesselSelectionState.vessels,
+      this.vesselSelectionState.selectedVessels,
+      this.loadedTracks
+    )
   }
-
-  initVessels(loadVessels: () => Promise<VesselData[]>) {
-    const initialSelectedVessels = selectedVesselsFromLocalStorageOrDefault()
-    this.selectedVessels.onValue(sv => saveSelectedVesselsToLocalStorage(sv))
-
-    loadVessels()
-      .then(assignColors)
-      .then(vessels => {
-        this.vessels.set(vessels)
-        this.selectedVessels.set(
-          _.intersection(initialSelectedVessels, vessels.map(v => v.vesselId))
-        )
-      })
-      .catch((e: Error) => console.error('Error loading vessels!', e))
-  }
-}
-
-interface TracksWithViewport {
-  viewport: Viewport
-  tracks: LoadedTrack[]
 }
 
 function startTrackLoading(
   selectedVessels: Observable<VesselId[]>,
-  viewport: Atom<Viewport>
-): Property<LoadedTrack[]> {
-  return combineTemplate({
-    selectedVessels,
-    viewport
-  })
-    .changes()
-    .flatScan<TracksWithViewport>(
-      { viewport: viewport.get(), tracks: [] },
-      (acc, { selectedVessels, viewport }) => {
-        const loadedTracks = !_.isEqual(acc.viewport, viewport)
-          ? loadMissingTracks([], selectedVessels, viewport) // Load tracks for all selected vessels
-          : loadMissingTracks(acc.tracks, selectedVessels, viewport) // Load missing tracks
-        return fromPromise(loadedTracks).map(tracks => ({
-          tracks,
-          viewport
-        }))
+  viewport: Observable<Viewport>
+): Observable<LoadedTrack[]> {
+  let loadedTracks: Map<VesselId, Promise<LoadedTrack>> = new Map<
+    VesselId,
+    Promise<LoadedTrack>
+  >()
+  let previousViewport: Viewport
+  return combineLatest([selectedVessels, viewport]).pipe(
+    filter(([, viewport]) => viewport.bounds !== emptyBounds),
+    distinctUntilChanged(_.isEqual),
+    switchMap(([selectedVessels, viewport]) => {
+      if (!_.isEqual(viewport, previousViewport)) {
+        loadedTracks = new Map<VesselId, Promise<LoadedTrack>>()
       }
-    )
-    .skipDuplicates(_.isEqual)
-    .map(acc => acc.tracks)
+      previousViewport = viewport
+      selectedVessels.forEach((vesselId: VesselId) => {
+        if (!loadedTracks.get(vesselId)) {
+          loadedTracks.set(vesselId, loadTrack(vesselId, viewport))
+        }
+      })
+      return from(Promise.all(loadedTracks.values())) as Observable<
+        LoadedTrack[]
+      >
+    })
+  )
 }
 
 function toTracksToRender(
   allVessels: Observable<Vessel[]>,
   selectedVessels: Observable<VesselId[]>,
   loadedTracks: Observable<LoadedTrack[]>
-): Property<RenderedTrack[]> {
-  return combineTemplate({
-    allVessels,
-    selectedVessels,
-    loadedTracks
-  })
-    .changes()
-    .map(({ allVessels, selectedVessels, loadedTracks }) => {
+): Observable<RenderedTrack[]> {
+  return combineLatest([allVessels, selectedVessels, loadedTracks]).pipe(
+    map(([allVessels, selectedVessels, loadedTracks]) => {
       const selectedTracks = loadedTracks.filter(t =>
         selectedVessels.includes(t.vesselId)
       )
@@ -110,23 +91,7 @@ function toTracksToRender(
         }
       })
     })
-    .toProperty([])
-    .skipDuplicates(_.isEqual)
-}
-
-function saveSelectedVesselsToLocalStorage(selectedVessels: VesselId[]) {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('selectedVessels', JSON.stringify(selectedVessels))
-  }
-}
-
-function selectedVesselsFromLocalStorageOrDefault() {
-  try {
-    const state = localStorage.getItem('selectedVessels')
-    return !!state ? (JSON.parse(state) as VesselId[]) : []
-  } catch {
-    return []
-  }
+  )
 }
 
 function saveViewportToLocalStorage({ zoom, bounds }: Viewport) {
@@ -159,15 +124,4 @@ function zoomFromLocalStorageOrDefault(): number {
   } catch {
     return 8
   }
-}
-
-function assignColors(vessels: VesselData[]): Vessel[] {
-  const colors = palette('mpn65', vessels.length)
-  return vessels.map((v, idx) => ({
-    vesselId: v.vesselId,
-    name: v.name,
-    trackColor: Color(`#${colors[idx % colors.length]}`)
-      .desaturate(0.5)
-      .lighten(0.06)
-  }))
 }

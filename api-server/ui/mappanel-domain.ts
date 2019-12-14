@@ -4,12 +4,6 @@ import { LatLngBounds } from 'leaflet'
 import { TrackGeoJSON } from '../domain/Geo'
 import { VesselId } from '../domain/Vessel'
 
-export interface Vessel {
-  vesselId: VesselId
-  name: string
-  trackColor: Color
-}
-
 export interface Viewport {
   zoom: number
   bounds: LatLngBounds

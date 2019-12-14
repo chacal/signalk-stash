@@ -4,6 +4,7 @@ import _ from 'lodash'
 import { toQueryString } from '../domain/Geo'
 import { VesselData, VesselId } from '../domain/Vessel'
 import { LoadedTrack, Viewport } from './mappanel-domain'
+import { TrackLength } from './tracklengths/tracklengthspanel-state'
 
 const debug = Debug('stash:backend-requests')
 
@@ -12,7 +13,7 @@ export function loadVessels(): Promise<VesselData[]> {
   return fetch(`/contexts`).then(res => res.json())
 }
 
-async function loadTrack(
+export async function loadTrack(
   vesselId: VesselId,
   viewport: Viewport
 ): Promise<LoadedTrack> {
@@ -29,27 +30,9 @@ async function loadTrack(
   }
 }
 
-export function loadMissingTracks(
-  alreadyLoadedTracks: LoadedTrack[],
-  selectedVessels: VesselId[],
-  viewport: Viewport
-): Promise<LoadedTrack[]> {
-  const vesselIdsWithTrack = alreadyLoadedTracks.map(t => t.vesselId)
-  const vesselIdsMissingTracks = _.without(
-    selectedVessels,
-    ...vesselIdsWithTrack
-  )
+export type TrackLengthsFetcher = (vesselId: VesselId) => Promise<TrackLength[]>
 
-  if (_.isEmpty(vesselIdsMissingTracks)) {
-    return Promise.resolve(alreadyLoadedTracks)
-  } else {
-    return Promise.all(
-      vesselIdsMissingTracks.map(vesselId => loadTrack(vesselId, viewport))
-    ).then(loadedTracks => _.concat(alreadyLoadedTracks, loadedTracks))
-  }
-}
-
-export function fetchTrackLengths(vesselId: VesselId) {
+export function fetchTrackLengths(vesselId: VesselId): Promise<TrackLength[]> {
   const params = new URLSearchParams({
     context: vesselId,
     firstDay: '2019-06-01',

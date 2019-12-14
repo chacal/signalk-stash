@@ -1,5 +1,6 @@
 import { AppBar, Tab, Tabs } from '@material-ui/core'
 import * as React from 'react'
+import { useEffect } from 'react'
 import {
   HashRouter as Router,
   Redirect,
@@ -7,25 +8,30 @@ import {
   Switch,
   withRouter
 } from 'react-router-dom'
-import { loadVessels } from './backend-requests'
 import ErrorBoundary from './ErrorBoundary'
 import MapPanel from './MapPanel'
-import TrackLengthsPanel from './TrackLengthsPanel'
+import TrackLengthsPanel from './tracklengths/TrackLengthsPanel'
+import { VesselSelectionState } from './vesselselection-state'
 
 const navigation = [
   { label: 'Map', path: '/map' },
   { label: 'Track lengths', path: '/tracklengths' }
 ]
 
-const Navi = withRouter(props => {
-  const [value, setValue] = React.useState(0)
+const Navi = withRouter(({ location, history }) => {
+  const [tabIndex, setTabIndex] = React.useState(
+    navigation.findIndex(e => e.path === location.pathname)
+  )
+  useEffect(() => {
+    setTabIndex(navigation.findIndex(e => e.path === location.pathname))
+  })
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-    props.history.push(navigation[newValue].path)
-    setValue(newValue)
+    history.push(navigation[newValue].path)
+    setTabIndex(newValue)
   }
   return (
     <AppBar position="static">
-      <Tabs value={value} onChange={handleChange}>
+      <Tabs value={tabIndex} onChange={handleChange}>
         {navigation.map(({ label }) => (
           <Tab key={label} label={label} />
         ))}
@@ -34,23 +40,29 @@ const Navi = withRouter(props => {
   )
 })
 
+const vesselSelectionState = new VesselSelectionState()
+
 const App = () => {
+  useEffect(() => {
+    vesselSelectionState.initVessels()
+  })
+
   return (
     <Router>
       <Navi />
-      <Redirect exact from="/" to="map" />
       <Switch>
         <Route path="/map">
           <ErrorBoundary>
             {
               // https://github.com/PaulLeCam/react-leaflet/issues/625
             }
-            <MapPanel loadVessels={loadVessels} />
+            <MapPanel vesselSelection={vesselSelectionState} />
           </ErrorBoundary>
         </Route>
         <Route path="/tracklengths">
-          <TrackLengthsPanel />
+          <TrackLengthsPanel vesselSelection={vesselSelectionState} />
         </Route>
+        <Redirect from="/" to="/map" />
       </Switch>
     </Router>
   )
