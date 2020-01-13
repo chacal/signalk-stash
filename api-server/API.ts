@@ -7,6 +7,7 @@ import express, {
 import path from 'path'
 import { ExpressAppCustomizer } from './APIServerMain'
 import { IConfig } from './Config'
+import setupHistoryAPIRoutes from './HistoryAPI'
 import setupMqttCredentialsAPIRoutes, {
   insertLatestDeltaReaderAccountFromConfig
 } from './MqttCredentialsAPI'
@@ -23,6 +24,7 @@ class API {
   ) {
     this.customizer(this.app)
     setupTrackAPIRoutes(this.app)
+    setupHistoryAPIRoutes(this.app)
     setupVesselAPIRoutes(this.app)
     setupMqttCredentialsAPIRoutes(this.app)
     this.app.use(express.static(publicPath))
