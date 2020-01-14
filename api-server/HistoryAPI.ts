@@ -7,6 +7,7 @@ import SKClickHouse from './db/SKClickHouse'
 import { ZonedDateTime } from '@js-joda/core'
 const contextsDebug = Debug('stash:history:contexts')
 const pathsDebug = Debug('stash:history:paths')
+const valuesDebug = Debug('stash:history:values')
 
 const ch = new SKClickHouse().ch
 
@@ -18,6 +19,10 @@ export default function setupHistoryAPIRoutes(app: Express) {
   app.get(
     '/signalk/v1/history/paths',
     asyncHandler(fromToHandler(getPaths, pathsDebug))
+  )
+  app.get(
+    '/signalk/v1/history/values',
+    asyncHandler(fromToHandler(getValues, valuesDebug))
   )
 }
 
@@ -72,6 +77,46 @@ async function getPaths(
   return ch
     .querying<PathsResultRow>(query)
     .then((result: any) => result.data.map((row: any[]) => row[0]))
+}
+
+type ValuesResultRow = any[]
+async function getValues(
+  ch: Clickhouse,
+  from: ZonedDateTime,
+  to: ZonedDateTime,
+  debug: (s: string) => void,
+  req: Request
+) {
+  const timeResolutionSeconds = 1000
+  const context = req.query.context || ''
+  // \W matches [^0-9a-zA-Z_]
+  const paths = (req.query.paths || '')
+    .replace(/[^0-9a-z\.,]/gi, '')
+    .split(',')
+    .map((s: string) => `'${s}'`)
+    .join(',')
+  const query = `
+      SELECT
+        (intDiv(toUnixTimestamp(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) as t,
+        path,
+        avg(value)
+      FROM
+        value
+      WHERE
+        context = '${context}'
+        AND
+        path in (${paths})
+        AND
+        ts >= ${from.toEpochSecond()}
+        AND
+        ts <= ${to.toEpochSecond()}
+      GROUP BY
+        t, path
+      ORDER BY
+        t, path
+    `
+  debug(query)
+  return ch.querying<ValuesResultRow>(query).then((result: any) => result.data)
 }
 
 type FromToHandler<T = any> = (
