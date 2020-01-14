@@ -1,3 +1,4 @@
+import cors from 'cors'
 import express, {
   NextFunction,
   Request,
@@ -23,6 +24,7 @@ class API {
     private readonly app = express()
   ) {
     this.customizer(this.app)
+    this.app.use(cors())
     setupTrackAPIRoutes(this.app)
     setupHistoryAPIRoutes(this.app)
     setupVesselAPIRoutes(this.app)
