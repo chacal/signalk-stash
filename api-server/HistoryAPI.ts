@@ -2,9 +2,9 @@ import Debug from 'debug'
 
 import Clickhouse from '@apla/clickhouse'
 import { Express, Request, Response } from 'express'
-import { ZonedDateTime } from 'js-joda'
 import { asyncHandler } from './API'
 import SKClickHouse from './db/SKClickHouse'
+import { ZonedDateTime } from '@js-joda/core'
 const contextsDebug = Debug('stash:history:contexts')
 const pathsDebug = Debug('stash:history:paths')
 
@@ -87,7 +87,7 @@ function fromToHandler(
   debug: (d: string) => void
 ) {
   return async (req: Request, res: Response) => {
-    debug(req.query)
+    debug(req.query.toString())
     const from = dateTimeFromQuery(req, 'from')
     const to = dateTimeFromQuery(req, 'to')
     contextsDebug(`${from.toString()}-${to.toString()}`)
@@ -96,5 +96,5 @@ function fromToHandler(
 }
 
 function dateTimeFromQuery(req: Request, paramName: string): ZonedDateTime {
-  return ZonedDateTime.parse(req.query[paramName])
+  return ZonedDateTime.parse(req.query[paramName]?.toString() || '')
 }

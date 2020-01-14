@@ -1,3 +1,4 @@
+import cors from 'cors'
 import Debug from 'debug'
 import express, {
   NextFunction,
@@ -30,6 +31,10 @@ class API {
     private readonly app = express()
   ) {
     this.customizer(this.app)
+    this.app.use(cors({
+      credentials: true,
+      origin: (origin, callback) => callback(null, origin)
+    }))
     this.app.use(
       auth({
         ...config.auth,
