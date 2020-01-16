@@ -90,11 +90,8 @@ async function getValues(
   const timeResolutionSeconds = 1000
   const context = req.query.context || ''
   // \W matches [^0-9a-zA-Z_]
-  const paths = (req.query.paths || '')
-    .replace(/[^0-9a-z\.,]/gi, '')
-    .split(',')
-    .map((s: string) => `'${s}'`)
-    .join(',')
+  const paths = (req.query.paths || '').replace(/[^0-9a-z\.,]/gi, '').split(',')
+  const inPaths = paths.map((s: string) => `'${s}'`).join(',')
   const query = `
       SELECT
         (intDiv(toUnixTimestamp(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) as t,
@@ -105,7 +102,7 @@ async function getValues(
       WHERE
         context = '${context}'
         AND
-        path in (${paths})
+        path in (${inPaths})
         AND
         ts >= ${from.toEpochSecond()}
         AND
@@ -116,7 +113,37 @@ async function getValues(
         t, path
     `
   debug(query)
-  return ch.querying<ValuesResultRow>(query).then((result: any) => result.data)
+  return ch.querying<ValuesResultRow>(query).then((result: any) => ({
+    context,
+    values: paths.map((path: string) => ({
+      path,
+      method: 'average',
+      source: null
+    })),
+    range: { from: from.toString(), to: to.toString() },
+    data: toDataRows(result.data, paths)
+  }))
+}
+
+const toDataRows = (data: any[][], paths: string[]) => {
+  if (data.length === 0) {
+    return []
+  }
+  let lastRow: any
+  let lastTimestamp = ''
+  return data.reduce((acc: any, valueRow: any[]) => {
+    const pathIndex = paths.indexOf(valueRow[1]) + 1
+    if (valueRow[0] !== lastTimestamp) {
+      if (lastRow) {
+        acc.push(lastRow)
+      }
+      lastTimestamp = valueRow[0]
+      // tslint:disable-next-line: radix
+      lastRow = [new Date(Number.parseInt(lastTimestamp) * 1000)]
+    }
+    lastRow[pathIndex] = valueRow[2]
+    return acc
+  }, [])
 }
 
 type FromToHandler<T = any> = (
