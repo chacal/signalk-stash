@@ -87,7 +87,7 @@ async function getValues(
   debug: (s: string) => void,
   req: Request
 ) {
-  const timeResolutionSeconds = 1000
+  const timeResolutionSeconds = req.query.resolution ? Number.parseFloat(req.query.resolution) : (to.toEpochSecond() - from.toEpochSecond()) / 500
   const context = req.query.context || ''
   // \W matches [^0-9a-zA-Z_]
   const paths = (req.query.paths || '').replace(/[^0-9a-z\.,]/gi, '').split(',')
