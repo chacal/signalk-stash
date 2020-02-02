@@ -47,6 +47,9 @@ async function getContexts(
     )
     .join(' UNION ALL ')
   const distinctQuery = `SELECT DISTINCT context from (${coreQuery})`
+    .replace(/\n/g, ' ')
+    .replace(/ +/g, ' ')
+
   debug(distinctQuery)
   return ch
     .querying<ContextResultRow>(distinctQuery)
@@ -73,6 +76,8 @@ async function getPaths(
         AND
         ts <= ${to.toEpochSecond()}
     `
+    .replace(/\n/g, ' ')
+    .replace(/ +/g, ' ')
   debug(query)
   return ch
     .querying<PathsResultRow>(query)
