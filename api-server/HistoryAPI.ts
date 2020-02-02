@@ -84,6 +84,11 @@ async function getPaths(
     .then((result: any) => result.data.map((row: any[]) => row[0]))
 }
 
+interface PathSpec {
+  path: string
+  method: string
+}
+
 type ValuesResultRow = any[]
 async function getValues(
   ch: Clickhouse,
@@ -92,12 +97,14 @@ async function getValues(
   debug: (s: string) => void,
   req: Request
 ) {
-  const timeResolutionSeconds = req.query.resolution ? Number.parseFloat(req.query.resolution) : (to.toEpochSecond() - from.toEpochSecond()) / 500
+  const timeResolutionSeconds = req.query.resolution
+    ? Number.parseFloat(req.query.resolution)
+    : (to.toEpochSecond() - from.toEpochSecond()) / 500
   const context = req.query.context || ''
-  // \W matches [^0-9a-zA-Z_]
-  const paths = (req.query.paths || '').replace(/[^0-9a-z\.,]/gi, '').split(',')
-  const inPaths = paths.map((s: string) => `'${s}'`).join(',')
-  const query = `
+  const pathSpecs = toPathSpecs(req.query.paths)
+  const valueInPaths = pathSpecs.filter(isValuePathSpec)
+
+  const valuesQuery = `
       SELECT
         (intDiv(toUnixTimestamp(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) as t,
         path,
@@ -107,7 +114,7 @@ async function getValues(
       WHERE
         context = '${context}'
         AND
-        path in (${inPaths})
+        path in (${valueInPaths.map(ps => `'${ps.path}'`).join(',')})
         AND
         ts >= ${from.toEpochSecond()}
         AND
@@ -117,26 +124,29 @@ async function getValues(
       ORDER BY
         t, path
     `
-  debug(query)
-  return ch.querying<ValuesResultRow>(query).then((result: any) => ({
+    .replace(/\n/g, ' ')
+    .replace(/ +/g, ' ')
+  debug(valuesQuery)
+  return ch.querying<ValuesResultRow>(valuesQuery).then((result: any) => ({
     context,
-    values: paths.map((path: string) => ({
-      path,
-      method: 'average',
+    values: valueInPaths.map((ps: PathSpec) => ({
+      path: ps.path,
+      method: ps.method,
       source: null
     })),
     range: { from: from.toString(), to: to.toString() },
-    data: toDataRows(result.data, paths)
+    data: toDataRows(result.data, valueInPaths)
   }))
 }
 
-const toDataRows = (data: any[][], paths: string[]) => {
+const toDataRows = (data: any[][], pathSpecs: PathSpec[]) => {
+  const paths = pathSpecs.map(ps => ps.path)
   if (data.length === 0) {
     return []
   }
   let lastRow: any
   let lastTimestamp = ''
-  return data.reduce((acc: any, valueRow: any[]) => {
+  return data.reduce((acc: any, valueRow: any[], i: number) => {
     const pathIndex = paths.indexOf(valueRow[1]) + 1
     if (valueRow[0] !== lastTimestamp) {
       if (lastRow) {
@@ -174,4 +184,18 @@ function fromToHandler(
 
 function dateTimeFromQuery(req: Request, paramName: string): ZonedDateTime {
   return ZonedDateTime.parse(req.query[paramName]?.toString() || '')
+}
+
+const isValuePathSpec = (pathSpec: PathSpec) =>
+  pathSpec.path !== 'navigation.position'
+
+const toPathSpecs = (paths: string = ''): PathSpec[] => {
+  const sanitizedRawPaths = paths.replace(/[^0-9a-z\.,\:]/gi, '').split(',')
+  return sanitizedRawPaths.map(rawPath => {
+    const splitPath = rawPath.split(':')
+    return {
+      path: splitPath[0],
+      method: splitPath[1] ? splitPath[1] : 'average'
+    }
+  })
 }
