@@ -89,7 +89,6 @@ interface PathSpec {
   method: string
 }
 
-type ValuesResultRow = any[]
 async function getValues(
   ch: Clickhouse,
   from: ZonedDateTime,
@@ -103,12 +102,16 @@ async function getValues(
   const context = req.query.context || ''
   const pathSpecs = toPathSpecs(req.query.paths)
   const valueInPaths = pathSpecs.filter(isValuePathSpec)
+  const valuesRequested = valueInPaths.length > 0
+  const positionRequested =
+    pathSpecs.filter(ps => ps.path === 'navigation.position').length > 0
 
   const valuesQuery = `
       SELECT
         (intDiv(toUnixTimestamp(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) as t,
         path,
-        avg(value)
+        avg(value) as v1_or_lat,
+        null as null_or_lng
       FROM
         value
       WHERE
@@ -121,42 +124,91 @@ async function getValues(
         ts <= ${to.toEpochSecond()}
       GROUP BY
         t, path
-      ORDER BY
-        t, path
     `
     .replace(/\n/g, ' ')
     .replace(/ +/g, ' ')
   debug(valuesQuery)
-  return ch.querying<ValuesResultRow>(valuesQuery).then((result: any) => ({
+
+  const coordinateDecimals = 5
+  const trackpointsQuery = `
+    SELECT
+      (intDiv(toUnixTimestamp(ts), ${timeResolutionSeconds}) * ${timeResolutionSeconds}) as t,
+      'navigation.position' as path,
+      round(avg(lat),${coordinateDecimals}) as v1_or_lat,
+      round(avg(lng),${coordinateDecimals}) as null_or_lng
+    FROM trackpoint
+    WHERE
+      context = '${context}'
+      AND
+      ts >= ${from.toEpochSecond()}
+      AND
+      ts <= ${to.toEpochSecond()}
+    GROUP BY t
+  `
+    .replace(/\n/g, ' ')
+    .replace(/ +/g, ' ')
+  debug(trackpointsQuery)
+
+  const compositeQuery = `
+    SELECT * FROM (
+      ${valuesRequested ? valuesQuery : ''}
+      ${valuesRequested && positionRequested ? 'UNION ALL' : ''}
+      ${positionRequested ? trackpointsQuery : ''}
+    ) ORDER BY t, path
+  `
+    .replace(/\n/g, ' ')
+    .replace(/ +/g, ' ')
+  debug(compositeQuery)
+
+  return ch.querying(compositeQuery).then(result => ({
     context,
-    values: valueInPaths.map((ps: PathSpec) => ({
+    values: pathSpecs.map((ps: PathSpec) => ({
       path: ps.path,
       method: ps.method,
       source: null
     })),
     range: { from: from.toString(), to: to.toString() },
-    data: toDataRows(result.data, valueInPaths)
+    data: toDataRows(result.data, pathSpecs)
   }))
 }
 
+type PathValueGetter = (x: number, y: number) => any
+
 const toDataRows = (data: any[][], pathSpecs: PathSpec[]) => {
-  const paths = pathSpecs.map(ps => ps.path)
   if (data.length === 0) {
     return []
   }
+
+  const pathValueGetters = pathSpecs.reduce((acc: any, ps, i) => {
+    let getter: PathValueGetter = (v1: number, v2: number) => v1
+    if (ps.path === 'navigation.position') {
+      getter = (v1, v2) => [v2, v1]
+    }
+    acc[ps.path] = {
+      index: i + 1,
+      getter
+    }
+    return acc
+  }, {})
+
   let lastRow: any
   let lastTimestamp = ''
+
+  console.log(pathValueGetters)
   return data.reduce((acc: any, valueRow: any[], i: number) => {
-    const pathIndex = paths.indexOf(valueRow[1]) + 1
+    const [timestamp, path, v1, v2] = valueRow
     if (valueRow[0] !== lastTimestamp) {
       if (lastRow) {
         acc.push(lastRow)
       }
-      lastTimestamp = valueRow[0]
+      lastTimestamp = timestamp
       // tslint:disable-next-line: radix
       lastRow = [new Date(Number.parseInt(lastTimestamp) * 1000)]
     }
-    lastRow[pathIndex] = valueRow[2]
+    lastRow[pathValueGetters[path].index] = pathValueGetters[path].getter(
+      v1,
+      v2
+    )
     return acc
   }, [])
 }
