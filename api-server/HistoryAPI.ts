@@ -226,11 +226,17 @@ function fromToHandler(
   debug: (d: string) => void
 ) {
   return async (req: Request, res: Response) => {
-    debug(req.query)
-    const from = dateTimeFromQuery(req, 'from')
-    const to = dateTimeFromQuery(req, 'to')
-    contextsDebug(`${from.toString()}-${to.toString()}`)
-    res.json(await wrappedHandler(ch, from, to, debug, req))
+    try {
+      debug(req.query)
+      const from = dateTimeFromQuery(req, 'from')
+      const to = dateTimeFromQuery(req, 'to')
+      debug(`${from.toString()}-${to.toString()}`)
+      res.json(await wrappedHandler(ch, from, to, debug, req))
+    } catch (e) {
+      res.status(400).send({
+        message: `date parsing failed`
+      })
+    }
   }
 }
 
