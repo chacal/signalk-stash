@@ -1,10 +1,10 @@
 import Debug from 'debug'
 
 import Clickhouse from '@apla/clickhouse'
+import { ZonedDateTime } from '@js-joda/core'
 import { Express, Request, Response } from 'express'
 import { asyncHandler } from './API'
 import SKClickHouse from './db/SKClickHouse'
-import { ZonedDateTime } from '@js-joda/core'
 const contextsDebug = Debug('stash:history:contexts')
 const pathsDebug = Debug('stash:history:paths')
 const valuesDebug = Debug('stash:history:values')
@@ -226,11 +226,17 @@ function fromToHandler(
   debug: (d: string) => void
 ) {
   return async (req: Request, res: Response) => {
-    debug(req.query.toString())
-    const from = dateTimeFromQuery(req, 'from')
-    const to = dateTimeFromQuery(req, 'to')
-    contextsDebug(`${from.toString()}-${to.toString()}`)
-    res.json(await wrappedHandler(ch, from, to, debug, req))
+    try {
+      debug(req.query.toString())
+      const from = dateTimeFromQuery(req, 'from')
+      const to = dateTimeFromQuery(req, 'to')
+      debug(`${from.toString()}-${to.toString()}`)
+      res.json(await wrappedHandler(ch, from, to, debug, req))
+    } catch (e) {
+      res.status(400).send({
+        message: `date parsing failed`
+      })
+    }
   }
 }
 
