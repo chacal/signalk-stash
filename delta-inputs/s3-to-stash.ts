@@ -94,13 +94,44 @@ class SetSelfVesselId extends Transform {
   }
 }
 
+class FixData extends Transform {
+  constructor() {
+    super({ objectMode: true })
+  }
+  _transform(delta: any, encoding: string, cb: () => void) {
+    if (
+      delta.updates &&
+      delta.updates[0].source &&
+      delta.updates[0].source.venusPath
+    ) {
+      const source = delta.updates[0].source
+      delta.updates[0].$source = `${source.label}`
+      delete delta.updates[0].source
+    }
+    this.push(delta)
+    cb()
+  }
+}
+
+class FixVenus extends Transform {
+  constructor() {
+    super({ objectMode: true })
+  }
+  _transform(line: any, encoding: string, cb: () => void) {
+    this.push(line.replace(';venus;', ';S;'))
+    cb()
+  }
+}
+
 const setSelfVesselId = new SetSelfVesselId(program.selfVesselId, program.all)
 
 const datastream = program.gzip ? s3Stream.pipe(createGunzip()) : s3Stream
 
 datastream
   .pipe(liner)
+  .pipe(new FixVenus())
   .pipe(autodetect)
+  .pipe(new FixData())
   .pipe(new SKDeserializingStream())
   .pipe(setSelfVesselId)
   .pipe(deltaWriteStream)
