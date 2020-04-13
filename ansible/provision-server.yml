@@ -20,8 +20,9 @@
   - name: Add hostname to /etc/hosts
     lineinfile:
       dest: /etc/hosts
-      regexp: '^127\.0\.1\.1'
-      line: '127.0.1.1 {{ hostname }}'
+      regexp: '^127\.0\.1\.1(((?! {{ hostname }}).)*)'
+      line: '127.0.1.1\1 {{ hostname }}'
+      backrefs: yes
       state: present
 
   - name: Install/update packages
