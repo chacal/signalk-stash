@@ -35,11 +35,11 @@
         - apt-transport-https
         - zsh
         - sshguard
-        - python-setuptools
-        - python-pip
+        - python3-setuptools
+        - python3-pip
         - nginx
         - certbot
-        - python-passlib
+        - python3-passlib
       state: latest
 
   - name: Install Python dependencies
