@@ -33,6 +33,7 @@ services:
     image: yandex/clickhouse-server
     volumes:
       - ./clickhouse/data:/var/lib/clickhouse
+      - ./clickhouse/config.d:/etc/clickhouse-server/config.d
     ports:
       - 127.0.0.1:8123:8123
   mqtt:

@@ -71,6 +71,13 @@
         - clickhouse
         - clickhouse/data
 
+    - name: Copy ClickHouse override configuration
+      synchronize:
+        src: "../clickhouse/config.d"
+        dest: "clickhouse/"
+        delete: yes
+        recursive: yes
+
     - name: Setup production Docker containers
       docker_compose:
         project_name: signalk-stash-prod
