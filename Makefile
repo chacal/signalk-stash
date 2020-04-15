@@ -72,7 +72,7 @@ watch:
 	@$(NODEMON) $(API_SERVER_DEV_MAIN)
 
 docker-%-up:
-	@docker-compose -f docker-compose.$*.yml -p signalk-stash-$* up -d
+	@docker-compose -f docker-compose.$*.yml -p signalk-stash-$* up -d --build
 
 docker-%-stop:
 	@docker-compose -f docker-compose.$*.yml -p signalk-stash-$* stop
