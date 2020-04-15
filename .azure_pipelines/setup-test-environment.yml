@@ -7,6 +7,9 @@ steps:
   - script: npm install
     displayName: 'npm install'
 
+  - script: make docker-test-down
+    displayName: 'make docker-test-down'
+
   - script: make docker-test-up
     displayName: 'make docker-test-up'
 
