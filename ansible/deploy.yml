@@ -63,8 +63,23 @@
         - { src: "../grafana/provisioning/dashboards", dest: "grafana/provisioning" }
         - { src: "../grafana/provisioning/datasources/prod/", dest: "grafana/provisioning/datasources/" }
 
+    - name: Create ClickHouse directories
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - clickhouse
+        - clickhouse/data
+
+    - name: Copy ClickHouse override configuration
+      synchronize:
+        src: "../clickhouse/config.d"
+        dest: "clickhouse/"
+        delete: yes
+        recursive: yes
+
     - name: Setup production Docker containers
-      docker_service:
+      docker_compose:
         project_name: signalk-stash-prod
         project_src: .
         pull: true

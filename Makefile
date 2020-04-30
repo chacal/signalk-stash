@@ -185,7 +185,7 @@ docker-tag-and-push-mosquitto:
 
 .ensure-inventory: .check-prod-host-set
 	@if ! $$(grep -q "^$(SIGNALK_STASH_PROD_HOST) .*$$" ansible/inventory); then \
-		echo "$(SIGNALK_STASH_PROD_HOST) ansible_ssh_common_args='-o StrictHostKeyChecking=no'" > ansible/inventory; \
+		echo "$(SIGNALK_STASH_PROD_HOST) ansible_ssh_common_args='-o StrictHostKeyChecking=no' ansible_python_interpreter=/usr/bin/python3" > ansible/inventory; \
 	fi
 
 .check-prod-host-set:

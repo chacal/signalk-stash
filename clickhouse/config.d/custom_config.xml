@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<yandex>
+    <listen_host>0.0.0.0</listen_host>
+    <logger>
+        <level>notice</level>
+        <console>1</console>
+    </logger>
+</yandex>
