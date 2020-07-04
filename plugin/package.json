@@ -6,7 +6,9 @@
   "keywords": [
     "signalk-node-server-plugin"
   ],
-  "author": "teppo.kurki@iki,fi",
+  "contributors": [
+    "teppo.kurki@iki.fi"
+  ],
   "license": "Apache-2.0",
   "dependencies": {
     "mqtt": "^2.18.8",
