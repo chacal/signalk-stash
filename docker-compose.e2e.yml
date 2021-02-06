@@ -19,6 +19,9 @@ services:
       POSTGRES_DB: signalk
   mqtt:
     image: signalkstash/mosquitto
+    build:
+      context: .
+      dockerfile: Dockerfile.mosquitto
     ports:
      - 21883:1883
      - 29883:9883
