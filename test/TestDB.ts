@@ -70,17 +70,10 @@ class TestDB {
   }
 
   private queryTableExists(table: string) {
-    debug(`Checking for ClickHouse table ${table}..`)
-    return this.ch
-      .querying(`SELECT 1 FROM ${table}`)
-      .then(() => true)
-      .catch(r => {
-        if (r.message.includes(`Table default.${table} doesn't exist.`)) {
-          return false
-        } else {
-          throw r
-        }
-      })
+    return this.ch.querying(`EXISTS ${table}`).then(r => {
+      debug(`CH ${table} exists:${r}`)
+      return r === 1
+    })
   }
 }
 
