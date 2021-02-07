@@ -19,6 +19,7 @@ const VESSELSPREFIXLENGTH: number = VESSELSPREFIX.length
 const STATSINTERVAL = 60 * 1000
 
 export default class MqttDeltaInput {
+  interval?: NodeJS.Timeout
   constructor(
     private readonly mqttClient: mqtt.MqttClient,
     private readonly deltaWriteStream: QueryStream,
@@ -26,7 +27,7 @@ export default class MqttDeltaInput {
   ) {}
 
   start() {
-    setInterval(() => {
+    this.interval = setInterval(() => {
       const now = new Date().toISOString()
       Object.keys(this.deltaCounts).forEach(context => {
         const topic = deltaTopicFor(context) + '/stats'
@@ -69,6 +70,9 @@ export default class MqttDeltaInput {
   }
 
   stop() {
+    if (this.interval) {
+      clearInterval(this.interval)
+    }
     this.deltaWriteStream.end()
   }
 
