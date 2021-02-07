@@ -1,5 +1,6 @@
 import {
   Checkbox,
+  Collapse,
   createStyles,
   List,
   ListItem,
@@ -8,8 +9,10 @@ import {
   WithStyles,
   withStyles
 } from '@material-ui/core'
+import { KeyboardArrowDown, KeyboardArrowUp } from '@material-ui/icons'
 import _ from 'lodash'
 import * as React from 'react'
+import { useState } from 'react'
 
 import { useObservable } from 'rxjs-hooks'
 import { VesselId } from '../domain/Vessel'
@@ -35,7 +38,7 @@ const VesselSelection = withStyles(vsStyles)(
       <ListItem
         button
         classes={classes}
-        onClick={() => selectionChanged(!selected)}
+        onClick={e => selectionChanged(!selected)}
         data-cy="vessel-selection-panel__vessel"
       >
         <ListItemText primary={vessel.name} />
@@ -68,6 +71,7 @@ interface VSPProps extends WithStyles<typeof vspStyles> {
 
 const VesselSelectionPanel = withStyles(vspStyles)(
   ({ selectionState, classes }: VSPProps) => {
+    const [collapsed, setCollapsed] = useState(true)
     const theVessels = useObservable(() => selectionState.vessels)
     const theSelectedVessels = useObservable(
       () => selectionState.selectedVessels
@@ -82,16 +86,23 @@ const VesselSelectionPanel = withStyles(vspStyles)(
 
     return (
       <Paper classes={classes}>
-        <List>
-          {(theVessels || []).map(v => (
-            <VesselSelection
-              key={v.vesselId}
-              vessel={v}
-              selected={(theSelectedVessels || []).includes(v.vesselId)}
-              selectionChanged={vesselSelectionChanged(v)}
-            />
-          ))}
-        </List>
+        <span onClick={() => setCollapsed(!collapsed)}>
+          <ListItem>
+            {collapsed ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+          </ListItem>
+        </span>
+        <Collapse in={!collapsed}>
+          <List>
+            {(theVessels || []).map(v => (
+              <VesselSelection
+                key={v.vesselId}
+                vessel={v}
+                selected={(theSelectedVessels || []).includes(v.vesselId)}
+                selectionChanged={vesselSelectionChanged(v)}
+              />
+            ))}
+          </List>
+        </Collapse>
       </Paper>
     )
   }
