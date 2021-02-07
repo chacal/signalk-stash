@@ -88,7 +88,7 @@ describe('MQTT input', () => {
 
     // Make sure old retained messages don't affect the test
     // Use runner account here as only it has write ACL to the latest topic
-    clearRetainedMessage(runnerClient, latestPositionTopic)
+    await clearRetainedMessage(runnerClient, latestPositionTopic)
 
     //
     // Test that a delta reader gets the published position messages when vessel publishes deltas
@@ -162,10 +162,24 @@ function startRunnerMqttClient() {
   })
 }
 
-function clearRetainedMessage(client: MqttClient, topic: MqttTopic) {
-  client.publish(topic, Buffer.alloc(0), {
-    qos: 1,
-    retain: true
+function clearRetainedMessage(
+  client: MqttClient,
+  topic: MqttTopic
+): Promise<void> {
+  return new Promise(resolve => {
+    client.publish(
+      topic,
+      Buffer.alloc(0),
+      {
+        qos: 1,
+        retain: true
+      },
+      (err?: Error) => {
+        if (!err) {
+          resolve()
+        }
+      }
+    )
   })
 }
 
