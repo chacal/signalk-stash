@@ -41,26 +41,33 @@ describe('MQTT input', () => {
   it('writes position published only to signalk/delta/vesselUuid', async () => {
     const mqttClient = await startTestVesselMqttClient()
 
+    let completedCount = 0
+    const updateCompleted = (err?: Error) =>
+      err ? undefined : completedCount++
     mqttClient.publish(
       vesselTopic(testVesselUuids[0]),
-      JSON.stringify(positionFixtures[0])
+      JSON.stringify(positionFixtures[0]),
+      updateCompleted
     )
     mqttClient.publish(
       vesselTopic(testVesselUuids[0]),
-      JSON.stringify(positionFixtures[0]).replace(testVesselUuids[0], 'self')
+      JSON.stringify(positionFixtures[1]).replace(testVesselUuids[0], 'self'),
+      updateCompleted
     )
     mqttClient.publish(
       vesselTopic(testVesselUuids[0]),
-      JSON.stringify(positionFixtures[0]).replace('f', 'a')
+      JSON.stringify(positionFixtures[0]).replace('f', 'a'),
+      updateCompleted
     )
     mqttClient.publish(
       vesselTopic(testVesselUuids[0].replace('f', 'a')),
-      JSON.stringify(positionFixtures[0])
+      JSON.stringify(positionFixtures[0]),
+      updateCompleted
     )
 
     const vesselTrackpoints = await waitFor(
       () => DB.getTrackPointsForVessel(testVesselUuids[0]),
-      res => res.length > 0
+      res => res.length >= 2 && completedCount === 4
     )
     expect(vesselTrackpoints).to.have.lengthOf(2)
     assertTrackpoint(vesselTrackpoints[0], positionFixtures[0])
@@ -81,7 +88,7 @@ describe('MQTT input', () => {
 
     // Make sure old retained messages don't affect the test
     // Use runner account here as only it has write ACL to the latest topic
-    clearRetainedMessage(runnerClient, latestPositionTopic)
+    await clearRetainedMessage(runnerClient, latestPositionTopic)
 
     //
     // Test that a delta reader gets the published position messages when vessel publishes deltas
@@ -89,7 +96,10 @@ describe('MQTT input', () => {
     let receivedLatestPositions: SKDelta[] = []
     deltaReaderClient.subscribe(latestPositionTopic)
     deltaReaderClient.on('message', (topic, payload) => {
-      receivedLatestPositions.push(SKDelta.fromJSON(payload.toString()))
+      const payloadString = payload.toString()
+      if (payloadString !== '') {
+        receivedLatestPositions.push(SKDelta.fromJSON(payloadString))
+      }
     })
 
     // Create a test delta that has two position updates in reverse order
@@ -155,10 +165,24 @@ function startRunnerMqttClient() {
   })
 }
 
-function clearRetainedMessage(client: MqttClient, topic: MqttTopic) {
-  client.publish(topic, Buffer.alloc(0), {
-    qos: 1,
-    retain: true
+function clearRetainedMessage(
+  client: MqttClient,
+  topic: MqttTopic
+): Promise<void> {
+  return new Promise(resolve => {
+    client.publish(
+      topic,
+      Buffer.alloc(0),
+      {
+        qos: 1,
+        retain: true
+      },
+      (err?: Error) => {
+        if (!err) {
+          resolve()
+        }
+      }
+    )
   })
 }
 
