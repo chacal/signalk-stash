@@ -1,5 +1,6 @@
 import _ from 'lodash'
 
+import { Year } from 'js-joda'
 import { LatLngBounds } from 'leaflet'
 import { BehaviorSubject, combineLatest, from, Observable, Subject } from 'rxjs'
 import { distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators'
@@ -7,6 +8,10 @@ import { Coords } from '../domain/Geo'
 import { VesselId } from '../domain/Vessel'
 import { loadTrack } from './backend-requests'
 import { LoadedTrack, RenderedTrack, Viewport } from './mappanel-domain'
+import TimeSelectionState, {
+  fromLocalStorage,
+  SelectedYears
+} from './timeselection-state'
 import { Vessel, VesselSelectionState } from './vesselselection-state'
 
 const emptyBounds = new LatLngBounds([[0, 0], [0, 0]])
@@ -18,6 +23,7 @@ export const initialViewport = {
 
 export class MapPanelState {
   vesselSelectionState: VesselSelectionState
+  timeSelectionState: TimeSelectionState = fromLocalStorage()
   viewport: Subject<Viewport> = new BehaviorSubject(initialViewport)
   loadedTracks: Observable<LoadedTrack[]>
   tracksToRender: Observable<RenderedTrack[]>
@@ -29,41 +35,72 @@ export class MapPanelState {
     this.viewport.subscribe(saveViewportToLocalStorage)
     this.loadedTracks = startTrackLoading(
       this.vesselSelectionState.selectedVessels,
+      this.timeSelectionState.selectedYears,
       this.viewport
     )
     this.tracksToRender = toTracksToRender(
       this.vesselSelectionState.vessels,
       this.vesselSelectionState.selectedVessels,
+      this.timeSelectionState.selectedYears,
       this.loadedTracks
     )
   }
 }
 
+interface TrackToLoad {
+  vesselId: VesselId
+  year: Year
+}
+
+type LoadedTracks = Map<VesselId, Map<Year, Promise<LoadedTrack>>>
+
+const allVesselYearTracks = (vesselIds: VesselId[], years: SelectedYears) =>
+  vesselIds.flatMap(vesselId =>
+    years.toArray().map(year => ({ vesselId, year }))
+  )
+
+const isTrackMissing = (loadedTracks: LoadedTracks) => (
+  trackToLoad: TrackToLoad
+) => {
+  const loadedVesselTracks = loadedTracks.get(trackToLoad.vesselId)
+  return !loadedVesselTracks || !loadedVesselTracks.get(trackToLoad.year)
+}
+
 function startTrackLoading(
   selectedVessels: Observable<VesselId[]>,
+  selectedYears: Observable<SelectedYears>,
   viewport: Observable<Viewport>
 ): Observable<LoadedTrack[]> {
-  let loadedTracks: Map<VesselId, Promise<LoadedTrack>> = new Map<
+  let loadedTracks: LoadedTracks = new Map<
     VesselId,
-    Promise<LoadedTrack>
+    Map<Year, Promise<LoadedTrack>>
   >()
   let previousViewport: Viewport
-  return combineLatest([selectedVessels, viewport]).pipe(
-    filter(([, viewport]) => viewport.bounds !== emptyBounds),
+  return combineLatest([selectedVessels, selectedYears, viewport]).pipe(
+    filter(([, , viewport]) => viewport.bounds !== emptyBounds),
     distinctUntilChanged(_.isEqual),
-    switchMap(([selectedVessels, viewport]) => {
+    switchMap(([selectedVessels, selectedYears, viewport]) => {
       if (!_.isEqual(viewport, previousViewport)) {
-        loadedTracks = new Map<VesselId, Promise<LoadedTrack>>()
+        loadedTracks = new Map<VesselId, Map<Year, Promise<LoadedTrack>>>()
       }
       previousViewport = viewport
-      selectedVessels.forEach((vesselId: VesselId) => {
-        if (!loadedTracks.get(vesselId)) {
-          loadedTracks.set(vesselId, loadTrack(vesselId, viewport))
-        }
-      })
-      return from(Promise.all(loadedTracks.values())) as Observable<
-        LoadedTrack[]
-      >
+
+      allVesselYearTracks(selectedVessels, selectedYears)
+        .filter(isTrackMissing(loadedTracks))
+        .forEach(({ vesselId, year }) => {
+          const tracksForVessel =
+            loadedTracks.get(vesselId) || new Map<Year, Promise<LoadedTrack>>()
+          loadedTracks.set(vesselId, tracksForVessel)
+          tracksForVessel.set(year, loadTrack(vesselId, year, viewport))
+        })
+
+      return from(
+        Promise.all(
+          [...loadedTracks.values()].flatMap(vesselTracks => [
+            ...vesselTracks.values()
+          ])
+        )
+      ) as Observable<LoadedTrack[]>
     })
   )
 }
@@ -71,12 +108,20 @@ function startTrackLoading(
 function toTracksToRender(
   allVessels: Observable<Vessel[]>,
   selectedVessels: Observable<VesselId[]>,
+  selectedYears: Observable<SelectedYears>,
   loadedTracks: Observable<LoadedTrack[]>
 ): Observable<RenderedTrack[]> {
-  return combineLatest([allVessels, selectedVessels, loadedTracks]).pipe(
-    map(([allVessels, selectedVessels, loadedTracks]) => {
-      const selectedTracks = loadedTracks.filter(t =>
-        selectedVessels.includes(t.vesselId)
+  return combineLatest([
+    allVessels,
+    selectedVessels,
+    selectedYears,
+    loadedTracks
+  ]).pipe(
+    map(([allVessels, selectedVessels, selectedYears, loadedTracks]) => {
+      const selectedTracks = loadedTracks.filter(
+        t =>
+          selectedVessels.includes(t.vesselId) &&
+          selectedYears.isSelected(t.year)
       )
       return selectedTracks.map(t => {
         const vessel = allVessels.find(v => v.vesselId === t.vesselId)
@@ -84,9 +129,7 @@ function toTracksToRender(
           throw new Error('Vessel not found for track' + t)
         }
         return {
-          vesselId: t.vesselId,
-          track: t.track,
-          loadTime: t.loadTime,
+          ...t,
           color: vessel.trackColor
         }
       })

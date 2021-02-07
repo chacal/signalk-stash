@@ -3,6 +3,7 @@ import * as React from 'react'
 
 import Map from './Map'
 import { MapPanelState } from './mappanel-state'
+import TimeSelectionPanel from './TimeSelectionPanel'
 import { VesselSelectionState } from './vesselselection-state'
 import VesselSelectionPanel from './VesselSelectionPanel'
 
@@ -21,6 +22,7 @@ const MapPanel = ({ vesselSelection }: MapPanelProps) => {
         tracks={panelState.tracksToRender}
       />
       <VesselSelectionPanel selectionState={panelState.vesselSelectionState} />
+      <TimeSelectionPanel timeselection={panelState.timeSelectionState} />
     </React.Fragment>
   )
 }

@@ -1,4 +1,5 @@
 import Color = require('color')
+import { Year } from 'js-joda'
 import { LatLngBounds } from 'leaflet'
 
 import { TrackGeoJSON } from '../domain/Geo'
@@ -11,6 +12,7 @@ export interface Viewport {
 
 export interface LoadedTrack {
   vesselId: VesselId
+  year: Year
   track: TrackGeoJSON
   loadTime: Date
 }
