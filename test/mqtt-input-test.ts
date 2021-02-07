@@ -41,26 +41,33 @@ describe('MQTT input', () => {
   it('writes position published only to signalk/delta/vesselUuid', async () => {
     const mqttClient = await startTestVesselMqttClient()
 
+    let completedCount = 0
+    const updateCompleted = (err?: Error) =>
+      err ? undefined : completedCount++
     mqttClient.publish(
       vesselTopic(testVesselUuids[0]),
-      JSON.stringify(positionFixtures[0])
+      JSON.stringify(positionFixtures[0]),
+      updateCompleted
     )
     mqttClient.publish(
       vesselTopic(testVesselUuids[0]),
-      JSON.stringify(positionFixtures[0]).replace(testVesselUuids[0], 'self')
+      JSON.stringify(positionFixtures[1]).replace(testVesselUuids[0], 'self'),
+      updateCompleted
     )
     mqttClient.publish(
       vesselTopic(testVesselUuids[0]),
-      JSON.stringify(positionFixtures[0]).replace('f', 'a')
+      JSON.stringify(positionFixtures[0]).replace('f', 'a'),
+      updateCompleted
     )
     mqttClient.publish(
       vesselTopic(testVesselUuids[0].replace('f', 'a')),
-      JSON.stringify(positionFixtures[0])
+      JSON.stringify(positionFixtures[0]),
+      updateCompleted
     )
 
     const vesselTrackpoints = await waitFor(
       () => DB.getTrackPointsForVessel(testVesselUuids[0]),
-      res => res.length > 0
+      res => res.length >= 2 && completedCount === 4
     )
     expect(vesselTrackpoints).to.have.lengthOf(2)
     assertTrackpoint(vesselTrackpoints[0], positionFixtures[0])
