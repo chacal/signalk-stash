@@ -96,7 +96,10 @@ describe('MQTT input', () => {
     let receivedLatestPositions: SKDelta[] = []
     deltaReaderClient.subscribe(latestPositionTopic)
     deltaReaderClient.on('message', (topic, payload) => {
-      receivedLatestPositions.push(SKDelta.fromJSON(payload.toString()))
+      const payloadString = payload.toString()
+      if (payloadString !== '') {
+        receivedLatestPositions.push(SKDelta.fromJSON(payloadString))
+      }
     })
 
     // Create a test delta that has two position updates in reverse order
