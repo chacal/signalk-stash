@@ -32,9 +32,16 @@ class API {
 
   async start() {
     await insertLatestDeltaReaderAccountFromConfig()
-    this.app.listen(this.config.port, () =>
-      console.log(`Listening on port ${this.config.port}!`)
-    )
+    return new Promise<void>((resolve, reject) => {
+      this.app.listen(this.config.port, err => {
+        if (err) {
+          reject(err)
+        } else {
+          console.log(`Listening on port ${this.config.port}!`)
+          resolve()
+        }
+      })
+    })
   }
 
   private validationErrorHandler(
