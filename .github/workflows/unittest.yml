@@ -1,0 +1,36 @@
+name: Unit tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [11.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install
+      env:
+        CYPRESS_INSTALL_BINARY: 0
+    - run: |
+        make docker-test-up
+        npx wait-on tcp:45432 && npx wait-on tcp:41883
+    - run: make test
+      env:
+        CI: true
+    # - uses: docker://ghcr.io/enricomi/publish-unit-test-result-action:v1
+    #   if: always()
+    #   with:
+    #     files: test-results/**/*.xml
