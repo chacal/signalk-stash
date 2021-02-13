@@ -14,6 +14,38 @@ export default function setupTrackAPIRoutes(app: Express) {
   app.get('/tracks', asyncHandler(tracks))
 }
 
+function bboxFromQuery(req: Request): BBox | undefined {
+  const q = req.query
+  if (!!q.n || !!q.w || !!q.s || !!q.e) {
+    const bboxSchema = {
+      n: Schemas.lat,
+      w: Schemas.lng,
+      s: Schemas.lat,
+      e: Schemas.lng
+    }
+    validate(req.query, bboxSchema)
+    const nw = new Coords({ lat: q.n, lng: q.w })
+    const se = new Coords({ lat: q.s, lng: q.e })
+    return new BBox({ nw, se })
+  } else {
+    return undefined
+  }
+}
+
+function zoomLevelFromQuery(req: Request): ZoomLevel | undefined {
+  if (req.query.zoomLevel) {
+    const schema = {
+      zoomLevel: Joi.number()
+        .greater(0)
+        .less(25)
+        .required()
+    }
+    return validate(req.query, schema).zoomLevel
+  } else {
+    return undefined
+  }
+}
+
 async function tracks(req: Request, res: Response) {
   debug('Query: %o', req.query)
 
@@ -23,39 +55,8 @@ async function tracks(req: Request, res: Response) {
 
   const tracks = await stash.getVesselTracks(context, bbox, zoomLevel)
   res.json(tracksToGeoJSON(tracks, zoomLevel))
-
-  function bboxFromQuery(req: Request): BBox | undefined {
-    const q = req.query
-    if (!!q.n || !!q.w || !!q.s || !!q.e) {
-      const bboxSchema = {
-        n: Schemas.lat,
-        w: Schemas.lng,
-        s: Schemas.lat,
-        e: Schemas.lng
-      }
-      validate(req.query, bboxSchema)
-      const nw = new Coords({ lat: q.n, lng: q.w })
-      const se = new Coords({ lat: q.s, lng: q.e })
-      return new BBox({ nw, se })
-    } else {
-      return undefined
-    }
-  }
-
-  function zoomLevelFromQuery(req: Request): ZoomLevel | undefined {
-    if (req.query.zoomLevel) {
-      const schema = {
-        zoomLevel: Joi.number()
-          .greater(0)
-          .less(25)
-          .required()
-      }
-      return validate(req.query, schema).zoomLevel
-    } else {
-      return undefined
-    }
-  }
 }
+
 async function dailyTrackStats(req: Request, res: Response) {
   debug('Query: %o', req.query)
 
