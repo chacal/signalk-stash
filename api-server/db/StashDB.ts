@@ -1,6 +1,6 @@
 import { QueryCallback, QueryStream } from '@apla/clickhouse'
 import { SKContext } from '@chacal/signalk-ts'
-import { LocalDate, ZonedDateTime } from 'js-joda'
+import { LocalDate, LocalDateTime, ZonedDateTime } from 'js-joda'
 import { vesselTopic } from '../../delta-inputs/MqttDeltaInput'
 import { MqttAccount, MqttACL, MqttACLLevel } from '../domain/Auth'
 import { BBox, ZoomLevel } from '../domain/Geo'
@@ -9,6 +9,17 @@ import TrackStatistics from '../domain/TrackStatistics'
 import Vessel, { VesselData } from '../domain/Vessel'
 import SKClickHouse from './SKClickHouse'
 import SKPostgis from './SKPostgis'
+
+export interface Timespan {
+  from: LocalDateTime
+  to: LocalDateTime
+}
+export interface TrackParams {
+  context: SKContext
+  bbox?: BBox
+  zoomLevel?: ZoomLevel
+  timespan?: Timespan
+}
 
 export class StashDB {
   readonly postgis: SKPostgis = new SKPostgis()
@@ -31,20 +42,12 @@ export class StashDB {
     return this.ch.insertTrackpoint(trackpoint)
   }
 
-  getTrackPointsForVessel(
-    context: SKContext,
-    bbox?: BBox,
-    zoomLevel?: ZoomLevel
-  ): Promise<Trackpoint[]> {
-    return this.ch.getTrackPointsForVessel(context, bbox, zoomLevel)
+  getTrackPointsForVessel(trackParams: TrackParams): Promise<Trackpoint[]> {
+    return this.ch.getTrackPointsForVessel(trackParams)
   }
 
-  getVesselTracks(
-    context: SKContext,
-    bbox?: BBox,
-    zoomLevel?: ZoomLevel
-  ): Promise<Track[]> {
-    return this.ch.getVesselTracks(context, bbox, zoomLevel)
+  getVesselTracks(trackParams: TrackParams): Promise<Track[]> {
+    return this.ch.getVesselTracks(trackParams)
   }
 
   getTrackStatisticsForVesselTimespan(

@@ -1,5 +1,4 @@
 import Clickhouse from '@apla/clickhouse'
-import { SKContext } from '@chacal/signalk-ts'
 import BinaryQuadkey from 'binaryquadkey'
 import Debug from 'debug'
 import {
@@ -20,7 +19,8 @@ import SKClickHouse, {
   simplifyThresholdForZoom,
   timeResolutionForZoom
 } from '../db/SKClickHouse'
-import { BBox, Coords, TrackGeoJSON, ZoomLevel } from './Geo'
+import { TrackParams } from '../db/StashDB'
+import { Coords, TrackGeoJSON } from './Geo'
 const debug = Debug('stash:skclickhouse')
 
 export default class Trackpoint {
@@ -208,10 +208,9 @@ function columnsToTrackpoint([
 
 export function getTrackPointsForVessel(
   ch: Clickhouse,
-  context: SKContext,
-  bbox?: BBox,
-  zoomLevel?: ZoomLevel
+  trackParams: TrackParams
 ): Promise<Trackpoint[]> {
+  const { context, bbox, zoomLevel} = trackParams
   let selectFields = 'toUnixTimestamp(ts) as t, millis, lat, lng'
   let bboxClause = ''
   let groupByClause = ''

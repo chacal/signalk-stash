@@ -89,7 +89,7 @@ export function assertTrackpoint(point: Trackpoint, fixturePoint: any): void {
 
 export function assertFixturePositionsInDB(DB: StashDB): Promise<void[]> {
   return Promise.all(
-    testVesselUuids.map(id => DB.getTrackPointsForVessel(id))
+    testVesselUuids.map(id => DB.getTrackPointsForVessel({ context: id }))
   ).then(positionsLists =>
     positionsLists.map((positions, i) => {
       const vesselFixturePositions = positionFixtures.filter(
