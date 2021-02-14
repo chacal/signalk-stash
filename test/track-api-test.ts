@@ -24,6 +24,54 @@ describe('Track API', () => {
       })
   })
 
+  it('returns track for timespan', () => {
+    return getJson(app, '/tracks')
+      .query({
+        context: testVesselUuids[0],
+        from: '2014-08-15T19:00:22',
+        to: '2014-08-15T19:01:25'
+      })
+      .expect(res => {
+        expect(res.body.type).to.equal('MultiLineString')
+        expect(res.body.coordinates).to.have.lengthOf(1)
+        expect(res.body.coordinates[0]).to.have.lengthOf(21)
+      })
+  })
+
+  it('returns multiple tracks for a timespan', () => {
+    return getJson(app, '/tracks')
+      .query({
+        context: testVesselUuids[0],
+        from: '2014-08-15T19:00:22',
+        to: '2015-08-15T19:01:25'
+      })
+      .expect(res => {
+        expect(res.body.type).to.equal('MultiLineString')
+        expect(res.body.coordinates).to.have.lengthOf(4)
+      })
+  })
+
+  it('returns no tracks for a timespan', () => {
+    return getJson(app, '/tracks')
+      .query({
+        context: testVesselUuids[0],
+        from: '2012-08-15T19:00:22',
+        to: '2013-08-15T19:01:25'
+      })
+      .expect(res => {
+        expect(res.body.type).to.equal('MultiLineString')
+        expect(res.body.coordinates).to.have.lengthOf(0)
+      })
+  })
+
+  it('invalid timespan returns error', () => {
+    return getJson(app, '/tracks', 400).query({
+      context: testVesselUuids[0],
+      from: '12-99-77T19:00:22',
+      to: '2013-08-15T19:01:25'
+    })
+  })
+
   it('returns tracks with bounding box', () => {
     return getJson(app, '/tracks')
       .query({

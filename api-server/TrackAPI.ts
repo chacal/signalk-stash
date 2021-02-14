@@ -1,9 +1,9 @@
 import Debug from 'debug'
 import { Express, Request, Response } from 'express'
 import * as Joi from 'joi'
-import { LocalDate } from 'js-joda'
+import { LocalDate, LocalDateTime } from 'js-joda'
 import { asyncHandler } from './API'
-import stash from './db/StashDB'
+import stash, { Timespan } from './db/StashDB'
 import { BBox, Coords, ZoomLevel } from './domain/Geo'
 import { tracksToGeoJSON } from './domain/Trackpoint'
 import { Schemas, validate } from './domain/validation'
@@ -46,17 +46,37 @@ function zoomLevelFromQuery(req: Request): ZoomLevel | undefined {
   }
 }
 
+function timespanFromQuery(req: Request): Timespan | undefined {
+  if (req.query.from && req.query.to) {
+    return {
+      from: LocalDateTime.parse(req.query.from),
+      to: LocalDateTime.parse(req.query.to)
+    }
+  } else {
+    return undefined
+  }
+}
+
 async function tracks(req: Request, res: Response) {
   debug('Query: %o', req.query)
 
   const context = contextFromQuery(req)
   const bbox = bboxFromQuery(req)
   const zoomLevel = zoomLevelFromQuery(req)
+  let timespan
+  try {
+    timespan = timespanFromQuery(req)
+  } catch (e) {
+    res.status(400)
+    res.json({ error: e.message })
+    return
+  }
 
   const tracks = await stash.getVesselTracks({
     context,
     bbox,
     zoomLevel,
+    timespan
   })
   res.json(tracksToGeoJSON(tracks, zoomLevel))
 }

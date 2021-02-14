@@ -31,14 +31,14 @@ describe('StashDBB', () => {
       context: testVesselUuids[0],
       zoomLevel: 10
     })
-    expect(points).to.have.lengthOf(4)
+    expect(points).to.have.lengthOf(5)
     expect(points[0].timestamp.toString()).to.equal('2014-08-15T19:00Z')
   })
 
   it('returns daily tracks', async () => {
     await writeDeltasFromPositionFixture()
     const result = await DB.getVesselTracks({ context: testVesselUuids[0] })
-    expect(result).to.have.lengthOf(3)
+    expect(result).to.have.lengthOf(4)
   })
 
   it('returns track lengths', async () => {

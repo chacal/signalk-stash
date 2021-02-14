@@ -4,6 +4,7 @@ import Debug from 'debug'
 import {
   ChronoField,
   ChronoUnit,
+  DateTimeFormatter,
   Duration,
   Instant,
   ZonedDateTime,
@@ -210,9 +211,10 @@ export function getTrackPointsForVessel(
   ch: Clickhouse,
   trackParams: TrackParams
 ): Promise<Trackpoint[]> {
-  const { context, bbox, zoomLevel} = trackParams
+  const { context, bbox, zoomLevel, timespan } = trackParams
   let selectFields = 'toUnixTimestamp(ts) as t, millis, lat, lng'
   let bboxClause = ''
+  let timespanClause = ''
   let groupByClause = ''
   let orderBy = 't, millis'
 
@@ -238,10 +240,23 @@ export function getTrackPointsForVessel(
     `
   }
 
+  if (timespan) {
+    timespanClause = `
+      AND
+        ts >= toDateTime('${timespan.from.format(
+          DateTimeFormatter.ISO_LOCAL_DATE_TIME
+        )}', 'UTC')
+        AND
+        ts < toDateTime('${timespan.to.format(
+          DateTimeFormatter.ISO_LOCAL_DATE_TIME
+        )}', 'UTC')
+    `
+  }
+
   const query = `
     SELECT ${selectFields}
     FROM trackpoint
-    WHERE context = '${context}' ${bboxClause}
+    WHERE context = '${context}' ${bboxClause} ${timespanClause}
     ${groupByClause}
     ORDER BY ${orderBy}`
 
