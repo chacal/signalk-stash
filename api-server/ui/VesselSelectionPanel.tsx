@@ -86,7 +86,10 @@ const VesselSelectionPanel = withStyles(vspStyles)(
 
     return (
       <Paper classes={classes}>
-        <span onClick={() => setCollapsed(!collapsed)}>
+        <span
+          onClick={() => setCollapsed(!collapsed)}
+          data-cy="vessel-selection-panel-caret"
+        >
           <ListItem>
             {collapsed ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
           </ListItem>

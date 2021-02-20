@@ -8,6 +8,15 @@ describe('Stash UI', () => {
     cy.visit('/')
 
     vesselItems().should('have.length', 2)
+
+    vesselItem(0).should('not.be.visible')
+    vesselItem(1).should('not.be.visible')
+
+    vesselToggle().click()
+
+    vesselItem(0).should('be.visible')
+    vesselItem(1).should('be.visible')
+
     checkboxContainers().should($items =>
       expect($items.get(0).style.color).to.not.equal($items.get(1).style.color)
     )
@@ -28,6 +37,11 @@ describe('Stash UI', () => {
     checkbox(1).should('not.be.checked')
   })
 })
+
+function vesselToggle() {
+  return cy.get('[data-cy=vessel-selection-panel-caret]')
+}
+
 
 function vesselItems() {
   return cy.get('[data-cy=vessel-selection-panel__vessel]')
