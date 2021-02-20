@@ -29,7 +29,7 @@ const testVessel = (vesselId: VesselId = asVesselId(defaultId)) => ({
 })
 
 describe('VesselSelectionPanel', () => {
-  it('renders list of vessels', async done => {
+  it('renders list of vessels', async () => {
     const props = defaultProps()
     const vsp = mount(<VesselSelectionPanel {...props} />)
     const F = itemFinder(vsp)
@@ -51,10 +51,9 @@ describe('VesselSelectionPanel', () => {
     await updateAndWait(vsp, () => F.items(), items => items.length === 2)
 
     expect(F.item(1).text()).to.equal('urn:mrn:imo:mmsi:200000001')
-    done()
   })
 
-  it('updates vessels selected state when row or checkbox is clicked', async done => {
+  it('updates vessels selected state when row or checkbox is clicked', async () => {
     const props = defaultProps([testVessel()])
     const vsp = mount(<VesselSelectionPanel {...props} />)
     const F = itemFinder(vsp)
@@ -82,8 +81,6 @@ describe('VesselSelectionPanel', () => {
     )
 
     expect(props.selectionState.selectedVessels.value).to.have.members([])
-
-    done()
   })
 })
 

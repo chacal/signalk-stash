@@ -64,7 +64,7 @@ describe('Stash Map', () => {
     )
   }
 
-  it('renders tracks as colored GeoJSON', async done => {
+  it('renders tracks as colored GeoJSON', async () => {
     const p = defaultProps()
     const map = mount(<Map {...p} />)
     const geoJson = () => map.find(GeoJSON)
@@ -99,6 +99,5 @@ describe('Stash Map', () => {
     expect(coords).to.have.lengthOf(2)
     expect(coords[0][0]).to.eql([22, 60])
     expect(geoJson().prop('color')).to.equal('#0000FF')
-    done()
   })
 })
