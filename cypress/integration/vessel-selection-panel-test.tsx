@@ -10,7 +10,7 @@ import {
   VesselSelectionState
 } from '../../api-server/ui/vesselselection-state'
 import VesselSelectionPanel from '../../api-server/ui/VesselSelectionPanel'
-import { waitFor } from '../../test/waiting'
+import { updateAndWait } from '../../test/waiting'
 
 configure({ adapter: new Adapter() })
 
@@ -92,15 +92,4 @@ function listItemFinder(vsp: ReactWrapper) {
     item: (index: number) => vsp.find(ListItem).at(index),
     checkbox: (index: number) => vsp.find(Checkbox).at(index)
   }
-}
-
-function updateAndWait<T>(
-  component: ReactWrapper,
-  action: () => T,
-  predicate: (t: T) => boolean
-): Promise<T> {
-  return waitFor(() => {
-    component.update()
-    return Promise.resolve(action())
-  }, predicate)
 }
