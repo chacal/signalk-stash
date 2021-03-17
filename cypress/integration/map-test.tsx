@@ -1,6 +1,7 @@
 import Color = require('color')
 import { configure, mount } from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'
+import { Year } from 'js-joda'
 import * as React from 'react'
 import { GeoJSON, Map as LeafletMap } from 'react-leaflet'
 
@@ -64,7 +65,7 @@ describe('Stash Map', () => {
     )
   }
 
-  it('renders tracks as colored GeoJSON', async done => {
+  it('renders tracks as colored GeoJSON', async () => {
     const p = defaultProps()
     const map = mount(<Map {...p} />)
     const geoJson = () => map.find(GeoJSON)
@@ -75,6 +76,7 @@ describe('Stash Map', () => {
         vesselId: asVesselId('urn:mrn:imo:mmsi:200000000'),
         loadTime: new Date(),
         color: Color('#0000FF'),
+        year: Year.of(2020),
         track: {
           type: 'MultiLineString' as 'MultiLineString',
           coordinates: [[[22, 60], [22.5, 60.5]], [[20, 59], [21, 59.5]]]
@@ -99,6 +101,5 @@ describe('Stash Map', () => {
     expect(coords).to.have.lengthOf(2)
     expect(coords[0][0]).to.eql([22, 60])
     expect(geoJson().prop('color')).to.equal('#0000FF')
-    done()
   })
 })

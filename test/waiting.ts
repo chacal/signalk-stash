@@ -1,4 +1,5 @@
 import BPromise from 'bluebird'
+import { ReactWrapper } from 'enzyme'
 
 export function waitFor<T>(
   action: () => Promise<T>,
@@ -17,4 +18,15 @@ export function waitFor<T>(
   function retryAfterDelay() {
     return BPromise.delay(100).then(() => waitFor(action, predicate))
   }
+}
+
+export function updateAndWait<T>(
+  component: ReactWrapper,
+  action: () => T,
+  predicate: (t: T) => boolean
+): Promise<T> {
+  return waitFor(() => {
+    component.update()
+    return Promise.resolve(action())
+  }, predicate)
 }

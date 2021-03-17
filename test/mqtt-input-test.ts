@@ -66,14 +66,17 @@ describe('MQTT input', () => {
     )
 
     const vesselTrackpoints = await waitFor(
-      () => DB.getTrackPointsForVessel(testVesselUuids[0]),
+      () => DB.getTrackPointsForVessel({ context: testVesselUuids[0] }),
       res => res.length >= 2 && completedCount === 4
     )
     expect(vesselTrackpoints).to.have.lengthOf(2)
     assertTrackpoint(vesselTrackpoints[0], positionFixtures[0])
 
     const otherVesselTrackpoints = await waitFor(
-      () => DB.getTrackPointsForVessel(testVesselUuids[0].replace('f', 'a')),
+      () =>
+        DB.getTrackPointsForVessel({
+          context: testVesselUuids[0].replace('f', 'a')
+        }),
       res => res.length >= 0
     )
     expect(otherVesselTrackpoints).to.have.lengthOf(0)

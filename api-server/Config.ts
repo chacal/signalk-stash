@@ -104,6 +104,17 @@ const testConfig = {
 
 const environments: IEnvironments = {
   development: {},
+  tunnelProd: {
+    isDeveloping: true,
+    db: {
+      host: 'localhost',
+      port: 35432
+    },
+    clickhouse: {
+      host: 'localhost',
+      port: 38123
+    }
+  },
   production: {
     db: {
       host: 'postgis',

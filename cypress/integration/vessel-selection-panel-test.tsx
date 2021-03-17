@@ -10,7 +10,7 @@ import {
   VesselSelectionState
 } from '../../api-server/ui/vesselselection-state'
 import VesselSelectionPanel from '../../api-server/ui/VesselSelectionPanel'
-import { waitFor } from '../../test/waiting'
+import { updateAndWait } from '../../test/waiting'
 
 configure({ adapter: new Adapter() })
 
@@ -29,18 +29,19 @@ const testVessel = (vesselId: VesselId = asVesselId(defaultId)) => ({
 })
 
 describe('VesselSelectionPanel', () => {
-  it('renders list of vessels', async done => {
+  it('renders list of vessels', async () => {
     const props = defaultProps()
     const vsp = mount(<VesselSelectionPanel {...props} />)
-    const F = itemFinder(vsp)
+    const F = listItemFinder(vsp)
 
-    expect(F.items()).to.have.lengthOf(0)
+    //toggle is list item 0
+    expect(F.items()).to.have.lengthOf(1)
     props.selectionState.vessels.next([testVessel()])
 
-    await updateAndWait(vsp, () => F.items(), items => items.length === 1)
+    await updateAndWait(vsp, () => F.items(), items => items.length === 2)
 
-    expect(F.items()).to.have.lengthOf(1)
-    expect(F.item(0).text()).to.equal(defaultId)
+    expect(F.items()).to.have.lengthOf(2)
+    expect(F.item(1).text()).to.equal(defaultId)
     expect(F.checkbox(0).prop('style')).to.deep.equal({ color: '#0000AA' })
 
     props.selectionState.vessels.next([
@@ -48,16 +49,15 @@ describe('VesselSelectionPanel', () => {
       testVessel(asVesselId('urn:mrn:imo:mmsi:200000001'))
     ])
 
-    await updateAndWait(vsp, () => F.items(), items => items.length === 2)
+    await updateAndWait(vsp, () => F.items(), items => items.length === 3)
 
-    expect(F.item(1).text()).to.equal('urn:mrn:imo:mmsi:200000001')
-    done()
+    expect(F.item(2).text()).to.equal('urn:mrn:imo:mmsi:200000001')
   })
 
-  it('updates vessels selected state when row or checkbox is clicked', async done => {
+  it('updates vessels selected state when row or checkbox is clicked', async () => {
     const props = defaultProps([testVessel()])
     const vsp = mount(<VesselSelectionPanel {...props} />)
-    const F = itemFinder(vsp)
+    const F = listItemFinder(vsp)
 
     expect(F.checkbox(0).prop('checked')).to.equal(false)
 
@@ -73,7 +73,8 @@ describe('VesselSelectionPanel', () => {
       asVesselId(defaultId)
     ])
 
-    F.item(0).simulate('click')
+    // first vessel is list item 1
+    F.item(1).simulate('click')
 
     await updateAndWait(
       vsp,
@@ -82,26 +83,13 @@ describe('VesselSelectionPanel', () => {
     )
 
     expect(props.selectionState.selectedVessels.value).to.have.members([])
-
-    done()
   })
 })
 
-function itemFinder(vsp: ReactWrapper) {
+function listItemFinder(vsp: ReactWrapper) {
   return {
     items: () => vsp.find(ListItem),
     item: (index: number) => vsp.find(ListItem).at(index),
     checkbox: (index: number) => vsp.find(Checkbox).at(index)
   }
-}
-
-function updateAndWait<T>(
-  component: ReactWrapper,
-  action: () => T,
-  predicate: (t: T) => boolean
-): Promise<T> {
-  return waitFor(() => {
-    component.update()
-    return Promise.resolve(action())
-  }, predicate)
 }

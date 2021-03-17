@@ -27,19 +27,18 @@ describe('StashDBB', () => {
 
   it('returns tracks by zoomLevel', async () => {
     await writeDeltasFromPositionFixture()
-    const points = await DB.getTrackPointsForVessel(
-      testVesselUuids[0],
-      undefined,
-      10
-    )
-    expect(points).to.have.lengthOf(4)
+    const points = await DB.getTrackPointsForVessel({
+      context: testVesselUuids[0],
+      zoomLevel: 10
+    })
+    expect(points).to.have.lengthOf(5)
     expect(points[0].timestamp.toString()).to.equal('2014-08-15T19:00Z')
   })
 
   it('returns daily tracks', async () => {
     await writeDeltasFromPositionFixture()
-    const result = await DB.getVesselTracks(testVesselUuids[0])
-    expect(result).to.have.lengthOf(3)
+    const result = await DB.getVesselTracks({ context: testVesselUuids[0] })
+    expect(result).to.have.lengthOf(4)
   })
 
   it('returns track lengths', async () => {
@@ -59,13 +58,13 @@ describe('StashDBB', () => {
 
   it('returns daily tracks by bbox', async () => {
     await writeDeltasFromPositionFixture()
-    const tracks = await DB.getVesselTracks(
-      testVesselUuids[2],
-      new BBox({
+    const tracks = await DB.getVesselTracks({
+      context: testVesselUuids[2],
+      bbox: new BBox({
         nw: new Coords({ lng: 21.75, lat: 60 }),
         se: new Coords({ lng: 22, lat: 59 })
       })
-    )
+    })
     expect(tracks).to.have.lengthOf(1)
     expect(tracks[0]).to.have.lengthOf(2)
   })

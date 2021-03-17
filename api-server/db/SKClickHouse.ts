@@ -11,7 +11,7 @@ import BufferingWritableStream from '../BufferingWritableStream'
 import config from '../Config'
 import CountDownLatch from '../CountDownLatch'
 import DeltaSplittingStream from '../DeltaSplittingStream'
-import { BBox, ZoomLevel } from '../domain/Geo'
+import { ZoomLevel } from '../domain/Geo'
 import {
   createValuesTable,
   getValues,
@@ -30,6 +30,7 @@ import TrackStatistics, {
   getDailyTrackStatistics,
   getTrackStatisticsForVesselTimespan
 } from '../domain/TrackStatistics'
+import { TrackParams } from './StashDB'
 
 const debug = Debug('stash:skclickhouse')
 
@@ -47,12 +48,8 @@ export default class SKClickHouse {
     return insertTrackpoint(this, trackpoint)
   }
 
-  getTrackPointsForVessel(
-    context: SKContext,
-    bbox?: BBox,
-    zoomLevel?: ZoomLevel
-  ): Promise<Trackpoint[]> {
-    return getTrackPointsForVessel(this.ch, context, bbox, zoomLevel)
+  getTrackPointsForVessel(trackParams: TrackParams): Promise<Trackpoint[]> {
+    return getTrackPointsForVessel(this.ch, trackParams)
   }
 
   getTrackStatisticsForVesselTimespan(
@@ -71,18 +68,13 @@ export default class SKClickHouse {
     return getDailyTrackStatistics(this.ch, context, firstDate, lastDate)
   }
 
-  getVesselTracks(
-    context: SKContext,
-    bbox?: BBox,
-    zoomLevel?: ZoomLevel
-  ): Promise<Track[]> {
-    return this.getTrackPointsForVessel(context, bbox, zoomLevel).then(
-      pointsData =>
-        _.values(
-          _.groupBy(pointsData, point =>
-            point.timestamp.truncatedTo(ChronoUnit.DAYS).toEpochSecond()
-          )
+  getVesselTracks(trackParams: TrackParams): Promise<Track[]> {
+    return this.getTrackPointsForVessel(trackParams).then(pointsData =>
+      _.values(
+        _.groupBy(pointsData, point =>
+          point.timestamp.truncatedTo(ChronoUnit.DAYS).toEpochSecond()
         )
+      )
     )
   }
 
