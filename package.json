@@ -48,7 +48,7 @@
     "leaflet": "^1.4.0",
     "less": "^3.9.0",
     "less-loader": "^4.1.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "mqtt": "^3.0.0",
     "partial.lenses": "^14.17.0",
     "pg-promise": "^8.6.0",
