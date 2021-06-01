@@ -162,16 +162,8 @@ tunnel-prod: .ensure-prod-ssh-keypair  .ensure-inventory
 docker-build-apiserver:
 	@docker build -t signalkstash/api-server:latest -f Dockerfile.api-server .
 
-docker-tag-and-push-apiserver: .check-tag-set
-	@docker tag signalkstash/api-server:latest signalkstash/api-server:$(TAG)
-	@docker push signalkstash/api-server:$(TAG)
-
 docker-build-mqtt-input:
 	@docker build -t signalkstash/mqtt-input:latest -f Dockerfile.mqtt-input .
-
-docker-tag-and-push-mqtt-input: .check-tag-set
-	@docker tag signalkstash/mqtt-input:latest signalkstash/mqtt-input:$(TAG)
-	@docker push signalkstash/mqtt-input:$(TAG)
 
 docker-build-mosquitto:
 	@docker build -t signalkstash/mosquitto:latest -f Dockerfile.mosquitto .

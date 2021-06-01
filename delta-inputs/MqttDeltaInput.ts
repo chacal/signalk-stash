@@ -83,7 +83,9 @@ export default class MqttDeltaInput {
         delta = SKDelta.fromJSON(packet.payload.toString())
       } catch (e) {
         console.error(
-          `Invalid SignalK delta from MQTT: ${JSON.stringify(packet)}`
+          `Invalid SignalK delta from MQTT. Error: ${e.toString()} Topic: ${
+            packet.topic
+          } Data: ${packet.payload.toString()}`
         )
         done()
       }
