@@ -171,17 +171,19 @@ module.exports = (app: any) => {
 
       const geoFenceThrottlers: GeoFenceThrottler[] = []
 
-      stashTarget.geoFences.forEach((gf: any) => {
-        const t = new GeoFenceThrottler(
-          gf.lat,
-          gf.lon,
-          gf.radius,
-          gf.insideFenceThrottleSeconds * 1000,
-          gf.outsideFenceThrottleSeconds * 1000
-        )
-        geoFenceThrottlers.push(t)
-        app.debug(`Using GeoFenceThrottler: ${JSON.stringify(t)}`)
-      })
+      if (stashTarget.geoFences && Array.isArray(stashTarget.geoFences)) {
+        stashTarget.geoFences.forEach((gf: any) => {
+          const t = new GeoFenceThrottler(
+            gf.lat,
+            gf.lon,
+            gf.radius,
+            gf.insideFenceThrottleSeconds * 1000,
+            gf.outsideFenceThrottleSeconds * 1000
+          )
+          geoFenceThrottlers.push(t)
+          app.debug(`Using GeoFenceThrottler: ${JSON.stringify(t)}`)
+        })
+      }
 
       let updatesAccumulator: SKUpdate[] = []
       const deltaHandler = (delta: any) => {
