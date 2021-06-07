@@ -131,6 +131,7 @@ const environments: IEnvironments = {
   'unit-test': testConfig,
   'integration-test': testConfig,
   e2e: {
+    isDeveloping: true,
     db: {
       host: 'localhost',
       port: 25432,
