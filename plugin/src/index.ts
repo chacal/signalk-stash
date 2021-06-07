@@ -16,11 +16,8 @@
 
 import { SKUpdate } from '@chacal/signalk-ts'
 import mqtt from 'mqtt'
-const levelStore = require('mqtt-level-store')
-const path = require('path')
 
 const id = 'signalk-mqtt-stasher'
-const nonAlphaNumerics = /((?![a-zA-Z0-9]).)/g
 
 module.exports = (app: any) => {
   const plugin: any = {
@@ -112,16 +109,10 @@ module.exports = (app: any) => {
     const topic = `signalk/delta/${app.getPath('self').replace('vessels.', '')}`
 
     plugin.clientsData = options.targets.map((stashTarget: any) => {
-      const dbPath = path.join(
-        app.getDataDirPath(),
-        stashTarget.remoteHost.replace(nonAlphaNumerics, '_')
-      )
-      const manager = levelStore(dbPath)
       const mqttOptions = {
         rejectUnauthorized: options.rejectUnauthorized,
         reconnectPeriod: 60000,
         clientId: app.getPath('self'),
-        outgoingStore: manager.outgoing,
         username: app.getPath('self').replace('vessels.', ''),
         password: stashTarget.password
       }
