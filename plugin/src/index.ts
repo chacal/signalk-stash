@@ -213,7 +213,8 @@ module.exports = (app: any) => {
       const sendTimer = setInterval(() => {
         if (
           updatesAccumulator.length > stashTarget.maxUpdatesToBuffer ||
-          Date.now() > lastSend + stashTarget.bufferTime * 1000
+          (updatesAccumulator.length > 0 &&
+            Date.now() > lastSend + stashTarget.bufferTime * 1000)
         ) {
           app.debug(`Sending ${updatesAccumulator.length} updates to ${topic}`)
           client.publish(
