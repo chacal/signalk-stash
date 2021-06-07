@@ -14,18 +14,18 @@
  * limitations under the License.
 */
 
-const id = 'signalk-mqtt-stasher'
-const mqtt = require('mqtt')
-const levelStore = require('mqtt-level-store');
+import { SKUpdate } from '@chacal/signalk-ts'
+import mqtt from 'mqtt'
+const levelStore = require('mqtt-level-store')
 const path = require('path')
 
+const id = 'signalk-mqtt-stasher'
 const nonAlphaNumerics = /((?![a-zA-Z0-9]).)/g
 
-module.exports = function (app) {
-  var plugin = {
+module.exports = (app: any) => {
+  const plugin: any = {
     unsubscribes: []
   }
-  var server
 
   plugin.id = id
   plugin.name = 'MQTT Stasher'
@@ -106,12 +106,12 @@ module.exports = function (app) {
 
   plugin.onStop = []
 
-  plugin.start = function (options) {
+  plugin.start = (options: any) => {
     plugin.onStop = []
 
     const topic = `signalk/delta/${app.getPath('self').replace('vessels.', '')}`
 
-    plugin.clientsData = options.targets.map(stashTarget => {
+    plugin.clientsData = options.targets.map((stashTarget: any) => {
       const dbPath = path.join(
         app.getDataDirPath(),
         stashTarget.remoteHost.replace(nonAlphaNumerics, '_')
@@ -125,13 +125,11 @@ module.exports = function (app) {
         username: app.getPath('self').replace('vessels.', ''),
         password: stashTarget.password
       }
-      const client = mqtt.connect(
-        stashTarget.remoteHost,
-        mqttOptions
-      )
+      const client = mqtt.connect(stashTarget.remoteHost, mqttOptions)
 
       const result = {
-        client
+        client,
+        connected: false
       }
 
       client.on('connect', () => {
@@ -162,8 +160,8 @@ module.exports = function (app) {
         console.log(`${stashTarget.remoteHost} disconnected`)
       })
 
-      let updatesAccumulator = []
-      const deltaHandler = delta => {
+      let updatesAccumulator: SKUpdate[] = []
+      const deltaHandler = (delta: any) => {
         if (
           (delta.context && delta.context === app.selfContext) ||
           !delta.context
@@ -172,10 +170,13 @@ module.exports = function (app) {
         }
       }
 
-      const unsubscribe = app.streambundle.getSelfBus()
-        .groupBy(v => v.$source + '-' + v.path)
-        .flatMap(bySourceAndPath => bySourceAndPath.throttle(stashTarget.throttleTime || 1000))
-        .onValue(v => deltaHandler(toDelta(v)))
+      const unsubscribe = app.streambundle
+        .getSelfBus()
+        .groupBy((v: any) => v.$source + '-' + v.path)
+        .flatMap((bySourceAndPath: any) =>
+          bySourceAndPath.throttle(stashTarget.throttleTime || 1000)
+        )
+        .onValue((v: any) => deltaHandler(toDelta(v)))
 
       plugin.onStop.push(unsubscribe)
 
@@ -201,25 +202,23 @@ module.exports = function (app) {
 
       return result
     })
-    started = true
   }
 
-  plugin.stop = function () {
-    plugin.onStop.forEach(f => f())
+  plugin.stop = () => {
+    plugin.onStop.forEach((f: any) => f())
   }
 
   return plugin
 }
 
-// TODO: This function should be provided by SignalK server
-function toDelta (normalizedDeltaData) {
+function toDelta(normalizedDeltaData: any) {
   return {
     context: normalizedDeltaData.context,
     updates: [
       {
         source: normalizedDeltaData.source,
-        $source: normalizedDeltaData['$source'],
-        timestamp: normalizedDeltaData.timestamp,
+        $source: normalizedDeltaData.$source,
+        timestamp: new Date(normalizedDeltaData.timestamp),
         values: [
           {
             path: normalizedDeltaData.path,
@@ -230,4 +229,3 @@ function toDelta (normalizedDeltaData) {
     ]
   }
 }
-
