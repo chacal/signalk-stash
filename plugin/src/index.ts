@@ -16,6 +16,7 @@
 
 import { SKUpdate } from '@chacal/signalk-ts'
 import mqtt from 'mqtt'
+import GeoFenceThrottler from '../../delta-inputs/GeoFenceThrottler'
 
 const id = 'signalk-mqtt-stasher'
 
@@ -74,27 +75,43 @@ module.exports = (app: any) => {
               type: 'boolean',
               default: true,
               title: 'Send all data (add individual paths below if unchecked)'
+            },
+            geoFences: {
+              type: 'array',
+              description: 'Areas where position sending is throttled',
+              default: [],
+              items: {
+                type: 'object',
+                required: ['lat', 'lon'],
+                properties: {
+                  lat: {
+                    type: 'number',
+                    title: 'Geofence latitude'
+                  },
+                  lon: {
+                    type: 'number',
+                    title: 'Geofence longitude'
+                  },
+                  radius: {
+                    type: 'integer',
+                    default: 50,
+                    title: 'Geofence radius (meters)'
+                  },
+                  insideFenceThrottleSeconds: {
+                    type: 'integer',
+                    default: 120,
+                    title:
+                      'Throttle positions to one position in this many seconds when inside geofence'
+                  },
+                  outsideFenceThrottleSeconds: {
+                    type: 'integer',
+                    default: 0,
+                    title:
+                      'Throttle positions to one position in this many seconds when outside geofence (0 = no throttle)'
+                  }
+                }
+              }
             }
-            // paths: {
-            //   type: 'array',
-            //   title:
-            //     "Signal K self paths to send (used when 'Send all data' is unchecked)",
-            //   default: [{ path: 'navigation.position', interval: 60 }],
-            //   items: {
-            //     type: 'object',
-            //     properties: {
-            //       path: {
-            //         type: 'string',
-            //         title: 'Path'
-            //       },
-            //       interval: {
-            //         type: 'number',
-            //         title:
-            //           'Minimum interval between updates for this path to be sent to the server'
-            //       }
-            //     }
-            //   }
-            // }
           }
         }
       }
@@ -152,13 +169,33 @@ module.exports = (app: any) => {
       })
       plugin.onStop.push(() => client.end())
 
+      const geoFenceThrottlers: GeoFenceThrottler[] = []
+
+      stashTarget.geoFences.forEach((gf: any) => {
+        const t = new GeoFenceThrottler(
+          gf.lat,
+          gf.lon,
+          gf.radius,
+          gf.insideFenceThrottleSeconds * 1000,
+          gf.outsideFenceThrottleSeconds * 1000
+        )
+        geoFenceThrottlers.push(t)
+        app.debug(`Using GeoFenceThrottler: ${JSON.stringify(t)}`)
+      })
+
       let updatesAccumulator: SKUpdate[] = []
       const deltaHandler = (delta: any) => {
         if (
           (delta.context && delta.context === app.selfContext) ||
           !delta.context
         ) {
-          updatesAccumulator = updatesAccumulator.concat(delta.updates)
+          let throttled = delta
+          geoFenceThrottlers.forEach(t => {
+            throttled = t.throttlePositions(throttled)
+          })
+          if (throttled !== undefined) {
+            updatesAccumulator = updatesAccumulator.concat(throttled.updates)
+          }
         }
       }
 
