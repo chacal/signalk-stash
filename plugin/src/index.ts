@@ -142,14 +142,14 @@ module.exports = (app: any) => {
 
       client.on('connect', () => {
         result.connected = true
-        app.setProviderStatus(`${stashTarget.remoteHost} connected`)
+        app.setPluginStatus(`${stashTarget.remoteHost} connected`)
         client.subscribe(`${topic}/stats`, () => {
           app.debug(`Subscribed to ${topic}/stats`)
         })
         client.on('message', (topic, payload, packet) => {
           try {
             const stats = JSON.parse(payload.toString())
-            app.setProviderStatus(
+            app.setPluginStatus(
               `${stats.deltas} messages stashed in ${stats.periodLength /
                 1000} seconds (${stats.timestamp})`
             )
@@ -161,7 +161,7 @@ module.exports = (app: any) => {
       client.on('error', err => {
         app.error(err)
         app.error(mqttOptions)
-        app.setProviderError(err.message)
+        app.setPluginError(err.message)
       })
       client.on('disconnect', () => {
         result.connected = false
