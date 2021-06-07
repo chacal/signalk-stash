@@ -150,6 +150,7 @@ module.exports = (app: any) => {
         result.connected = false
         console.log(`${stashTarget.remoteHost} disconnected`)
       })
+      plugin.onStop.push(() => client.end())
 
       let updatesAccumulator: SKUpdate[] = []
       const deltaHandler = (delta: any) => {
