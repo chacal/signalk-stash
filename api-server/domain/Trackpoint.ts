@@ -124,15 +124,15 @@ export function createTrackpointTable(ch: Clickhouse) {
   return ch.querying(
     `
   CREATE TABLE IF NOT EXISTS trackpoint (
-    ts     DateTime,
-    millis UInt16,
-    context String,
-    sourceRef String,
-    lat Float64,
-    lng Float64,
-    quadkey UInt64
+    ts         DateTime                 CODEC(DoubleDelta, LZ4),
+    millis     UInt16                   CODEC(LZ4),
+    context    LowCardinality(String)   CODEC(LZ4),
+    sourceRef  LowCardinality(String)   CODEC(LZ4),
+    lat        Float64                  CODEC(Gorilla, LZ4),
+    lng        Float64                  CODEC(Gorilla, LZ4),
+    quadkey    UInt64                   CODEC(T64, LZ4)
   ) ENGINE = MergeTree()
-  PARTITION BY (context, toYYYYMMDD(ts))
+  PARTITION BY (context, toYearWeek(ts))
   ORDER BY (context, quadkey, sourceRef, ts)
 `
   )
