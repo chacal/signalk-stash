@@ -78,6 +78,7 @@ module.exports = (app: any) => {
             },
             geoFences: {
               type: 'array',
+              title: 'Geofences',
               description: 'Areas where position sending is throttled',
               default: [],
               items: {
@@ -100,13 +101,15 @@ module.exports = (app: any) => {
                   insideFenceThrottleSeconds: {
                     type: 'integer',
                     default: 120,
-                    title:
+                    title: 'Throttle seconds inside',
+                    description:
                       'Throttle positions to one position in this many seconds when inside geofence'
                   },
                   outsideFenceThrottleSeconds: {
                     type: 'integer',
                     default: 0,
-                    title:
+                    title: 'Throttle seconds outside',
+                    description:
                       'Throttle positions to one position in this many seconds when outside geofence (0 = no throttle)'
                   }
                 }
