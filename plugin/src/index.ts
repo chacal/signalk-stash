@@ -14,18 +14,16 @@
  * limitations under the License.
 */
 
+import { SKUpdate } from '@chacal/signalk-ts'
+import mqtt from 'mqtt'
+import GeoFenceThrottler from '../../delta-inputs/GeoFenceThrottler'
+
 const id = 'signalk-mqtt-stasher'
-const mqtt = require('mqtt')
-const levelStore = require('mqtt-level-store');
-const path = require('path')
 
-const nonAlphaNumerics = /((?![a-zA-Z0-9]).)/g
-
-module.exports = function (app) {
-  var plugin = {
+module.exports = (app: any) => {
+  const plugin: any = {
     unsubscribes: []
   }
-  var server
 
   plugin.id = id
   plugin.name = 'MQTT Stasher'
@@ -77,27 +75,46 @@ module.exports = function (app) {
               type: 'boolean',
               default: true,
               title: 'Send all data (add individual paths below if unchecked)'
+            },
+            geoFences: {
+              type: 'array',
+              title: 'Geofences',
+              description: 'Areas where position sending is throttled',
+              default: [],
+              items: {
+                type: 'object',
+                required: ['lat', 'lon'],
+                properties: {
+                  lat: {
+                    type: 'number',
+                    title: 'Geofence latitude'
+                  },
+                  lon: {
+                    type: 'number',
+                    title: 'Geofence longitude'
+                  },
+                  radius: {
+                    type: 'integer',
+                    default: 50,
+                    title: 'Geofence radius (meters)'
+                  },
+                  insideFenceThrottleSeconds: {
+                    type: 'integer',
+                    default: 120,
+                    title: 'Throttle seconds inside',
+                    description:
+                      'Throttle positions to one position in this many seconds when inside geofence'
+                  },
+                  outsideFenceThrottleSeconds: {
+                    type: 'integer',
+                    default: 0,
+                    title: 'Throttle seconds outside',
+                    description:
+                      'Throttle positions to one position in this many seconds when outside geofence (0 = no throttle)'
+                  }
+                }
+              }
             }
-            // paths: {
-            //   type: 'array',
-            //   title:
-            //     "Signal K self paths to send (used when 'Send all data' is unchecked)",
-            //   default: [{ path: 'navigation.position', interval: 60 }],
-            //   items: {
-            //     type: 'object',
-            //     properties: {
-            //       path: {
-            //         type: 'string',
-            //         title: 'Path'
-            //       },
-            //       interval: {
-            //         type: 'number',
-            //         title:
-            //           'Minimum interval between updates for this path to be sent to the server'
-            //       }
-            //     }
-            //   }
-            // }
           }
         }
       }
@@ -106,44 +123,36 @@ module.exports = function (app) {
 
   plugin.onStop = []
 
-  plugin.start = function (options) {
+  plugin.start = (options: any) => {
     plugin.onStop = []
 
     const topic = `signalk/delta/${app.getPath('self').replace('vessels.', '')}`
 
-    plugin.clientsData = options.targets.map(stashTarget => {
-      const dbPath = path.join(
-        app.getDataDirPath(),
-        stashTarget.remoteHost.replace(nonAlphaNumerics, '_')
-      )
-      const manager = levelStore(dbPath)
+    plugin.clientsData = options.targets.map((stashTarget: any) => {
       const mqttOptions = {
         rejectUnauthorized: options.rejectUnauthorized,
         reconnectPeriod: 60000,
         clientId: app.getPath('self'),
-        outgoingStore: manager.outgoing,
         username: app.getPath('self').replace('vessels.', ''),
         password: stashTarget.password
       }
-      const client = mqtt.connect(
-        stashTarget.remoteHost,
-        mqttOptions
-      )
+      const client = mqtt.connect(stashTarget.remoteHost, mqttOptions)
 
       const result = {
-        client
+        client,
+        connected: false
       }
 
       client.on('connect', () => {
         result.connected = true
-        app.setProviderStatus(`${stashTarget.remoteHost} connected`)
+        app.setPluginStatus(`${stashTarget.remoteHost} connected`)
         client.subscribe(`${topic}/stats`, () => {
           app.debug(`Subscribed to ${topic}/stats`)
         })
         client.on('message', (topic, payload, packet) => {
           try {
             const stats = JSON.parse(payload.toString())
-            app.setProviderStatus(
+            app.setPluginStatus(
               `${stats.deltas} messages stashed in ${stats.periodLength /
                 1000} seconds (${stats.timestamp})`
             )
@@ -155,27 +164,53 @@ module.exports = function (app) {
       client.on('error', err => {
         app.error(err)
         app.error(mqttOptions)
-        app.setProviderError(err.message)
+        app.setPluginError(err.message)
       })
       client.on('disconnect', () => {
         result.connected = false
         console.log(`${stashTarget.remoteHost} disconnected`)
       })
+      plugin.onStop.push(() => client.end())
 
-      let updatesAccumulator = []
-      const deltaHandler = delta => {
+      const geoFenceThrottlers: GeoFenceThrottler[] = []
+
+      if (stashTarget.geoFences && Array.isArray(stashTarget.geoFences)) {
+        stashTarget.geoFences.forEach((gf: any) => {
+          const t = new GeoFenceThrottler(
+            gf.lat,
+            gf.lon,
+            gf.radius,
+            gf.insideFenceThrottleSeconds * 1000,
+            gf.outsideFenceThrottleSeconds * 1000
+          )
+          geoFenceThrottlers.push(t)
+          app.debug(`Using GeoFenceThrottler: ${JSON.stringify(t)}`)
+        })
+      }
+
+      let updatesAccumulator: SKUpdate[] = []
+      const deltaHandler = (delta: any) => {
         if (
           (delta.context && delta.context === app.selfContext) ||
           !delta.context
         ) {
-          updatesAccumulator = updatesAccumulator.concat(delta.updates)
+          let throttled = delta
+          geoFenceThrottlers.forEach(t => {
+            throttled = t.throttlePositions(throttled)
+          })
+          if (throttled !== undefined) {
+            updatesAccumulator = updatesAccumulator.concat(throttled.updates)
+          }
         }
       }
 
-      const unsubscribe = app.streambundle.getSelfBus()
-        .groupBy(v => v.$source + '-' + v.path)
-        .flatMap(bySourceAndPath => bySourceAndPath.throttle(stashTarget.throttleTime || 1000))
-        .onValue(v => deltaHandler(toDelta(v)))
+      const unsubscribe = app.streambundle
+        .getSelfBus()
+        .groupBy((v: any) => v.$source + '-' + v.path)
+        .flatMap((bySourceAndPath: any) =>
+          bySourceAndPath.throttle(stashTarget.throttleTime || 1000)
+        )
+        .onValue((v: any) => deltaHandler(toDelta(v)))
 
       plugin.onStop.push(unsubscribe)
 
@@ -183,7 +218,8 @@ module.exports = function (app) {
       const sendTimer = setInterval(() => {
         if (
           updatesAccumulator.length > stashTarget.maxUpdatesToBuffer ||
-          Date.now() > lastSend + stashTarget.bufferTime * 1000
+          (updatesAccumulator.length > 0 &&
+            Date.now() > lastSend + stashTarget.bufferTime * 1000)
         ) {
           app.debug(`Sending ${updatesAccumulator.length} updates to ${topic}`)
           client.publish(
@@ -201,25 +237,23 @@ module.exports = function (app) {
 
       return result
     })
-    started = true
   }
 
-  plugin.stop = function () {
-    plugin.onStop.forEach(f => f())
+  plugin.stop = () => {
+    plugin.onStop.forEach((f: any) => f())
   }
 
   return plugin
 }
 
-// TODO: This function should be provided by SignalK server
-function toDelta (normalizedDeltaData) {
+function toDelta(normalizedDeltaData: any) {
   return {
     context: normalizedDeltaData.context,
     updates: [
       {
         source: normalizedDeltaData.source,
-        $source: normalizedDeltaData['$source'],
-        timestamp: normalizedDeltaData.timestamp,
+        $source: normalizedDeltaData.$source,
+        timestamp: new Date(normalizedDeltaData.timestamp),
         values: [
           {
             path: normalizedDeltaData.path,
@@ -230,4 +264,3 @@ function toDelta (normalizedDeltaData) {
     ]
   }
 }
-

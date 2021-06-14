@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "outDir": "./built",
+    "allowJs": false,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "target": "es2019",
+    "module": "commonjs",
+    "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "strict": true,
+    "noUnusedLocals": true,
+  },
+  "exclude": [
+    "node_modules",
+  ],
+  "include": [
+    "./src/*.ts"
+  ]
+}

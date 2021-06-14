@@ -1,6 +1,4 @@
 {
-  "enabled": true,
-  "enableLogging": false,
   "configuration": {
     "targets": [
       {
@@ -9,10 +7,22 @@
         "password": "vesselpassword",
         "rejectUnauthorized": false,
         "bufferTime": 5,
-        "maxUpdatesToBuffer": 1,
+        "maxUpdatesToBuffer": 10,
         "sendAll": true,
-        "throttleTime": 1
+        "throttleTime": 1000,
+        "geoFences": [
+          {
+            "lat": 60.07501,
+            "lon": 23.52815,
+            "radius": 50000,
+            "insideFenceThrottleSeconds": 5,
+            "outsideFenceThrottleSeconds": 0
+          }
+        ]
       }
     ]
-  }
+  },
+  "enabled": true,
+  "enableLogging": true,
+  "enableDebug": true
 }

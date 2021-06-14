@@ -2,7 +2,11 @@
   "name": "@signalk/mqtt-stasher",
   "version": "1.0.0",
   "description": "Signal K server plugin that sends your data to Signal K Stash via MQTT",
-  "main": "index.js",
+  "main": "built/plugin/src/index.js",
+  "scripts": {
+    "prepare": "rm -rf built/*; npm run tsc",
+    "tsc": "./node_modules/.bin/tsc"
+  },
   "keywords": [
     "signalk-node-server-plugin"
   ],
@@ -11,7 +15,11 @@
   ],
   "license": "Apache-2.0",
   "dependencies": {
-    "mqtt": "^2.18.8",
-    "mqtt-level-store": "^3.0.0"
+    "@chacal/signalk-ts": "^0.4.0",
+    "geolib": "^3.3.1",
+    "mqtt": "^4.2.6"
+  },
+  "devDependencies": {
+    "typescript": "^4.3.2"
   }
 }

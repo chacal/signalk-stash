@@ -41,7 +41,7 @@ services:
   signalk:
     image: signalk/signalk-server:latest
     entrypoint:
-    - bin/signalk-server
+    - /home/node/signalk/bin/signalk-server
     - --sample-nmea0183-data
     - --override-timestamps
     environment:
