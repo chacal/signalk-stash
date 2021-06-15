@@ -14,3 +14,12 @@ body {
     margin: 0 auto;
   }
 }
+
+:root {
+  --brightness: 100%;
+  --contrast: 100%;
+}
+
+.visibility-adjusted {
+  filter: brightness(var(--brightness)) contrast(var(--contrast));
+}

@@ -57,6 +57,9 @@ const Map = ({ center, viewport, tracks }: MapProps) => {
         maxNativeZoom={20}
         maxZoom={21}
         subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+        ontileload={t => {
+          t.tile.classList.add('visibility-adjusted')
+        }}
       />
       <TileLayer
         url={'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png'}
