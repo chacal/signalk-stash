@@ -38,6 +38,7 @@
     "byline": "^5.0.0",
     "color": "^3.1.0",
     "commander": "^2.19.0",
+    "cors": "^2.8.5",
     "css-loader": "^2.1.1",
     "debug": "^4.1.1",
     "express": "^4.16.4",
@@ -69,6 +70,7 @@
   },
   "devDependencies": {
     "@cypress/webpack-preprocessor": "^4.0.3",
+    "@types/cors": "^2.8.6",
     "@types/enzyme": "^3.9.1",
     "@types/enzyme-adapter-react-16": "^1.0.5",
     "@types/sinon": "^7.5.0",

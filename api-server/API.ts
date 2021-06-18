@@ -1,3 +1,4 @@
+import cors from 'cors'
 import express, {
   NextFunction,
   Request,
@@ -7,6 +8,7 @@ import express, {
 import path from 'path'
 import { ExpressAppCustomizer } from './APIServerMain'
 import { IConfig } from './Config'
+import setupHistoryAPIRoutes from './HistoryAPI'
 import setupMqttCredentialsAPIRoutes, {
   insertLatestDeltaReaderAccountFromConfig
 } from './MqttCredentialsAPI'
@@ -22,7 +24,9 @@ class API {
     private readonly app = express()
   ) {
     this.customizer(this.app)
+    this.app.use(cors())
     setupTrackAPIRoutes(this.app)
+    setupHistoryAPIRoutes(this.app)
     setupVesselAPIRoutes(this.app)
     setupMqttCredentialsAPIRoutes(this.app)
     this.app.use(express.static(publicPath))
