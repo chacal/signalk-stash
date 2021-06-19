@@ -1,6 +1,11 @@
 import { LeafletEvent } from 'leaflet'
 import * as React from 'react'
-import { GeoJSON, Map as LeafletMap, TileLayer } from 'react-leaflet'
+import {
+  GeoJSON,
+  LayersControl,
+  Map as LeafletMap,
+  TileLayer
+} from 'react-leaflet'
 
 import _ from 'lodash'
 import { Observable, Subject } from 'rxjs'
@@ -61,6 +66,19 @@ const Map = ({ center, viewport, tracks }: MapProps) => {
           t.tile.classList.add('visibility-adjusted')
         }}
       />
+      <LayersControl position={'topleft'}>
+        <LayersControl.Overlay name={'MML Ilmakuva'}>
+          <TileLayer
+            url={'/ortokuva/{z}/{x}/{y}.jpg'}
+            minZoom={16}
+            maxNativeZoom={18}
+            maxZoom={21}
+            ontileload={t => {
+              t.tile.classList.add('visibility-adjusted')
+            }}
+          />
+        </LayersControl.Overlay>
+      </LayersControl>
       <TileLayer
         url={'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png'}
         minZoom={16}
