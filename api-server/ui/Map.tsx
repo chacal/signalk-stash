@@ -88,13 +88,15 @@ const Map = ({ center, viewport, tracks }: MapProps) => {
             maxZoom={21}
           />
         </LayersControl.Overlay>
+        <LayersControl.Overlay name={'Open Seamap'} checked>
+          <TileLayer
+            url={'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png'}
+            minZoom={16}
+            maxZoom={21}
+            maxNativeZoom={18}
+          />
+        </LayersControl.Overlay>
       </LayersControl>
-      <TileLayer
-        url={'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png'}
-        minZoom={16}
-        maxZoom={21}
-        maxNativeZoom={18}
-      />
       {theTracks.map(track => (
         // GeoJSON can't re-render itself when its props change ->
         // use context + track load time as key to force re-render when new track
