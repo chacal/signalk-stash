@@ -112,7 +112,8 @@ const Map = ({ center, viewport, tracks }: MapProps) => {
 function keyFor(track: LoadedTrack) {
   return (
     track.vesselId +
-    (track.loadTime !== undefined ? track.loadTime.getTime() : '')
+    (track.loadTime !== undefined ? track.loadTime.getTime() : '') +
+    (track.year !== undefined ? track.year.value().toString() : '')
   )
 }
 
