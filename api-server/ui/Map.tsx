@@ -56,17 +56,19 @@ const Map = ({ center, viewport, tracks }: MapProps) => {
         minZoom={5}
         maxZoom={15}
       />
-      <TileLayer
-        url={'http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'}
-        minZoom={16}
-        maxNativeZoom={20}
-        maxZoom={21}
-        subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
-        ontileload={t => {
-          t.tile.classList.add('visibility-adjusted')
-        }}
-      />
       <LayersControl position={'topleft'}>
+        <LayersControl.Overlay name={'Google'} checked>
+          <TileLayer
+            url={'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'}
+            minZoom={16}
+            maxNativeZoom={20}
+            maxZoom={21}
+            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+            ontileload={t => {
+              t.tile.classList.add('visibility-adjusted')
+            }}
+          />
+        </LayersControl.Overlay>
         <LayersControl.Overlay name={'MML Ilmakuva'}>
           <TileLayer
             url={'/ortokuva/{z}/{x}/{y}.jpg'}
