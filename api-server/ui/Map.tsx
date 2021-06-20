@@ -78,6 +78,14 @@ const Map = ({ center, viewport, tracks }: MapProps) => {
             }}
           />
         </LayersControl.Overlay>
+        <LayersControl.Overlay name={'MML Maastokartta'}>
+          <TileLayer
+            url={'/maastokartta/{z}/{x}/{y}.jpg'}
+            minZoom={5}
+            maxNativeZoom={18}
+            maxZoom={21}
+          />
+        </LayersControl.Overlay>
       </LayersControl>
       <TileLayer
         url={'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png'}
