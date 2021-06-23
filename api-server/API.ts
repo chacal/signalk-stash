@@ -7,7 +7,7 @@ import express, {
 import path from 'path'
 import { ExpressAppCustomizer } from './APIServerMain'
 import { IConfig } from './Config'
-import setupMMLAerialImageryAPIRoutes from './MMLAerialImageryAPI'
+import setupMMLTilesAPIRoutes from './MMLTilesAPI'
 import setupMqttCredentialsAPIRoutes, {
   insertLatestDeltaReaderAccountFromConfig
 } from './MqttCredentialsAPI'
@@ -26,7 +26,7 @@ class API {
     setupTrackAPIRoutes(this.app)
     setupVesselAPIRoutes(this.app)
     setupMqttCredentialsAPIRoutes(this.app)
-    setupMMLAerialImageryAPIRoutes(this.app)
+    setupMMLTilesAPIRoutes(this.app)
     this.app.use(express.static(publicPath))
     this.app.use(this.validationErrorHandler)
     this.app.use(this.defaultErrorHandler)

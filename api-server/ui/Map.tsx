@@ -56,17 +56,19 @@ const Map = ({ center, viewport, tracks }: MapProps) => {
         minZoom={5}
         maxZoom={15}
       />
-      <TileLayer
-        url={'http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'}
-        minZoom={16}
-        maxNativeZoom={20}
-        maxZoom={21}
-        subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
-        ontileload={t => {
-          t.tile.classList.add('visibility-adjusted')
-        }}
-      />
       <LayersControl position={'topleft'}>
+        <LayersControl.Overlay name={'Google'} checked>
+          <TileLayer
+            url={'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'}
+            minZoom={16}
+            maxNativeZoom={20}
+            maxZoom={21}
+            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+            ontileload={t => {
+              t.tile.classList.add('visibility-adjusted')
+            }}
+          />
+        </LayersControl.Overlay>
         <LayersControl.Overlay name={'MML Ilmakuva'}>
           <TileLayer
             url={'/ortokuva/{z}/{x}/{y}.jpg'}
@@ -78,13 +80,23 @@ const Map = ({ center, viewport, tracks }: MapProps) => {
             }}
           />
         </LayersControl.Overlay>
+        <LayersControl.Overlay name={'MML Maastokartta'}>
+          <TileLayer
+            url={'/maastokartta/{z}/{x}/{y}.jpg'}
+            minZoom={5}
+            maxNativeZoom={18}
+            maxZoom={21}
+          />
+        </LayersControl.Overlay>
+        <LayersControl.Overlay name={'Open Seamap'} checked>
+          <TileLayer
+            url={'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png'}
+            minZoom={16}
+            maxZoom={21}
+            maxNativeZoom={18}
+          />
+        </LayersControl.Overlay>
       </LayersControl>
-      <TileLayer
-        url={'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png'}
-        minZoom={16}
-        maxZoom={21}
-        maxNativeZoom={18}
-      />
       {theTracks.map(track => (
         // GeoJSON can't re-render itself when its props change ->
         // use context + track load time as key to force re-render when new track
@@ -102,7 +114,8 @@ const Map = ({ center, viewport, tracks }: MapProps) => {
 function keyFor(track: LoadedTrack) {
   return (
     track.vesselId +
-    (track.loadTime !== undefined ? track.loadTime.getTime() : '')
+    (track.loadTime !== undefined ? track.loadTime.getTime() : '') +
+    (track.year !== undefined ? track.year.value().toString() : '')
   )
 }
 
