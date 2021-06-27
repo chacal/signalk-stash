@@ -52,8 +52,8 @@ export type TrackLengthsFetcher = (vesselId: VesselId) => Promise<TrackLength[]>
 export function fetchTrackLengths(vesselId: VesselId): Promise<TrackLength[]> {
   const params = new URLSearchParams({
     context: vesselId,
-    firstDay: '2019-06-01',
-    lastDay: '2019-09-01'
+    firstDay: '2019-04-01',
+    lastDay: '2021-11-01'
   })
   return fetch(`/tracks/daily/stats?${params.toString()}`).then(res =>
     res.json()
