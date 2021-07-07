@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import Color = require('color')
 import sinon from 'sinon'
 import { asVesselId } from '../api-server/domain/Vessel'
+import TimeSelectionState from '../api-server/ui/timeselection-state'
 import {
   TrackLength,
   TrackLengthsPanelState,
@@ -20,6 +21,8 @@ describe('TrackLengthsPanelState', () => {
     vesselSelectionState.selectedVessels.next([
       asVesselId(threeVessels[1].vesselId)
     ])
+
+    const timeSelectionState = new TimeSelectionState()
 
     const trackFetcher = sinon.stub()
     const selectedVesselId = threeVessels[1].vesselId.toString()
@@ -48,6 +51,7 @@ describe('TrackLengthsPanelState', () => {
 
     const tlpState = new TrackLengthsPanelState(
       vesselSelectionState,
+      timeSelectionState,
       trackFetcher
     )
     return new Promise((resolve, reject) => {

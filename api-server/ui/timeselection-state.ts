@@ -1,5 +1,5 @@
 import { Year } from 'js-joda'
-import { xor } from 'lodash'
+import { xorBy } from 'lodash'
 import { BehaviorSubject } from 'rxjs'
 import { take } from 'rxjs/operators'
 
@@ -9,7 +9,9 @@ export class SelectedYears {
     this.years = years
   }
   isSelected(y: Year) {
-    return this.years.indexOf(y) >= 0
+    return this.years.find(x => {
+      return x.value() === y.value()
+    }) !== undefined
   }
   toKey() {
     return this.years.toString()
@@ -20,20 +22,39 @@ export class SelectedYears {
 }
 
 export const YEARS = new SelectedYears([2019, 2020, 2021].map(Year.of))
+export const SELECTABLE_YEARS = YEARS.toArray()
 
 export function fromLocalStorage() {
-  return new TimeSelectionState()
+  try {
+    const selectedYears = localStorage.getItem('selectedyears') || ""
+    return !!selectedYears
+      ? new TimeSelectionState(JSON.parse(selectedYears).map((ys: string) => Year.of(Number(ys))))
+      : new TimeSelectionState()
+  } catch {
+    return new TimeSelectionState()
+  }
 }
 
 export default class TimeSelectionState {
-  selectedYears: BehaviorSubject<SelectedYears> = new BehaviorSubject<
-    SelectedYears
-  >(YEARS)
+  selectedYears: BehaviorSubject<SelectedYears>
+  constructor(years?: Year[]) {
+    this.selectedYears = new BehaviorSubject<
+      SelectedYears
+    >(years ? new SelectedYears(years) : YEARS)
+    this.selectedYears.subscribe(selection => {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(
+          'selectedyears',
+          JSON.stringify(selection.toArray())
+        )
+      }
+    })
+  }
 
   toggleYear(y: Year) {
     this.selectedYears.pipe(take(1)).subscribe(oldSelection => {
       this.selectedYears.next(
-        new SelectedYears(xor(oldSelection.toArray(), [y]))
+        new SelectedYears(xorBy(oldSelection.toArray(), [y], (x) => x.toString()))
       )
     })
   }
