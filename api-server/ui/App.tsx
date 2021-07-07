@@ -10,6 +10,7 @@ import {
 } from 'react-router-dom'
 import ErrorBoundary from './ErrorBoundary'
 import MapPanel from './MapPanel'
+import TimeSelectionState from './timeselection-state'
 import TrackLengthsPanel from './tracklengths/TrackLengthsPanel'
 import { VesselSelectionState } from './vesselselection-state'
 
@@ -41,6 +42,7 @@ const Navi = withRouter(({ location, history }) => {
 })
 
 const vesselSelectionState = new VesselSelectionState()
+const timeSelectionState = TimeSelectionState.fromLocalStorage()
 
 const App = () => {
   useEffect(() => {
@@ -56,11 +58,17 @@ const App = () => {
             {
               // https://github.com/PaulLeCam/react-leaflet/issues/625
             }
-            <MapPanel vesselSelection={vesselSelectionState} />
+            <MapPanel
+              vesselSelection={vesselSelectionState}
+              timeSelection={timeSelectionState}
+            />
           </ErrorBoundary>
         </Route>
         <Route path="/tracklengths">
-          <TrackLengthsPanel vesselSelection={vesselSelectionState} />
+          <TrackLengthsPanel
+            vesselSelection={vesselSelectionState}
+            timeSelection={timeSelectionState}
+          />
         </Route>
         <Redirect from="/" to="/map" />
       </Switch>

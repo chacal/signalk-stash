@@ -15,7 +15,7 @@ import {
 } from '@material-ui/core'
 import { KeyboardArrowDown, KeyboardArrowUp } from '@material-ui/icons'
 import { useObservable } from 'rxjs-hooks'
-import TimeSelectionState, { YEARS } from './timeselection-state'
+import TimeSelectionState, { SELECTABLE_YEARS } from './timeselection-state'
 
 const vspStyles = createStyles({
   root: {
@@ -51,8 +51,6 @@ const YearSelection = withStyles(ysStyles)(
 interface VSPProps extends WithStyles<typeof vspStyles> {
   timeselection: TimeSelectionState
 }
-
-const SELECTABLE_YEARS = YEARS.toArray()
 
 const TimeSelectionPanel = withStyles(vspStyles)(
   ({ timeselection, classes }: VSPProps) => {

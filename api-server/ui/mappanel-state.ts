@@ -8,10 +8,7 @@ import { Coords } from '../domain/Geo'
 import { VesselId } from '../domain/Vessel'
 import { loadTrack } from './backend-requests'
 import { LoadedTrack, RenderedTrack, Viewport } from './mappanel-domain'
-import TimeSelectionState, {
-  fromLocalStorage,
-  SelectedYears
-} from './timeselection-state'
+import TimeSelectionState, { SelectedYears } from './timeselection-state'
 import { Vessel, VesselSelectionState } from './vesselselection-state'
 
 const emptyBounds = new LatLngBounds([
@@ -26,16 +23,20 @@ export const initialViewport = {
 
 export class MapPanelState {
   vesselSelectionState: VesselSelectionState
-  timeSelectionState: TimeSelectionState = fromLocalStorage()
+  timeSelectionState: TimeSelectionState
   viewport: Subject<Viewport> = new BehaviorSubject(initialViewport)
   loadedTracks: Observable<LoadedTrack[]>
   tracksToRender: Observable<RenderedTrack[]>
   initialMapCenter: Coords = centerFromLocalStorageOrDefault()
 
-  constructor(vesselSelectionState: VesselSelectionState) {
+  constructor(
+    vesselSelectionState: VesselSelectionState,
+    timeSelectionState: TimeSelectionState
+  ) {
     this.viewport.next(initialViewport)
     this.vesselSelectionState = vesselSelectionState
     this.viewport.subscribe(saveViewportToLocalStorage)
+    this.timeSelectionState = timeSelectionState
     this.loadedTracks = startTrackLoading(
       this.vesselSelectionState.selectedVessels,
       this.timeSelectionState.selectedYears,
