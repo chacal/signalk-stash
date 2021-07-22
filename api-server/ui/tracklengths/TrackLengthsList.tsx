@@ -46,6 +46,7 @@ const TrackLengthList = withStyles(trackLengthStyles)(
     const isError = useObservable<boolean>(() => trackLengthsPanelState.isError)
     const tracks = useObservable(() => trackLengthsPanelState.tracks)
 
+    let totalLength = 0
     return (
       <Paper className={classes.root}>
         {isLoading && (
@@ -70,7 +71,8 @@ const TrackLengthList = withStyles(trackLengthStyles)(
               <TableRow>
                 <TableCell>Vessel</TableCell>
                 <TableCell align="right">Day</TableCell>
-                <TableCell align="right">Distance covered(nm)</TableCell>
+                <TableCell align="right">Distance(nm)</TableCell>
+                <TableCell align="right">Cumulated Distance(nm)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -87,6 +89,9 @@ const TrackLengthList = withStyles(trackLengthStyles)(
                     </TableCell>
                     <TableCell align="right">
                       {(row.length * meters2nm).toFixed(1)}
+                    </TableCell>
+                    <TableCell align="right">
+                      {(totalLength += row.length * meters2nm).toFixed(1)}
                     </TableCell>
                   </TableRow>
                 ))}
