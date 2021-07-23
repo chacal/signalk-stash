@@ -20,12 +20,14 @@ const navigation = [
 ]
 
 const Navi = withRouter(({ location, history }) => {
-  const [tabIndex, setTabIndex] = React.useState(
-    navigation.findIndex(e => e.path === location.pathname)
-  )
-  useEffect(() => {
-    setTabIndex(navigation.findIndex(e => e.path === location.pathname))
-  })
+  const tabIndexFromPath = () => {
+    const index = navigation.findIndex(e => e.path === location.pathname)
+    return index > 0 ? index : 0
+  }
+
+  const [tabIndex, setTabIndex] = React.useState(tabIndexFromPath())
+  useEffect(() => setTabIndex(tabIndexFromPath()))
+
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     history.push(navigation[newValue].path)
     setTabIndex(newValue)
