@@ -24,8 +24,8 @@ function bboxFromQuery(req: Request): BBox | undefined {
       e: Schemas.lng
     }
     validate(req.query, bboxSchema)
-    const nw = new Coords({ lat: q.n, lng: q.w })
-    const se = new Coords({ lat: q.s, lng: q.e })
+    const nw = new Coords({ lat: Number(q.n), lng: Number(q.w) })
+    const se = new Coords({ lat: Number(q.s), lng: Number(q.e) })
     return new BBox({ nw, se })
   } else {
     return undefined
@@ -40,7 +40,7 @@ function zoomLevelFromQuery(req: Request): ZoomLevel | undefined {
         .less(25)
         .required()
     }
-    return validate(req.query, schema).zoomLevel
+    return Number(validate(req.query, schema).zoomLevel)
   } else {
     return undefined
   }
@@ -49,8 +49,8 @@ function zoomLevelFromQuery(req: Request): ZoomLevel | undefined {
 function timespanFromQuery(req: Request): Timespan | undefined {
   if (req.query.from && req.query.to) {
     return {
-      from: LocalDateTime.parse(req.query.from),
-      to: LocalDateTime.parse(req.query.to)
+      from: LocalDateTime.parse(req.query.from as string),
+      to: LocalDateTime.parse(req.query.to as string)
     }
   } else {
     return undefined
@@ -96,7 +96,7 @@ async function dailyTrackStats(req: Request, res: Response) {
   res.json(trackData)
 
   function dayFromQuery(req: Request, paramName: string): LocalDate {
-    return LocalDate.parse(req.query[paramName])
+    return LocalDate.parse(req.query[paramName] as string)
   }
 }
 
@@ -104,5 +104,5 @@ function contextFromQuery(req: Request): string {
   const schema = {
     context: Joi.string().required()
   }
-  return validate(req.query, schema).context
+  return validate(req.query, schema).context as string
 }

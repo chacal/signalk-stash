@@ -16,7 +16,7 @@ import untypedMeasurementFixtures from './data/measurement-fixtures.json'
 import untypedPositionFixtures from './data/position-fixtures.json'
 
 const debug = Debug('stash:test-util')
-const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures
+const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures as SKDeltaJSON[]
 const positionFixtures: SKDeltaJSON[] = untypedPositionFixtures
 export { measurementFixtures, positionFixtures }
 

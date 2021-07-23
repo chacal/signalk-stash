@@ -12,8 +12,13 @@ import Map from '../../api-server/ui/Map'
 import { RenderedTrack, Viewport } from '../../api-server/ui/mappanel-domain'
 import { initialViewport } from '../../api-server/ui/mappanel-state'
 import { waitFor } from '../../test/waiting'
+import { LatLng } from 'leaflet'
 
 configure({ adapter: new Adapter() })
+
+interface GeoJSONMultilineString {
+  coordinates: number[][]
+}
 
 const defaultProps = () => ({
   center: new Coords({ lat: 60, lng: 22 }),
@@ -24,10 +29,11 @@ const defaultProps = () => ({
 describe('Stash Map', () => {
   it('initializes Leaflet map properly', () => {
     const map = mount(<Map {...defaultProps()} />)
+    const leafletMap = map.find(LeafletMap)
 
-    expect(map.find(LeafletMap).prop('zoom')).to.equal(initialViewport.zoom)
+    expect(leafletMap.prop('zoom')).to.equal(initialViewport.zoom)
 
-    const center = map.find(LeafletMap).prop('center')
+    const center = leafletMap.prop('center') as LatLng
     expect(center.lat).to.equal(60)
     expect(center.lng).to.equal(22)
   })
@@ -97,7 +103,7 @@ describe('Stash Map', () => {
     )
 
     expect(geoJson()).to.have.lengthOf(1)
-    const coords = geoJson().prop('data').coordinates
+    const coords = (geoJson().prop('data') as GeoJSONMultilineString).coordinates
     expect(coords).to.have.lengthOf(2)
     expect(coords[0][0]).to.eql([22, 60])
     expect(geoJson().prop('color')).to.equal('#0000FF')

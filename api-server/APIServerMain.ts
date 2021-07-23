@@ -10,7 +10,7 @@ function startAPIServer(routeCustomizer: ExpressAppCustomizer = _.noop) {
   console.log('Starting SignalK Stash..')
 
   DB.ensureTables()
-    .then(() => startApi(config, routeCustomizer))
+    .then(() => startApi(config as IConfig, routeCustomizer))
     .catch(err => {
       console.error(err)
     })

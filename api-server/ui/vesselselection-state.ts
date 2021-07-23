@@ -26,7 +26,10 @@ export class VesselSelectionState {
       .then(vessels => {
         this.vessels.next(vessels)
         this.selectedVessels.next(
-          _.intersection(initialSelectedVessels, vessels.map(v => v.vesselId))
+          _.intersection(
+            initialSelectedVessels,
+            vessels.map(v => v.vesselId)
+          )
         )
       })
       .catch((e: Error) => console.error('Error loading vessels!', e))

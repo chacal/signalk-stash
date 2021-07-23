@@ -14,7 +14,10 @@ import TimeSelectionState, {
 } from './timeselection-state'
 import { Vessel, VesselSelectionState } from './vesselselection-state'
 
-const emptyBounds = new LatLngBounds([[0, 0], [0, 0]])
+const emptyBounds = new LatLngBounds([
+  [0, 0],
+  [0, 0]
+])
 const defaultCenter = new Coords({ lat: 60, lng: 22 })
 export const initialViewport = {
   zoom: zoomFromLocalStorageOrDefault(),
