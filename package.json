@@ -53,7 +53,7 @@
     "lodash": "^4.17.19",
     "mqtt": "^3.0.0",
     "partial.lenses": "^14.17.0",
-    "pg-promise": "^8.6.0",
+    "pg-promise": "^10.10.2",
     "quadkeytools": "git+https://bitbucket.org/steele/quadkeytools.git",
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
