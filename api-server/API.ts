@@ -27,7 +27,8 @@ class API {
     this.app.use(
       auth({
         ...config.auth,
-        errorOnRequiredAuth: true
+        errorOnRequiredAuth: true,
+        idpLogout: true
       })
     )
     setupTrackAPIRoutes(this.app)
