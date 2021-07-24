@@ -44,9 +44,12 @@
     "css-loader": "^2.1.1",
     "debug": "^4.3.2",
     "express": "^4.16.4",
+    "express-jwt": "^6.0.0",
+    "express-jwt-authz": "^2.4.1",
     "geolib": "^3.3.1",
     "google-palette": "^1.1.0",
     "joi": "^14.3.1",
+    "jwks-rsa": "^2.0.4",
     "leaflet": "^1.4.0",
     "less": "^3.9.0",
     "less-loader": "^4.1.0",
@@ -68,6 +71,7 @@
     "webpack-cli": "^3.2.3"
   },
   "devDependencies": {
+    "@auth0/auth0-react": "^1.6.0",
     "@cypress/webpack-preprocessor": "^4.0.3",
     "@types/enzyme": "^3.9.1",
     "@types/enzyme-adapter-react-16": "^1.0.5",
