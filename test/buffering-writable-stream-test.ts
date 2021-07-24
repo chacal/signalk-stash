@@ -191,7 +191,7 @@ async function writeToStream(obj: object) {
 }
 
 function eventP(source: EventEmitter, eventName: string) {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     source.once(eventName, err => {
       if (err) {
         reject(err)

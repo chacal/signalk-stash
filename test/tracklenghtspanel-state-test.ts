@@ -50,7 +50,7 @@ describe('TrackLengthsPanelState', () => {
       vesselSelectionState,
       trackFetcher
     )
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       tlpState.tracks.subscribe((trackLengths: TrackLengthWithName[][]) => {
         try {
           expect(trackFetcher.callCount).to.equal(1)
