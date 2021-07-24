@@ -17,11 +17,11 @@ export class VesselSelectionState {
     VesselId[]
   >([])
 
-  initVessels() {
+  initVessels(accessToken: string) {
     const initialSelectedVessels = selectedVesselsFromLocalStorageOrDefault()
     this.selectedVessels.subscribe(sv => saveSelectedVesselsToLocalStorage(sv))
 
-    loadVessels()
+    loadVessels(accessToken)
       .then(assignColors)
       .then(vessels => {
         this.vessels.next(vessels)

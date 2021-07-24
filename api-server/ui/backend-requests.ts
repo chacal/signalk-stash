@@ -22,9 +22,9 @@ const toTimeQueryString = (y: Year) => {
   return `from=${startJan1st}&to=${endJan1st}`
 }
 
-export function loadVessels(): Promise<VesselData[]> {
+export function loadVessels(accessToken: string): Promise<VesselData[]> {
   debug('Loading vessels..')
-  return fetch(`/contexts`).then(res => res.json())
+  return getJSON(`/contexts`, accessToken)
 }
 
 export async function loadTrack(
@@ -64,4 +64,12 @@ export function fetchTrackLengths(
   return fetch(`/tracks/daily/stats?${params.toString()}`).then(res =>
     res.json()
   )
+}
+
+function getJSON(url: string, accessToken: string) {
+  return fetch(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  }).then(res => res.json())
 }

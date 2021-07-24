@@ -13,9 +13,14 @@ const vesselSelectionState = new VesselSelectionState()
 const timeSelectionState = TimeSelectionState.fromLocalStorage()
 
 const App = () => {
+  const { getAccessTokenSilently } = useAuth0()
+
   useEffect(() => {
-    vesselSelectionState.initVessels()
-  })
+    getAccessTokenSilently({
+      audience: 'https://signalk-stash.chacal.fi',
+      scope: 'read:signalk_stash'
+    }).then(accessToken => vesselSelectionState.initVessels(accessToken))
+  }, [getAccessTokenSilently])
 
   return (
     <Router>
