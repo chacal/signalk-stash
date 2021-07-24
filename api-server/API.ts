@@ -1,9 +1,13 @@
 import express, {
+  Express,
   NextFunction,
   Request,
   RequestHandler,
   Response
 } from 'express'
+import jwt from 'express-jwt'
+import jwtAuthz from 'express-jwt-authz'
+import jwksRsa from 'jwks-rsa'
 import path from 'path'
 import { ExpressAppCustomizer } from './APIServerMain'
 import { IConfig } from './Config'
@@ -29,6 +33,7 @@ class API {
     setupMMLTilesAPIRoutes(this.app)
     this.app.use(express.static(publicPath))
     this.app.use(this.validationErrorHandler)
+    this.app.use(this.authorizationErrorHandler)
     this.app.use(this.defaultErrorHandler)
   }
 
@@ -49,9 +54,20 @@ class API {
     next: NextFunction
   ): any {
     if (err && typeof err === 'object' && err.name === 'ValidationError') {
-      res.status(400).json({
-        error: err
-      })
+      res.status(400).json({ error: err })
+    } else {
+      next(err)
+    }
+  }
+
+  private authorizationErrorHandler(
+    err: any,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): any {
+    if (err && (err.status === 401 || err.statusCode === 403)) {
+      res.status(err.status || err.statusCode).json({ error: err })
     } else {
       next(err)
     }
@@ -78,4 +94,28 @@ export function asyncHandler<T>(
   return (req2: Request, res2: Response, next: NextFunction) => {
     requestHandler(req2, res2).catch(next)
   }
+}
+
+const checkJwt = jwt({
+  secret: jwksRsa.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: 'https://signalk-stash.eu.auth0.com/.well-known/jwks.json'
+  }),
+  audience: 'https://signalk-stash.chacal.fi',
+  issuer: 'https://signalk-stash.eu.auth0.com/',
+  algorithms: ['RS256']
+})
+
+const checkScope = jwtAuthz(['read:signalk_stash'], {
+  failWithError: true
+})
+
+export function authorizedGet<T>(
+  app: Express,
+  url: string,
+  requestHandler: (req: Request, res: Response) => Promise<T>
+) {
+  app.get(url, checkJwt, checkScope, asyncHandler(requestHandler))
 }
