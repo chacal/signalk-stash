@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { Year } from 'js-joda'
+import { Year } from '@js-joda/core'
 import { LatLngBounds } from 'leaflet'
 import { BehaviorSubject, combineLatest, from, Observable, Subject } from 'rxjs'
 import { distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators'

@@ -11,6 +11,8 @@
   "dependencies": {
     "@apla/clickhouse": "^1.5.5",
     "@chacal/signalk-ts": "^0.4.0",
+    "@js-joda/core": "^3.2.0",
+    "@js-joda/timezone": "^2.5.0",
     "@material-ui/core": "^4.11.3",
     "@material-ui/icons": "^4.11.2",
     "@signalk/streams": "^1.18.0",
@@ -45,8 +47,6 @@
     "geolib": "^3.3.1",
     "google-palette": "^1.1.0",
     "joi": "^14.3.1",
-    "js-joda": "^1.9.3",
-    "js-joda-timezone": "^2.0.2",
     "leaflet": "^1.4.0",
     "less": "^3.9.0",
     "less-loader": "^4.1.0",

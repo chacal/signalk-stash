@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useState } from 'react'
 
+import { Year } from '@js-joda/core'
 import {
   Checkbox,
   Collapse,
@@ -13,7 +14,6 @@ import {
   WithStyles
 } from '@material-ui/core'
 import { KeyboardArrowDown, KeyboardArrowUp } from '@material-ui/icons'
-import { Year } from 'js-joda'
 import { useObservable } from 'rxjs-hooks'
 import TimeSelectionState, { YEARS } from './timeselection-state'
 

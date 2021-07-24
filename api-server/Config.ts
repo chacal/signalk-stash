@@ -1,4 +1,4 @@
-import { Duration } from 'js-joda'
+import { Duration } from '@js-joda/core'
 import _ from 'lodash'
 
 const isDeveloping = process.env.ENVIRONMENT === undefined

@@ -1,7 +1,7 @@
 import Color = require('color')
 import { configure, mount } from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'
-import { Year } from 'js-joda'
+import { Year } from '@js-joda/core'
 import * as React from 'react'
 import { GeoJSON, Map as LeafletMap } from 'react-leaflet'
 

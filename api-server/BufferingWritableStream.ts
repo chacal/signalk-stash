@@ -1,6 +1,6 @@
+import { Duration } from '@js-joda/core'
 import Debug from 'debug'
 import { EventEmitter } from 'events'
-import { Duration } from 'js-joda'
 import _ from 'lodash'
 import { Writable } from 'stream'
 import ArrayReadable from './ArrayReadable'

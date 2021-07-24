@@ -1,5 +1,5 @@
+import { Duration } from '@js-joda/core'
 import { expect } from 'chai'
-import { Duration } from 'js-joda'
 import _ from 'lodash'
 import { Writable } from 'stream'
 import BufferingWritableStream, {

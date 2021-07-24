@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import { SKDelta, SKDeltaJSON } from '@chacal/signalk-ts'
+import { LocalDate } from '@js-joda/core'
 import { expect } from 'chai'
-import { LocalDate } from 'js-joda'
 import _ from 'lodash'
 import * as L from 'partial.lenses'
 import DB from '../api-server/db/StashDB'

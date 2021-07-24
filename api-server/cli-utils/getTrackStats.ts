@@ -1,5 +1,5 @@
 import { SKContext } from '@chacal/signalk-ts'
-import { ZonedDateTime } from 'js-joda'
+import { ZonedDateTime } from '@js-joda/core'
 import SKClickHouse from '../db/SKClickHouse'
 
 if (process.argv.length < 5) {

@@ -1,10 +1,10 @@
 import ClickHouse from '@apla/clickhouse'
 import { SKContext } from '@chacal/signalk-ts'
+import { LocalDate, ZonedDateTime, ZoneOffset } from '@js-joda/core'
 import { lineString } from '@turf/helpers'
 import length from '@turf/length'
 import simplify from '@turf/simplify'
 import BPromise from 'bluebird'
-import { LocalDate, ZonedDateTime, ZoneOffset } from 'js-joda'
 import { chQuery } from '../db/SKClickHouse'
 
 export default class TrackStatistics {
@@ -105,8 +105,8 @@ const fetchJobsForAllDays = (
       getTrackStatisticsForVesselTimespan(
         ch,
         context,
-        theDate.atStartOfDayWithZone(ZoneOffset.UTC),
-        theDate.plusDays(1).atStartOfDayWithZone(ZoneOffset.UTC)
+        theDate.atStartOfDay(ZoneOffset.UTC),
+        theDate.plusDays(1).atStartOfDay(ZoneOffset.UTC)
       )
     )
     aDate = aDate.plusDays(1)

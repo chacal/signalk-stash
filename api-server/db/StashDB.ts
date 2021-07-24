@@ -1,6 +1,6 @@
 import { QueryCallback, QueryStream } from '@apla/clickhouse'
 import { SKContext } from '@chacal/signalk-ts'
-import { LocalDate, LocalDateTime, ZonedDateTime } from 'js-joda'
+import { LocalDate, LocalDateTime, ZonedDateTime } from '@js-joda/core'
 import { vesselTopic } from '../../delta-inputs/MqttDeltaInput'
 import { MqttAccount, MqttACL, MqttACLLevel } from '../domain/Auth'
 import { BBox, ZoomLevel } from '../domain/Geo'

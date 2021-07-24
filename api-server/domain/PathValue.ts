@@ -1,6 +1,6 @@
 import Clickhouse from '@apla/clickhouse'
 import { SKContext, SKValue } from '@chacal/signalk-ts'
-import { ChronoField, ZonedDateTime } from 'js-joda'
+import { ChronoField, ZonedDateTime } from '@js-joda/core'
 import { Transform, TransformCallback } from 'stream'
 import SKClickHouse from '../db/SKClickHouse'
 

@@ -1,6 +1,4 @@
 import Clickhouse from '@apla/clickhouse'
-import BinaryQuadkey from 'binaryquadkey'
-import Debug from 'debug'
 import {
   ChronoField,
   ChronoUnit,
@@ -9,7 +7,9 @@ import {
   Instant,
   ZonedDateTime,
   ZoneId
-} from 'js-joda'
+} from '@js-joda/core'
+import BinaryQuadkey from 'binaryquadkey'
+import Debug from 'debug'
 import QK from 'quadkeytools'
 import simplify from 'simplify-js'
 import { Transform, TransformCallback } from 'stream'

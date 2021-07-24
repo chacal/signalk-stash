@@ -1,8 +1,8 @@
 import { SKDelta, SKDeltaJSON } from '@chacal/signalk-ts'
+import { ZonedDateTime } from '@js-joda/core'
 import { expect } from 'chai'
 import Debug from 'debug'
 import express from 'express'
-import { ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
 import request, { Response } from 'supertest'
 

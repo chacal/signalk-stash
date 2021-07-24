@@ -1,7 +1,7 @@
+import { LocalDate, LocalDateTime } from '@js-joda/core'
 import Debug from 'debug'
 import { Express, Request, Response } from 'express'
 import * as Joi from 'joi'
-import { LocalDate, LocalDateTime } from 'js-joda'
 import { asyncHandler } from './API'
 import stash, { Timespan } from './db/StashDB'
 import { BBox, Coords, ZoomLevel } from './domain/Geo'

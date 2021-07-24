@@ -1,5 +1,5 @@
 import { SKContext, SKDelta, SKPosition } from '@chacal/signalk-ts'
-import { nativeJs, ZonedDateTime } from 'js-joda'
+import { nativeJs, ZonedDateTime } from '@js-joda/core'
 import { Writable } from 'stream'
 import AbstractDoubleOutputStream, {
   OutputStates
