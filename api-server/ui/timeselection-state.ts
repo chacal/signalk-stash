@@ -1,4 +1,4 @@
-import { Year } from 'js-joda'
+import { Year } from '@js-joda/core'
 import { xor } from 'lodash'
 import { BehaviorSubject } from 'rxjs'
 import { take } from 'rxjs/operators'

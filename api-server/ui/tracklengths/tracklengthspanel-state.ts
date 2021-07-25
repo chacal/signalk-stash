@@ -21,7 +21,12 @@ export class TrackLengthsPanelState {
     )
     this.isLoading = merge(
       vesselSelectionState.selectedVessels.pipe(map(() => true)),
-      this.tracks.pipe(map(() => false, catchError(() => of(false))))
+      this.tracks.pipe(
+        map(
+          () => false,
+          catchError(() => of(false))
+        )
+      )
     )
 
     this.isError = this.tracks.pipe(

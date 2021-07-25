@@ -1,5 +1,5 @@
+import { Duration } from '@js-joda/core'
 import { expect } from 'chai'
-import { Duration } from 'js-joda'
 import _ from 'lodash'
 import { Writable } from 'stream'
 import BufferingWritableStream, {
@@ -191,7 +191,7 @@ async function writeToStream(obj: object) {
 }
 
 function eventP(source: EventEmitter, eventName: string) {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     source.once(eventName, err => {
       if (err) {
         reject(err)

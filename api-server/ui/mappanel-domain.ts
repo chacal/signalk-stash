@@ -1,5 +1,5 @@
+import { Year } from '@js-joda/core'
 import Color = require('color')
-import { Year } from 'js-joda'
 import { LatLngBounds } from 'leaflet'
 
 import { TrackGeoJSON } from '../domain/Geo'

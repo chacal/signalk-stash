@@ -1,5 +1,5 @@
 import { SKContext } from '@chacal/signalk-ts'
-import { LocalDate } from 'js-joda'
+import { LocalDate } from '@js-joda/core'
 import { StashDB } from '../db/StashDB'
 
 if (process.argv.length < 5) {

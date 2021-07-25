@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { Year } from 'js-joda'
+import { Year } from '@js-joda/core'
 import { LatLngBounds } from 'leaflet'
 import { BehaviorSubject, combineLatest, from, Observable, Subject } from 'rxjs'
 import { distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators'
@@ -14,7 +14,10 @@ import TimeSelectionState, {
 } from './timeselection-state'
 import { Vessel, VesselSelectionState } from './vesselselection-state'
 
-const emptyBounds = new LatLngBounds([[0, 0], [0, 0]])
+const emptyBounds = new LatLngBounds([
+  [0, 0],
+  [0, 0]
+])
 const defaultCenter = new Coords({ lat: 60, lng: 22 })
 export const initialViewport = {
   zoom: zoomFromLocalStorageOrDefault(),

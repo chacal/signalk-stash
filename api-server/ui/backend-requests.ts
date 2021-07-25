@@ -1,5 +1,5 @@
+import { ChronoUnit, LocalTime, Year } from '@js-joda/core'
 import Debug from 'debug'
-import { ChronoUnit, LocalTime, Year } from 'js-joda'
 import _ from 'lodash'
 
 import { toQueryString } from '../domain/Geo'

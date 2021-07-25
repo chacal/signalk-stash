@@ -4,8 +4,8 @@ import ClickHouse, {
   QueryStream
 } from '@apla/clickhouse'
 import { SKContext } from '@chacal/signalk-ts'
+import { ChronoUnit, LocalDate, ZonedDateTime } from '@js-joda/core'
 import Debug from 'debug'
-import { ChronoUnit, LocalDate, ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
 import BufferingWritableStream from '../BufferingWritableStream'
 import config from '../Config'

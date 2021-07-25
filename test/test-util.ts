@@ -1,8 +1,8 @@
 import { SKDelta, SKDeltaJSON } from '@chacal/signalk-ts'
+import { ZonedDateTime } from '@js-joda/core'
 import { expect } from 'chai'
 import Debug from 'debug'
 import express from 'express'
-import { ZonedDateTime } from 'js-joda'
 import _ from 'lodash'
 import request, { Response } from 'supertest'
 
@@ -16,7 +16,7 @@ import untypedMeasurementFixtures from './data/measurement-fixtures.json'
 import untypedPositionFixtures from './data/position-fixtures.json'
 
 const debug = Debug('stash:test-util')
-const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures
+const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures as SKDeltaJSON[]
 const positionFixtures: SKDeltaJSON[] = untypedPositionFixtures
 export { measurementFixtures, positionFixtures }
 
