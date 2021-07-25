@@ -3,6 +3,7 @@ import * as React from 'react'
 import { useEffect } from 'react'
 import { HashRouter as Router, Redirect, Route, Switch } from 'react-router-dom'
 import ErrorBoundary from './ErrorBoundary'
+import { auth0Config } from './index'
 import MapPanel from './MapPanel'
 import { NavBar } from './NavBar'
 import TimeSelectionState from './timeselection-state'
@@ -17,8 +18,9 @@ const App = () => {
 
   useEffect(() => {
     getAccessTokenSilently({
-      audience: 'https://signalk-stash.chacal.fi',
-      scope: 'read:signalk_stash'
+      audience: auth0Config.audience,
+      scope: auth0Config.scope
+    })
       .then(accessToken => vesselSelectionState.initVessels(accessToken))
       .catch(e => console.log('Failed to acquire access token!', e))
   }, [getAccessTokenSilently])

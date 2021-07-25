@@ -10,7 +10,7 @@ import jwtAuthz from 'express-jwt-authz'
 import jwksRsa from 'jwks-rsa'
 import path from 'path'
 import { ExpressAppCustomizer } from './APIServerMain'
-import { IConfig } from './Config'
+import config, { IConfig } from './Config'
 import setupMMLTilesAPIRoutes from './MMLTilesAPI'
 import setupMqttCredentialsAPIRoutes, {
   insertLatestDeltaReaderAccountFromConfig
@@ -101,14 +101,14 @@ const checkJwt = jwt({
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: 'https://signalk-stash.eu.auth0.com/.well-known/jwks.json'
+    jwksUri: config.auth0.jwksUri
   }),
-  audience: 'https://signalk-stash.chacal.fi',
-  issuer: 'https://signalk-stash.eu.auth0.com/',
+  audience: config.auth0.audience,
+  issuer: config.auth0.issuer,
   algorithms: ['RS256']
 })
 
-const checkScope = jwtAuthz(['read:signalk_stash'], {
+const checkScope = jwtAuthz([config.auth0.scope], {
   failWithError: true
 })
 
