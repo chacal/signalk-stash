@@ -1,5 +1,6 @@
 import { SKDelta, SKDeltaJSON } from '@chacal/signalk-ts'
 import { ZonedDateTime } from '@js-joda/core'
+import axios from 'axios'
 import { expect } from 'chai'
 import Debug from 'debug'
 import express from 'express'
@@ -67,6 +68,18 @@ export function getJson(
     .expect(statusCode)
 }
 
+export function getAuthorizedJson(
+  app: express.Express,
+  accessToken: string,
+  path: string,
+  statusCode: number = 200
+) {
+  return getJson(app, path, statusCode).set(
+    'authorization',
+    'Bearer ' + accessToken
+  )
+}
+
 export function startTestApp(): express.Express {
   const testApp = express()
   // @ts-ignore: Unused expression
@@ -132,4 +145,41 @@ export function assertCoords(
 ): void {
   expect(coords[0]).to.be.closeTo(lng, delta)
   expect(coords[1]).to.be.closeTo(lat, delta)
+}
+
+let cachedAccessToken = ''
+
+export function getAccessToken() {
+  // This test user has been manually added to auth0 development tenant's
+  // "Username-Password-Authentication" Database
+  const postData = {
+    grant_type: 'password',
+    username: 'unittest@signalk-stash-dev.chacal.fi',
+    password: 'ARADbOv6fAE',
+    client_id: 'YsmnlsLeFP0OhkmvHgrm3vqdEGWg3gvh', // SignalK Stash unit test app
+    audience: config.auth0.audience,
+    scope: config.auth0.scope
+  }
+
+  const options = {
+    method: 'POST' as 'POST',
+    url: 'https://signalk-stash-dev.eu.auth0.com/oauth/token',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    data: urlEncodedString(postData)
+  }
+
+  if (cachedAccessToken !== '') {
+    return Promise.resolve(cachedAccessToken)
+  } else {
+    return axios.request(options).then(response => {
+      cachedAccessToken = response.data.access_token
+      return cachedAccessToken
+    })
+  }
+}
+
+function urlEncodedString(data: { [index: string]: string }) {
+  return Object.keys(data)
+    .map(key => `${key}=${encodeURIComponent(data[key])}`)
+    .join('&')
 }
