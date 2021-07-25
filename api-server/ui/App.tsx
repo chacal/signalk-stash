@@ -19,7 +19,8 @@ const App = () => {
     getAccessTokenSilently({
       audience: 'https://signalk-stash.chacal.fi',
       scope: 'read:signalk_stash'
-    }).then(accessToken => vesselSelectionState.initVessels(accessToken))
+      .then(accessToken => vesselSelectionState.initVessels(accessToken))
+      .catch(e => console.log('Failed to acquire access token!', e))
   }, [getAccessTokenSilently])
 
   return (
