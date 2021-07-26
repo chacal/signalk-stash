@@ -47,7 +47,6 @@ export interface IConfig extends StringIndexable {
     jwksUri: string
     audience: string
     issuer: string
-    scope: string
   }
 }
 
@@ -93,8 +92,7 @@ const baseConfig = {
   auth0: {
     jwksUri: 'https://signalk-stash-dev.eu.auth0.com/.well-known/jwks.json',
     audience: 'https://signalk-stash-dev.chacal.fi',
-    issuer: 'https://signalk-stash-dev.eu.auth0.com/',
-    scope: 'read:signalk_stash'
+    issuer: 'https://signalk-stash-dev.eu.auth0.com/'
   }
 }
 
@@ -142,8 +140,7 @@ const environments: IEnvironments = {
     auth0: {
       jwksUri: 'https://signalk-stash.eu.auth0.com/.well-known/jwks.json',
       audience: 'https://signalk-stash.chacal.fi',
-      issuer: 'https://signalk-stash.eu.auth0.com/',
-      scope: 'read:signalk_stash'
+      issuer: 'https://signalk-stash.eu.auth0.com/'
     }
   },
   'unit-test': testConfig,

@@ -18,8 +18,7 @@ const App = () => {
 
   useEffect(() => {
     getAccessTokenSilently({
-      audience: auth0Config.audience,
-      scope: auth0Config.scope
+      audience: auth0Config.audience
     })
       .then(accessToken => vesselSelectionState.initVessels(accessToken))
       .catch(e => console.log('Failed to acquire access token!', e))

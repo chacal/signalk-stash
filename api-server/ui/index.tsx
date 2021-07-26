@@ -8,15 +8,13 @@ import './main.less'
 const prodAuth0Config = {
   domain: 'signalk-stash.eu.auth0.com',
   clientId: 'BPqbNlJWgvMR2ZxuvVj1dGm0pVKYxb2a',
-  audience: 'https://signalk-stash.chacal.fi',
-  scope: 'read:signalk_stash'
+  audience: 'https://signalk-stash.chacal.fi'
 }
 
 const devAuth0Config = {
   domain: 'signalk-stash-dev.eu.auth0.com',
   clientId: 'mKdpwEK9Mxg7mU6EuOUSg03wSKbKz1pI',
-  audience: 'https://signalk-stash-dev.chacal.fi',
-  scope: 'read:signalk_stash'
+  audience: 'https://signalk-stash-dev.chacal.fi'
 }
 
 export const auth0Config =
@@ -29,7 +27,6 @@ ReactDOM.render(
     clientId={auth0Config.clientId}
     redirectUri={window.location.origin}
     audience={auth0Config.audience}
-    scope={auth0Config.scope}
   >
     <App />
   </Auth0Provider>,

@@ -6,7 +6,6 @@ import express, {
   Response
 } from 'express'
 import jwt from 'express-jwt'
-import jwtAuthz from 'express-jwt-authz'
 import jwksRsa from 'jwks-rsa'
 import path from 'path'
 import { ExpressAppCustomizer } from './APIServerMain'
@@ -108,14 +107,10 @@ const checkJwt = jwt({
   algorithms: ['RS256']
 })
 
-const checkScope = jwtAuthz([config.auth0.scope], {
-  failWithError: true
-})
-
 export function authorizedGet<T>(
   app: Express,
   url: string,
   requestHandler: (req: Request, res: Response) => Promise<T>
 ) {
-  app.get(url, checkJwt, checkScope, asyncHandler(requestHandler))
+  app.get(url, checkJwt, asyncHandler(requestHandler))
 }
