@@ -33,6 +33,10 @@ class TestDB {
       .then(() => this.waitForClickHouseTablesDropped())
       .then(() => StashDB.ensureTables())
       .then(() => this.waitForClickHouseTables())
+      .catch(err => {
+        console.error(err)
+        throw err
+      })
   }
 
   getRowCountForTable(tableName: string): Promise<number> {
