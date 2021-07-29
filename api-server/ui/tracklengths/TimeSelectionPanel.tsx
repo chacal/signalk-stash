@@ -19,7 +19,7 @@ const TimeSelectionPanel = ({ selectionState }: TimeSelectionPanelProps) => {
 
   return (
     <FormControl component="fieldset">
-      <FormLabel component="legend">Select vessels</FormLabel>
+      <FormLabel component="legend">Years</FormLabel>
       <FormGroup>
         {SELECTABLE_YEARS.map(y => (
           <FormControlLabel
