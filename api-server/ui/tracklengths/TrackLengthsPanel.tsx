@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import { Box } from '@material-ui/core'
 import * as React from 'react'
 import TimeSelectionState from '../timeselection-state'
 import { VesselSelectionState } from '../vesselselection-state'
@@ -16,11 +16,11 @@ const TrackLengthsPanel = ({ vesselSelection, timeSelection }: TLPProps) => {
   const panelState = new TrackLengthsPanelState(vesselSelection, timeSelection)
 
   return (
-    <React.Fragment>
+    <Box margin={2}>
       <VesselSelectionPanel selectionState={panelState.vesselSelectionState} />
       <TimeSelectionPanel selectionState={panelState.timeSelectionState} />
       <TrackLengthList trackLengthsPanelState={panelState} />
-    </React.Fragment>
+    </Box>
   )
 }
 
