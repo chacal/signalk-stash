@@ -4,16 +4,18 @@ import { map } from 'rxjs/operators'
 import Map from './Map'
 import { MapPanelState } from './mappanel-state'
 import MapVisibilityAdjustmentPanel from './MapVisibilityAdjustmentPanel'
+import TimeSelectionState from './timeselection-state'
 import TimeSelectionPanel from './TimeSelectionPanel'
 import { VesselSelectionState } from './vesselselection-state'
 import VesselSelectionPanel from './VesselSelectionPanel'
 
 interface MapPanelProps {
   vesselSelection: VesselSelectionState
+  timeSelection: TimeSelectionState
 }
 
-const MapPanel = ({ vesselSelection }: MapPanelProps) => {
-  const panelState = new MapPanelState(vesselSelection)
+const MapPanel = ({ vesselSelection, timeSelection }: MapPanelProps) => {
+  const panelState = new MapPanelState(vesselSelection, timeSelection)
 
   return (
     <React.Fragment>

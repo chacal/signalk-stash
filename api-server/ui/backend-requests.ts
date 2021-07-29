@@ -47,13 +47,19 @@ export async function loadTrack(
   }
 }
 
-export type TrackLengthsFetcher = (vesselId: VesselId) => Promise<TrackLength[]>
+export type TrackLengthsFetcher = (
+  vesselId: VesselId,
+  year: Year
+) => Promise<TrackLength[]>
 
-export function fetchTrackLengths(vesselId: VesselId): Promise<TrackLength[]> {
+export function fetchTrackLengths(
+  vesselId: VesselId,
+  year: Year
+): Promise<TrackLength[]> {
   const params = new URLSearchParams({
     context: vesselId,
-    firstDay: '2019-04-01',
-    lastDay: '2021-11-01'
+    firstDay: `${year.toString()}-04-01`,
+    lastDay: `${year.toString()}-11-01`
   })
   return fetch(`/tracks/daily/stats?${params.toString()}`).then(res =>
     res.json()

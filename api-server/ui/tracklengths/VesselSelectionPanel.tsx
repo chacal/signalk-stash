@@ -33,7 +33,7 @@ const VesselSelectionPanel = ({
 
   return (
     <FormControl component="fieldset">
-      <FormLabel component="legend">Select vessels</FormLabel>
+      <FormLabel component="legend">Vessels</FormLabel>
       <FormGroup>
         {(vessels || []).map((v: Vessel) => (
           <FormControlLabel

@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import Color = require('color')
 import sinon from 'sinon'
 import { asVesselId } from '../api-server/domain/Vessel'
+import TimeSelectionState from '../api-server/ui/timeselection-state'
 import {
   TrackLength,
   TrackLengthsPanelState,
@@ -21,6 +22,8 @@ describe('TrackLengthsPanelState', () => {
       asVesselId(threeVessels[1].vesselId)
     ])
 
+    const timeSelectionState = new TimeSelectionState()
+
     const trackFetcher = sinon.stub()
     const selectedVesselId = threeVessels[1].vesselId.toString()
     const trackLengthsResult = [
@@ -37,24 +40,22 @@ describe('TrackLengthsPanelState', () => {
         length: 2
       }
     ]
-    trackFetcher
-      .withArgs(selectedVesselId)
-      .onFirstCall()
-      .returns(
-        new Promise<TrackLength[]>(resolve =>
-          process.nextTick(() => resolve(trackLengthsResult))
-        )
+    trackFetcher.returns(
+      new Promise<TrackLength[]>(resolve =>
+        process.nextTick(() => resolve(trackLengthsResult))
       )
+    )
 
     const tlpState = new TrackLengthsPanelState(
       vesselSelectionState,
+      timeSelectionState,
       trackFetcher
     )
     return new Promise<void>((resolve, reject) => {
       tlpState.tracks.subscribe((trackLengths: TrackLengthWithName[][]) => {
         try {
-          expect(trackFetcher.callCount).to.equal(1)
-          expect(trackLengths).to.have.lengthOf(1)
+          expect(trackFetcher.callCount).to.equal(3)
+          expect(trackLengths).to.have.lengthOf(3)
           expect(trackLengths[0]).to.have.lengthOf(2)
           expect(trackLengths[0][0]).to.deep.equal({
             name: 'vessel2',
@@ -66,7 +67,7 @@ describe('TrackLengthsPanelState', () => {
       })
       setTimeout(() => {
         try {
-          expect(trackFetcher.callCount).to.equal(1)
+          expect(trackFetcher.callCount).to.equal(3)
         } catch (e) {
           reject(e)
         }
