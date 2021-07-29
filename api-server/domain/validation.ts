@@ -1,5 +1,5 @@
 import * as Joi from 'joi'
-import { SchemaLike, ValidationOptions } from 'joi'
+import { ValidationOptions } from 'joi'
 
 export const Schemas = {
   lat: Joi.number()
@@ -13,14 +13,14 @@ export const Schemas = {
 }
 
 export function validate<T>(
-  obj: T,
-  schema: SchemaLike,
+  obj: any,
+  schema: Joi.AnySchema,
   opts?: ValidationOptions
 ): T {
   const defaultOpts = { allowUnknown: true, abortEarly: false }
   const usedOpts = { ...defaultOpts, ...opts }
 
-  const { error, value } = Joi.validate(obj, schema, usedOpts)
+  const { error, value } = schema.validate(obj, usedOpts)
   if (error) {
     throw error
   } else {
