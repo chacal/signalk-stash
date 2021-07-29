@@ -52,7 +52,6 @@ function startTrackLengthLoading(
   timeSelection: Subject<SelectedYears>,
   fetchTrackLengths: TrackLengthsFetcher
 ): Observable<TrackLengthWithName[][]> {
-  console.log(timeSelection)
   return combineLatest([vessels, selectedVesselIds, timeSelection]).pipe(
     switchMap(([vessels, selectedVesselIds, timeSelection]) => {
       const lenghtsPromise = fetchTrackLengthsWithNames(
