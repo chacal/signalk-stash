@@ -24,10 +24,10 @@ export default class SKPostgis {
   upsertVessel(vessel: Vessel): Promise<void> {
     return this.db.query(
       `
-      INSERT INTO vessel(vesselId, name)
-      VALUES ($[vesselId], $[name])
+      INSERT INTO vessel(vesselId, name, owner_email)
+      VALUES ($[vesselId], $[name], $[ownerEmail])
       ON CONFLICT (vesselId)
-      DO UPDATE SET name = $[name]`,
+      DO UPDATE SET name = $[name], owner_email = $[ownerEmail]`,
       vessel
     )
   }

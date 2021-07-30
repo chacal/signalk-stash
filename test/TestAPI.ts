@@ -32,8 +32,16 @@ function insertLargePositionsFixture(
   )
   const rows = JSON.parse(content.toString())
   writeDeltasFromJSONArray(rows)
-    .then(() => DB.upsertVessel(new Vessel(testVesselUuids[1], 'bar', 'baz')))
-    .then(() => DB.upsertVessel(new Vessel(testVesselUuids[2], 'foo', 'BAZ')))
+    .then(() =>
+      DB.upsertVessel(
+        new Vessel(testVesselUuids[1], 'bar', 'baz', 'bar@baz.com')
+      )
+    )
+    .then(() =>
+      DB.upsertVessel(
+        new Vessel(testVesselUuids[2], 'foo', 'BAZ', 'foo@baz.com')
+      )
+    )
     .then(() => res.status(204).end())
     .catch(next)
 }
