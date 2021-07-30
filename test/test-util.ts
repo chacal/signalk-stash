@@ -27,7 +27,8 @@ export const vesselUuid =
 export const testVessel = new Vessel(
   vesselUuid,
   'S/Y TestVessel',
-  vesselMqttPassword
+  vesselMqttPassword,
+  'unittest@signalk-stash-dev.chacal.fi'
 )
 
 export const testVesselUuids = [
