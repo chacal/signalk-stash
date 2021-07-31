@@ -13,9 +13,10 @@ import TestDB from './TestDB'
 describe('Vessel API', () => {
   const app = startTestApp()
 
-  beforeEach(() => TestDB.resetTables().then(() => DB.upsertVessel(testVessel)))
+  beforeEach(() => TestDB.resetTables())
 
   it('returns all vessels in db', async () => {
+    await DB.upsertVessel(testVessel)
     const token = await getAccessToken()
 
     return getAuthorizedJson(app, token, '/contexts').expect(res => {
@@ -30,5 +31,21 @@ describe('Vessel API', () => {
 
   it('requires authorization', async () => {
     return getJson(app, '/contexts', 401)
+  })
+
+  it('requires vessel associated to authorized email', async () => {
+    // There are no vessels in DB here -> authorization should fail
+    const token = await getAccessToken()
+    await getAuthorizedJson(app, token, '/contexts', 401)
+
+    // Insert one vessel, but with non-matching owner email -> authorization should still fail
+    await DB.upsertVessel(
+      Object.assign({}, testVessel, { ownerEmail: 'different_email@test.com' })
+    )
+    await getAuthorizedJson(app, token, '/contexts', 401)
+
+    // Update vessel to match the owner email -> authorization should succeed
+    await DB.upsertVessel(testVessel)
+    await getAuthorizedJson(app, token, '/contexts')
   })
 })

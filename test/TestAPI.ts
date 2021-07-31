@@ -34,7 +34,12 @@ function insertLargePositionsFixture(
   writeDeltasFromJSONArray(rows)
     .then(() =>
       DB.upsertVessel(
-        new Vessel(testVesselUuids[1], 'bar', 'baz', 'bar@baz.com')
+        new Vessel(
+          testVesselUuids[1],
+          'Test Vessel',
+          'baz',
+          'unittest@signalk-stash-dev.chacal.fi'
+        )
       )
     )
     .then(() =>

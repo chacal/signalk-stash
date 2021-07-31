@@ -1,3 +1,4 @@
+import Debug from 'debug'
 import express, {
   Express,
   NextFunction,
@@ -6,10 +7,13 @@ import express, {
   Response
 } from 'express'
 import jwt from 'express-jwt'
+import * as Joi from 'joi'
 import jwksRsa from 'jwks-rsa'
 import path from 'path'
 import { ExpressAppCustomizer } from './APIServerMain'
 import config, { IConfig } from './Config'
+import stash from './db/StashDB'
+import { validate } from './domain/validation'
 import setupMMLTilesAPIRoutes from './MMLTilesAPI'
 import setupMqttCredentialsAPIRoutes, {
   insertLatestDeltaReaderAccountFromConfig
@@ -18,6 +22,20 @@ import setupTrackAPIRoutes from './TrackAPI'
 import setupVesselAPIRoutes from './VesselAPI'
 
 const publicPath = path.join(__dirname, '../../api-server/public')
+const debug = Debug('stash:API')
+
+// Add 'user' field to Express Request type. The field is added by checkJwt
+// middleware
+declare global {
+  namespace Express {
+    interface Request {
+      user: {
+        'https://signalk-stash.chacal.fi/email': string
+        'https://signalk-stash.chacal.fi/email_verified': boolean
+      }
+    }
+  }
+}
 
 class API {
   constructor(
@@ -107,10 +125,38 @@ const checkJwt = jwt({
   algorithms: ['RS256']
 })
 
+const checkVesselOwner = (req: Request, res: Response, next: NextFunction) => {
+  validate(
+    req.user['https://signalk-stash.chacal.fi/email'],
+    Joi.string()
+      .email()
+      .required()
+  )
+  // Require verified email in production
+  validate(
+    req.user['https://signalk-stash.chacal.fi/email_verified'],
+    Joi.boolean()
+      .required()
+      .valid(config.isProduction ? true : [false, true])
+  )
+
+  const ownerEmail = req.user['https://signalk-stash.chacal.fi/email']
+  debug(`Authorizing vessel for owner email ${ownerEmail}`)
+  stash
+    .getVesselByOwnerEmail(ownerEmail)
+    .then(v => next()) // We only check that user is associated to _some_ vessel
+    .catch(e => {
+      debug(`Failed vessel authorization for owner email ${ownerEmail}.`, e)
+      res
+        .status(401)
+        .json({ error: `No vessel found for owner email ${ownerEmail}` })
+    })
+}
+
 export function authorizedGet<T>(
   app: Express,
   url: string,
   requestHandler: (req: Request, res: Response) => Promise<T>
 ) {
-  app.get(url, checkJwt, asyncHandler(requestHandler))
+  app.get(url, checkJwt, checkVesselOwner, asyncHandler(requestHandler))
 }
