@@ -42,6 +42,18 @@ export default class SKPostgis {
       .then(res => res as VesselData[])
   }
 
+  getVesselByOwnerEmail(ownerEmail: string): Promise<VesselData> {
+    return this.db
+      .one(
+        `
+      SELECT vesselId as "vesselId", name
+      FROM vessel
+      WHERE owner_email = $1`,
+        ownerEmail
+      )
+      .then(res => res as VesselData)
+  }
+
   upsertAccount(account: MqttAccount): Promise<void> {
     return this.db.query(
       `

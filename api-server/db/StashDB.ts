@@ -111,6 +111,10 @@ export class StashDB {
       .then(() => this.postgis.upsertVessel(vessel))
   }
 
+  getVesselByOwnerEmail(ownerEmail: string): Promise<VesselData> {
+    return this.postgis.getVesselByOwnerEmail(ownerEmail)
+  }
+
   /*
     Auth DB functionality
   */
