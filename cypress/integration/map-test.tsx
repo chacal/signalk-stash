@@ -51,6 +51,7 @@ describe('Stash Map', () => {
 
   it('zoom is recalled from localstorage', () => {
     cy.viewport(1440, 900)
+    cy.login()
     cy.visit('/')
     cy.get('.leaflet-control-zoom-in').click()
     waitForZoomLevel('9')
