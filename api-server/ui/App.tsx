@@ -1,9 +1,9 @@
-import { useAuth0, withAuthenticationRequired } from '@auth0/auth0-react'
+import { withAuthenticationRequired } from '@auth0/auth0-react'
 import * as React from 'react'
 import { useEffect } from 'react'
 import { HashRouter as Router, Redirect, Route, Switch } from 'react-router-dom'
+import { useAuthToken } from './auth'
 import ErrorBoundary from './ErrorBoundary'
-import { auth0Config } from './index'
 import MapPanel from './MapPanel'
 import { NavBar } from './NavBar'
 import TimeSelectionState from './timeselection-state'
@@ -14,15 +14,13 @@ const vesselSelectionState = new VesselSelectionState()
 const timeSelectionState = TimeSelectionState.fromLocalStorage()
 
 const App = () => {
-  const { getAccessTokenSilently } = useAuth0()
+  const getToken = useAuthToken()
 
   useEffect(() => {
-    getAccessTokenSilently({
-      audience: auth0Config.audience
-    })
+    getToken()
       .then(accessToken => vesselSelectionState.initVessels(accessToken))
       .catch(e => console.log('Failed to acquire access token!', e))
-  }, [getAccessTokenSilently])
+  })
 
   return (
     <Router>
@@ -51,4 +49,5 @@ const App = () => {
   )
 }
 
-export default withAuthenticationRequired(App)
+// Redirect unauthenticated users to auth0 if not running Cypress tests
+export default window.Cypress ? App : withAuthenticationRequired(App)

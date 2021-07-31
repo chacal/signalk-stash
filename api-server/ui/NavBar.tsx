@@ -12,6 +12,7 @@ import {
 import * as React from 'react'
 import { useEffect } from 'react'
 import { withRouter } from 'react-router-dom'
+import { useAuthUser } from './auth'
 
 const navigation = [
   { label: 'Map', path: '/map' },
@@ -51,7 +52,8 @@ export const NavBar = withRouter(({ location, history }) => {
 })
 
 const AccountToolbar = () => {
-  const { logout, user } = useAuth0()
+  const { logout } = useAuth0()
+  const user = useAuthUser()
   const onLogout = () => logout({ returnTo: window.location.origin })
 
   return (
