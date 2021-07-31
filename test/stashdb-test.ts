@@ -1,9 +1,11 @@
 /* eslint-env mocha */
 import { SKDelta, SKDeltaJSON } from '@chacal/signalk-ts'
 import { LocalDate } from '@js-joda/core'
+import { fail } from 'assert'
 import { expect } from 'chai'
 import _ from 'lodash'
 import * as L from 'partial.lenses'
+import pgPromise from 'pg-promise'
 import DB from '../api-server/db/StashDB'
 import { BBox, Coords } from '../api-server/domain/Geo'
 import {
@@ -11,15 +13,17 @@ import {
   assertFixtureValuesInDB,
   measurementFixtures,
   positionFixtures,
+  testVessel,
   testVesselUuids,
   vesselUuid,
   writeDeltasFromPositionFixture
 } from './test-util'
 import TestDB from './TestDB'
 import { waitFor } from './waiting'
+import queryResultErrorCode = pgPromise.errors.queryResultErrorCode
 
 describe('StashDBB', () => {
-  beforeEach(() => TestDB.resetTables())
+  beforeEach(() => TestDB.resetTables().then(() => DB.upsertVessel(testVessel)))
   it('writes positions', async () => {
     await writeDeltasFromPositionFixture()
     await assertFixturePositionsInDB(DB)
@@ -115,6 +119,21 @@ describe('StashDBB', () => {
         return rowCount === countOfNumericValues
       }
     )
+
+  it('returns Vessel by owners email', () => {
+    return DB.getVesselByOwnerEmail(testVessel.ownerEmail)
+      .then(v => {
+        expect(v.vesselId).to.equal(testVessel.vesselId)
+        expect(v.name).to.equal(testVessel.name)
+      })
+      .catch(e => fail(e))
+  })
+
+  it('rejects if Vessel by owners email is not found', () => {
+    return DB.getVesselByOwnerEmail('not_existing@test.com')
+      .then(() => fail('Promise should have been rejected!'))
+      .catch(e => expect(e.code).to.equal(queryResultErrorCode.noData))
+  })
 })
 
 function getPositionWithNulls(): SKDeltaJSON {
