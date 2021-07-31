@@ -13,6 +13,7 @@ import DB from '../api-server/db/StashDB'
 import { StashDB } from '../api-server/db/StashDB'
 import Trackpoint from '../api-server/domain/Trackpoint'
 import Vessel from '../api-server/domain/Vessel'
+import { TEST_AUTH0_POST_DATA } from './auth0-test-user'
 import untypedMeasurementFixtures from './data/measurement-fixtures.json'
 import untypedPositionFixtures from './data/position-fixtures.json'
 
@@ -151,21 +152,11 @@ export function assertCoords(
 let cachedAccessToken = ''
 
 export function getAccessToken() {
-  // This test user has been manually added to auth0 development tenant's
-  // "Username-Password-Authentication" Database
-  const postData = {
-    grant_type: 'password',
-    username: 'unittest@signalk-stash-dev.chacal.fi',
-    password: 'ARADbOv6fAE',
-    client_id: 'YsmnlsLeFP0OhkmvHgrm3vqdEGWg3gvh', // SignalK Stash unit test app
-    audience: config.auth0.audience
-  }
-
   const options = {
     method: 'POST' as 'POST',
     url: 'https://signalk-stash-dev.eu.auth0.com/oauth/token',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    data: urlEncodedString(postData)
+    data: urlEncodedString(TEST_AUTH0_POST_DATA)
   }
 
   if (cachedAccessToken !== '') {
