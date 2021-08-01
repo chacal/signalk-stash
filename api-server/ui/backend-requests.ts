@@ -30,15 +30,16 @@ export function loadVessels(accessToken: string): Promise<VesselData[]> {
 export async function loadTrack(
   vesselId: VesselId,
   year: Year,
-  viewport: Viewport
+  viewport: Viewport,
+  accessToken: string
 ): Promise<LoadedTrack> {
   debug('Loading track', vesselId)
   const bStr = toQueryString(viewport.bounds)
   const timespan = toTimeQueryString(year)
-  const res = await fetch(
-    `/tracks?context=${vesselId}&${bStr}&zoomLevel=${viewport.zoom}&${timespan}`
+  const track = await getJSON(
+    `/tracks?context=${vesselId}&${bStr}&zoomLevel=${viewport.zoom}&${timespan}`,
+    accessToken
   )
-  const track = await res.json()
   return {
     vesselId,
     year,

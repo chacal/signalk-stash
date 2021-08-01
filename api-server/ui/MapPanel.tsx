@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 import { map } from 'rxjs/operators'
+import { useAuthToken } from './auth'
 import Map from './Map'
 import { MapPanelState } from './mappanel-state'
 import MapVisibilityAdjustmentPanel from './MapVisibilityAdjustmentPanel'
@@ -15,7 +16,12 @@ interface MapPanelProps {
 }
 
 const MapPanel = ({ vesselSelection, timeSelection }: MapPanelProps) => {
-  const panelState = new MapPanelState(vesselSelection, timeSelection)
+  const getAuthToken = useAuthToken()
+  const panelState = new MapPanelState(
+    vesselSelection,
+    timeSelection,
+    getAuthToken()
+  )
 
   return (
     <React.Fragment>

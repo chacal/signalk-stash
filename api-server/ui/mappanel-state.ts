@@ -31,7 +31,8 @@ export class MapPanelState {
 
   constructor(
     vesselSelectionState: VesselSelectionState,
-    timeSelectionState: TimeSelectionState
+    timeSelectionState: TimeSelectionState,
+    getAuthToken: Promise<string>
   ) {
     this.viewport.next(initialViewport)
     this.vesselSelectionState = vesselSelectionState
@@ -40,7 +41,8 @@ export class MapPanelState {
     this.loadedTracks = startTrackLoading(
       this.vesselSelectionState.selectedVessels,
       this.timeSelectionState.selectedYears,
-      this.viewport
+      this.viewport,
+      getAuthToken
     )
     this.tracksToRender = toTracksToRender(
       this.vesselSelectionState.vessels,
@@ -73,7 +75,8 @@ const isTrackMissing = (loadedTracks: LoadedTracks) => (
 function startTrackLoading(
   selectedVessels: Observable<VesselId[]>,
   selectedYears: Observable<SelectedYears>,
-  viewport: Observable<Viewport>
+  viewport: Observable<Viewport>,
+  getAuthToken: Promise<string>
 ): Observable<LoadedTrack[]> {
   let loadedTracks: LoadedTracks = new Map<
     VesselId,
@@ -95,7 +98,10 @@ function startTrackLoading(
           const tracksForVessel =
             loadedTracks.get(vesselId) || new Map<Year, Promise<LoadedTrack>>()
           loadedTracks.set(vesselId, tracksForVessel)
-          tracksForVessel.set(year, loadTrack(vesselId, year, viewport))
+          tracksForVessel.set(
+            year,
+            getAuthToken.then(t => loadTrack(vesselId, year, viewport, t))
+          )
         })
 
       return from(
