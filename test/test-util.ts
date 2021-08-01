@@ -169,6 +169,16 @@ export function getAccessToken() {
   }
 }
 
+export function authIt(
+  title: string,
+  testFunc: (token: string) => Promise<any>
+) {
+  return it(title, async () => {
+    const token = await getAccessToken()
+    return testFunc(token)
+  })
+}
+
 function urlEncodedString(data: { [index: string]: string }) {
   return Object.keys(data)
     .map(key => `${key}=${encodeURIComponent(data[key])}`)
