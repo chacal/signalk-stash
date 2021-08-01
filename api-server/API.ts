@@ -1,6 +1,5 @@
 import Debug from 'debug'
 import express, {
-  Express,
   NextFunction,
   Request,
   RequestHandler,
@@ -44,11 +43,19 @@ class API {
     private readonly app = express()
   ) {
     this.customizer(this.app)
+
+    // Public routes
+    this.app.use(express.static(publicPath))
+    setupMMLTilesAPIRoutes(this.app)
+    setupMqttCredentialsAPIRoutes(this.app) // TODO: This API is not used, should be removed
+
+    // Authorized routes
+    this.app.use(checkJwt)
+    this.app.use(checkVesselOwner)
     setupTrackAPIRoutes(this.app)
     setupVesselAPIRoutes(this.app)
-    setupMqttCredentialsAPIRoutes(this.app)
-    setupMMLTilesAPIRoutes(this.app)
-    this.app.use(express.static(publicPath))
+
+    // Error handlers
     this.app.use(this.validationErrorHandler)
     this.app.use(this.authorizationErrorHandler)
     this.app.use(this.defaultErrorHandler)
@@ -151,12 +158,4 @@ const checkVesselOwner = (req: Request, res: Response, next: NextFunction) => {
         .status(401)
         .json({ error: `No vessel found for owner email ${ownerEmail}` })
     })
-}
-
-export function authorizedGet<T>(
-  app: Express,
-  url: string,
-  requestHandler: (req: Request, res: Response) => Promise<T>
-) {
-  app.get(url, checkJwt, checkVesselOwner, asyncHandler(requestHandler))
 }
