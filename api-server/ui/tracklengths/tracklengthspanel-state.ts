@@ -1,7 +1,7 @@
 import { combineLatest, from, merge, Observable, of, Subject } from 'rxjs'
 import { catchError, map, share, switchMap } from 'rxjs/operators'
 import { VesselData, VesselId } from '../../domain/Vessel'
-import { fetchTrackLengths, TrackLengthsFetcher } from '../backend-requests'
+import { TrackLengthsFetcher } from '../backend-requests'
 import TimeSelectionState, { SelectedYears } from '../timeselection-state'
 import { Vessel, VesselSelectionState } from '../vesselselection-state'
 
@@ -14,7 +14,7 @@ export class TrackLengthsPanelState {
   constructor(
     vesselSelectionState: VesselSelectionState,
     timeSelectionState: TimeSelectionState,
-    fetchTrackLenghtsParam: TrackLengthsFetcher = fetchTrackLengths
+    fetchTrackLenghtsParam: TrackLengthsFetcher
   ) {
     this.vesselSelectionState = vesselSelectionState
     this.timeSelectionState = timeSelectionState

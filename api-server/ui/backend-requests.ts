@@ -1,6 +1,5 @@
 import { ChronoUnit, LocalTime, Year } from '@js-joda/core'
 import Debug from 'debug'
-import _ from 'lodash'
 
 import { toQueryString } from '../domain/Geo'
 import { VesselData, VesselId } from '../domain/Vessel'
@@ -55,16 +54,15 @@ export type TrackLengthsFetcher = (
 
 export function fetchTrackLengths(
   vesselId: VesselId,
-  year: Year
+  year: Year,
+  accessToken: string
 ): Promise<TrackLength[]> {
   const params = new URLSearchParams({
     context: vesselId,
     firstDay: `${year.toString()}-04-01`,
     lastDay: `${year.toString()}-11-01`
   })
-  return fetch(`/tracks/daily/stats?${params.toString()}`).then(res =>
-    res.json()
-  )
+  return getJSON(`/tracks/daily/stats?${params.toString()}`, accessToken)
 }
 
 function getJSON(url: string, accessToken: string) {
