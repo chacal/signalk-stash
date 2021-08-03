@@ -27,7 +27,7 @@ jobs:
     - run: |
         make docker-test-up
         make start-test &
-        npx wait-on "http://localhost:43000/tracks?context=self"
+        npx wait-on "http://localhost:43000/bundle.js"
     - run: make test-integration
       env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
