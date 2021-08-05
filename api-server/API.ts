@@ -4,6 +4,7 @@ import express, {
   RequestHandler,
   Response
 } from 'express'
+import { auth } from 'express-openid-connect'
 import path from 'path'
 import { ExpressAppCustomizer } from './APIServerMain'
 import { IConfig } from './Config'
@@ -23,11 +24,27 @@ class API {
     private readonly app = express()
   ) {
     this.customizer(this.app)
-    setupTrackAPIRoutes(this.app)
-    setupVesselAPIRoutes(this.app)
-    setupMqttCredentialsAPIRoutes(this.app)
+    this.app.use(
+      auth({
+        authRequired: false,
+        auth0Logout: true,
+        secret: 'random string',
+        baseURL: 'http://localhost:3000',
+        clientID: '',
+        issuerBaseURL: ''
+      })
+    )
+    const isAuthenticatedHttp = (req: Request, res: Response, next: NextFunction) => {
+      req.oidc.isAuthenticated() ? next() : res.status(401).send('Not authenticated')
+    }
+    setupTrackAPIRoutes(this.app, isAuthenticatedHttp)
+    setupVesselAPIRoutes(this.app, isAuthenticatedHttp)
+    setupMqttCredentialsAPIRoutes(this.app, isAuthenticatedHttp)
     setupMMLTilesAPIRoutes(this.app)
-    this.app.use(express.static(publicPath))
+    this.app.get('/', (req, res, next) => {
+      req.oidc.isAuthenticated() ? next() : res.redirect('/login')
+    })
+    this.app.use(express.static(publicPath), )
     this.app.use(this.validationErrorHandler)
     this.app.use(this.defaultErrorHandler)
   }

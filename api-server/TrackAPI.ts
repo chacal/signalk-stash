@@ -1,6 +1,6 @@
 import { LocalDate, LocalDateTime } from '@js-joda/core'
 import Debug from 'debug'
-import { Express, Request, Response } from 'express'
+import { Express, Request, RequestHandler, Response } from 'express'
 import * as Joi from 'joi'
 import { asyncHandler } from './API'
 import stash, { Timespan } from './db/StashDB'
@@ -9,7 +9,8 @@ import { tracksToGeoJSON } from './domain/Trackpoint'
 import { Schemas, validate } from './domain/validation'
 const debug = Debug('stash:track-api')
 
-export default function setupTrackAPIRoutes(app: Express) {
+export default function setupTrackAPIRoutes(app: Express, isAuthenticatedHttp: RequestHandler) {
+  app.use('/tracks/*', isAuthenticatedHttp)
   app.get('/tracks/daily/stats', asyncHandler(dailyTrackStats))
   app.get('/tracks', asyncHandler(tracks))
 }

@@ -1,5 +1,5 @@
 import Debug from 'debug'
-import { Express, Request, Response } from 'express'
+import { Express, Request, RequestHandler, Response } from 'express'
 import { DELTALATESTSWILDCARDTOPIC } from '../delta-inputs/MqttDeltaInput'
 import { asyncHandler } from './API'
 import config from './Config'
@@ -7,7 +7,8 @@ import DB from './db/StashDB'
 import { MqttAccount, MqttACL, MqttACLLevel } from './domain/Auth'
 const debug = Debug('stash:mqtt-credentials-api')
 
-export default function setupMqttCredentialsAPIRoutes(app: Express) {
+export default function setupMqttCredentialsAPIRoutes(app: Express, isAuthenticatedHttp: RequestHandler) {
+  app.use('/mqtt-credentials', isAuthenticatedHttp)
   app.get('/mqtt-credentials', asyncHandler(getMqttCredentials))
 }
 
