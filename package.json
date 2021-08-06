@@ -45,6 +45,7 @@
     "css-loader": "^2.1.1",
     "debug": "^4.3.2",
     "express": "^4.16.4",
+    "express-openid-connect": "^2.5.0",
     "geolib": "^3.3.1",
     "google-palette": "^1.1.0",
     "joi": "^17.4.1",

@@ -12,6 +12,8 @@
       password: "{{ lookup('env','SIGNALK_STASH_PROD_MQTT_LATESTREADER_PASSWORD') }}"
     grafana:
       password: "{{ lookup('env','SIGNALK_STASH_PROD_GRAFANA_PASSWORD') }}"
+    auth:
+      secret: "{{ lookup('env','SIGNALK_STASH_PROD_AUTH_SECRET') }}"
 
   tasks:
     - name: Copy Docker compose file to remote
@@ -29,6 +31,11 @@
         msg: "Mqtt latest reader credentials are missing. Set SIGNALK_STASH_PROD_MQTT_LATESTREADER_USERNAME and SIGNALK_STASH_PROD_MQTT_LATESTREADER_PASSWORD variables."
       when: mqtt_latestreader.username == "" or mqtt_latestreader.password == ""
 
+    - name: Fail if auth secret is missing
+      fail:
+        msg: "Auth secret is missing. Set SIGNALK_STASH_PROD_AUTH_SECRET variable."
+      when: auth.secret == ""
+
     - name: Generate Docker environment file
       copy:
         dest: docker-prod.env
@@ -37,6 +44,7 @@
           SIGNALK_STASH_PROD_MQTT_RUNNER_PASSWORD={{ mqtt_runner.password }}
           SIGNALK_STASH_PROD_MQTT_LATESTREADER_USERNAME={{mqtt_latestreader.username}}
           SIGNALK_STASH_PROD_MQTT_LATESTREADER_PASSWORD={{mqtt_latestreader.password}}
+          SIGNALK_STASH_PROD_AUTH_SECRET={{auth.secret}}
 
     - name: Copy Mosquitto TLS configuration file
       template:
