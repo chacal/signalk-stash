@@ -77,9 +77,12 @@ export function getAuthorizedJson(
 }
 
 export function addAuthCookie(req: request.Test): request.Test {
+  return req.set('Cookie', ['appSession=' + createTestSessionCookie()])
+}
+
+export function createTestSessionCookie() {
   const sessionData = { id_token: makeTestIdToken() }
-  const sessionCookie = encryptSessionCookie(sessionData, config.auth.secret)
-  return req.set('Cookie', ['appSession=' + sessionCookie])
+  return encryptSessionCookie(sessionData, config.auth.secret)
 }
 
 export function startTestApp(): express.Express {

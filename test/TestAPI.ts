@@ -4,7 +4,11 @@ import fs from 'fs'
 import path from 'path'
 import DB from '../api-server/db/StashDB'
 import Vessel from '../api-server/domain/Vessel'
-import { testVesselUuids, writeDeltasFromJSONArray } from './test-util'
+import {
+  createTestSessionCookie,
+  testVesselUuids,
+  writeDeltasFromJSONArray
+} from './test-util'
 import TestDB from './TestDB'
 const debug = Debug('stash:test-api')
 
@@ -12,6 +16,7 @@ export default function setupTestAPIRoutes(app: Express) {
   console.log('********* Setting up test routes *********')
   app.post('/test/reset-tables', resetTables)
   app.post('/test/insert-positions', insertLargePositionsFixture)
+  app.post('/test/login', loginWithTestSession)
 }
 
 function resetTables(req: Request, res: Response, next: NextFunction): void {
@@ -36,4 +41,16 @@ function insertLargePositionsFixture(
     .then(() => DB.upsertVessel(new Vessel(testVesselUuids[2], 'foo', 'BAZ')))
     .then(() => res.status(204).end())
     .catch(next)
+}
+
+function loginWithTestSession(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  res.cookie('appSession', createTestSessionCookie(), {
+    httpOnly: true,
+    sameSite: 'lax'
+  })
+  res.json()
 }

@@ -2,6 +2,7 @@ describe('Stash UI', () => {
   before(() => {
     cy.request('POST', '/test/reset-tables')
     cy.request('POST', '/test/insert-positions')
+    cy.request('POST', '/test/login')
   })
 
   it('renders vessel list', () => {
