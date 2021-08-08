@@ -1,6 +1,6 @@
 {
-  "ignore": ["node_modules", "built", "test", "api-server/ui"],
-  "watch": ["api-server"],
+  "ignore": ["api-server/ui", "test/*-test.ts"],
+  "watch": ["api-server", "test" ],
   "exec": "make start",
   "ext": "ts,js,json",
   "events": {
