@@ -3,7 +3,7 @@
 import AutoDetect from '@signalk/streams/autodetect'
 import Liner from '@signalk/streams/liner'
 import S3Stream from '@signalk/streams/s3'
-import program from 'commander'
+import { program } from 'commander'
 import { Transform } from 'stream'
 import { createGunzip } from 'zlib'
 import stashDB from '../api-server/db/StashDB'
@@ -23,8 +23,9 @@ program
   .option('-A --all [true]', 'import all data (default: only self)')
   .option('-z --gzip [true]', 'data is gzipped (default: not compressed)')
 program.parse(process.argv)
+const opts = program.opts()
 
-if (!program.bucket) {
+if (!opts.bucket) {
   program.outputHelp()
   process.exit(-1)
 }
@@ -39,13 +40,13 @@ const uuidPattern = /^urn:mrn:signalk:uuid:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-
 const mmsiPattern = /^urn:mrn:imo:mmsi:[2-7][0-9]{8}$/
 
 if (
-  !uuidPattern.test(program.selfVesselId) &&
-  !mmsiPattern.test(program.selfVesselId)
+  !uuidPattern.test(opts.selfVesselId) &&
+  !mmsiPattern.test(opts.selfVesselId)
 ) {
   console.error(
     'Self is not a Signal K uuid nor a proper mmsi id, check format:'
   )
-  console.error(program.selfVesselId)
+  console.error(opts.selfVesselId)
   console.error(
     'urn:mrn:signalk:uuid:________-____-4___-X___-________ where X is 89ABab'
   )
@@ -54,8 +55,8 @@ if (
 }
 
 const s3Stream = new S3Stream({
-  bucket: program.bucket,
-  prefix: program.prefix
+  bucket: opts.bucket,
+  prefix: opts.prefix
 })
 
 let tsvRowCount = 0
@@ -94,9 +95,9 @@ class SetSelfVesselId extends Transform {
   }
 }
 
-const setSelfVesselId = new SetSelfVesselId(program.selfVesselId, program.all)
+const setSelfVesselId = new SetSelfVesselId(opts.selfVesselId, opts.all)
 
-const datastream = program.gzip ? s3Stream.pipe(createGunzip()) : s3Stream
+const datastream = opts.gzip ? s3Stream.pipe(createGunzip()) : s3Stream
 
 datastream
   .pipe(liner)
