@@ -1,5 +1,6 @@
+import { expect } from 'chai'
 import request from 'supertest'
-import { addAuthCookie, startTestApp } from './test-util'
+import { addAuthCookie, getAuthorizedJson, startTestApp } from './test-util'
 
 describe('Backend API', () => {
   const app = startTestApp()
@@ -22,5 +23,11 @@ describe('Backend API', () => {
       .get('/favicon.ico')
       .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8')
+  })
+
+  it('returns user info for authorized requests', () => {
+    return getAuthorizedJson(app, '/user-info').expect(res => {
+      expect(res.body.email).to.eq('unittest@signalk-stash-dev.chacal.fi')
+    })
   })
 })

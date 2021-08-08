@@ -31,6 +31,7 @@ class API {
         idpLogout: true
       })
     )
+    app.get('/user-info', this.getUserInfo)
     setupTrackAPIRoutes(this.app)
     setupVesselAPIRoutes(this.app)
     setupMqttCredentialsAPIRoutes(this.app)
@@ -49,6 +50,10 @@ class API {
         resolve()
       })
     })
+  }
+
+  private async getUserInfo(req: Request, res: Response) {
+    return res.json(req.oidc.user)
   }
 
   private validationErrorHandler(
