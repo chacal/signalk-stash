@@ -17,12 +17,12 @@ export default function setupTrackAPIRoutes(app: Express) {
 function bboxFromQuery(req: Request): BBox | undefined {
   const q = req.query
   if (!!q.n || !!q.w || !!q.s || !!q.e) {
-    const bboxSchema = {
+    const bboxSchema = Joi.object({
       n: Schemas.lat,
       w: Schemas.lng,
       s: Schemas.lat,
       e: Schemas.lng
-    }
+    })
     validate(req.query, bboxSchema)
     const nw = new Coords({ lat: Number(q.n), lng: Number(q.w) })
     const se = new Coords({ lat: Number(q.s), lng: Number(q.e) })
@@ -34,13 +34,13 @@ function bboxFromQuery(req: Request): BBox | undefined {
 
 function zoomLevelFromQuery(req: Request): ZoomLevel | undefined {
   if (req.query.zoomLevel) {
-    const schema = {
+    const schema = Joi.object({
       zoomLevel: Joi.number()
         .greater(0)
         .less(25)
         .required()
-    }
-    return Number(validate(req.query, schema).zoomLevel)
+    })
+    return validate<{ zoomLevel: number }>(req.query, schema).zoomLevel
   } else {
     return undefined
   }
@@ -101,8 +101,8 @@ async function dailyTrackStats(req: Request, res: Response) {
 }
 
 function contextFromQuery(req: Request): string {
-  const schema = {
+  const schema = Joi.object({
     context: Joi.string().required()
-  }
-  return validate(req.query, schema).context as string
+  })
+  return validate<{ context: string }>(req.query, schema).context as string
 }
