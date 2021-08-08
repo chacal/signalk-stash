@@ -14,6 +14,7 @@ import Trackpoint from '../api-server/domain/Trackpoint'
 import Vessel from '../api-server/domain/Vessel'
 import untypedMeasurementFixtures from './data/measurement-fixtures.json'
 import untypedPositionFixtures from './data/position-fixtures.json'
+import { encryptSessionCookie, makeTestIdToken } from './test-auth-util'
 
 const debug = Debug('stash:test-util')
 const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures as SKDeltaJSON[]
@@ -65,6 +66,19 @@ export function getJson(
     .set('Accept', 'application/json')
     .expect('Content-Type', /json/)
     .expect(statusCode)
+}
+
+export function getAuthorizedJson(
+  app: express.Express,
+  path: string,
+  statusCode: number = 200
+): request.Test {
+  const sessionData = { id_token: makeTestIdToken() }
+  const sessionCookie = encryptSessionCookie(sessionData, config.auth.secret)
+
+  return getJson(app, path, statusCode).set('Cookie', [
+    'appSession=' + sessionCookie
+  ])
 }
 
 export function startTestApp(): express.Express {

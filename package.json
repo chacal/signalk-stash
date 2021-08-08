@@ -81,6 +81,7 @@
     "cypress": "^8.2.0",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.11.2",
+    "jose": "^2.0.5",
     "mocha": "^9.0.3",
     "mocha-junit-reporter": "^1.18.0",
     "mocha-multi-reporters": "^1.1.7",
