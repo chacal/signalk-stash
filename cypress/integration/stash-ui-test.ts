@@ -3,11 +3,10 @@ describe('Stash UI', () => {
     cy.request('POST', '/test/reset-tables')
     cy.request('POST', '/test/insert-positions')
     cy.request('POST', '/test/login')
+    cy.visit('/')
   })
 
   it('renders vessel list', () => {
-    cy.visit('/')
-
     vesselItems().should('have.length', 2)
 
     vesselItem(0).should('not.be.visible')
@@ -37,12 +36,18 @@ describe('Stash UI', () => {
     checkbox(0).should('not.be.checked')
     checkbox(1).should('not.be.checked')
   })
+
+  it('shows logged in email', () => {
+    cy.get('[data-cy=account-toolbar__email]').should(
+      'have.text',
+      'unittest@signalk-stash-dev.chacal.fi'
+    )
+  })
 })
 
 function vesselToggle() {
   return cy.get('[data-cy=vessel-selection-panel-caret]')
 }
-
 
 function vesselItems() {
   return cy.get('[data-cy=vessel-selection-panel__vessel]')
