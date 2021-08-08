@@ -62,6 +62,10 @@ export function fetchTrackLengths(
   return getJson(`/tracks/daily/stats?${params.toString()}`)
 }
 
+export function fetchUser() {
+  return getJson('/user-info')
+}
+
 function getJson(url: string) {
   return fetch(url).then(res => {
     if (res.status === 401) {
