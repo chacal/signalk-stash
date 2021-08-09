@@ -36,7 +36,7 @@ class API {
         idpLogout: true
       })
     )
-    this.app.use(this.checkVesselOwnership)
+    this.app.use(this.requireVesselOwnership)
     app.get('/user-info', this.getUserInfo)
     setupTrackAPIRoutes(this.app)
     setupVesselAPIRoutes(this.app)
@@ -62,7 +62,7 @@ class API {
     return res.json(req.oidc.user)
   }
 
-  private checkVesselOwnership(
+  private requireVesselOwnership(
     req: Request,
     res: Response,
     next: NextFunction
