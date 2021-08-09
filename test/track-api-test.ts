@@ -1,10 +1,12 @@
 import { expect } from 'chai'
+import DB from '../api-server/db/StashDB'
 import {
   assertCoords,
   assertValidationErrors,
   getAuthorizedJson,
   getJson,
   startTestApp,
+  testVessel,
   testVesselUuids,
   writeDeltasFromPositionFixture
 } from './test-util'
@@ -13,7 +15,11 @@ import TestDB from './TestDB'
 describe('Track API', () => {
   const app = startTestApp()
 
-  beforeEach(() => TestDB.resetTables().then(writeDeltasFromPositionFixture))
+  beforeEach(() =>
+    TestDB.resetTables()
+      .then(writeDeltasFromPositionFixture)
+      .then(() => DB.upsertVessel(testVessel))
+  )
 
   it('requires authentication', () => {
     return getJson(app, '/tracks', 401)
