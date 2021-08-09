@@ -56,9 +56,13 @@ function loginWithTestSession(
   res: Response,
   next: NextFunction
 ): void {
-  res.cookie('appSession', createTestSessionCookie(), {
-    httpOnly: true,
-    sameSite: 'lax'
-  })
+  res.cookie(
+    'appSession',
+    createTestSessionCookie('unittest@signalk-stash-dev.chacal.fi', true),
+    {
+      httpOnly: true,
+      sameSite: 'lax'
+    }
+  )
   res.json()
 }

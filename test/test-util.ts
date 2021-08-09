@@ -77,12 +77,18 @@ export function getAuthorizedJson(
   return addAuthCookie(getJson(app, path, statusCode))
 }
 
-export function addAuthCookie(req: request.Test): request.Test {
-  return req.set('Cookie', ['appSession=' + createTestSessionCookie()])
+export function addAuthCookie(
+  req: request.Test,
+  email: string = 'unittest@signalk-stash-dev.chacal.fi',
+  emailVerified: boolean = true
+): request.Test {
+  return req.set('Cookie', [
+    'appSession=' + createTestSessionCookie(email, emailVerified)
+  ])
 }
 
-export function createTestSessionCookie() {
-  const sessionData = { id_token: makeTestIdToken() }
+export function createTestSessionCookie(email: string, emailVerified: boolean) {
+  const sessionData = { id_token: makeTestIdToken(email, emailVerified) }
   return encryptSessionCookie(sessionData, config.auth.secret)
 }
 

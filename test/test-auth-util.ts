@@ -23,7 +23,7 @@ const key = JWK.asKey({
   alg: 'RS256'
 })
 
-export function makeTestIdToken() {
+export function makeTestIdToken(email: string, emailVerified: boolean) {
   const idToken = {
     nickname: '__test_nickname__',
     sub: '__test_sub__',
@@ -32,8 +32,8 @@ export function makeTestIdToken() {
     iat: Math.round(Date.now() / 1000),
     exp: Math.round(Date.now() / 1000) + 60000,
     nonce: '__test_nonce__',
-    email: 'unittest@signalk-stash-dev.chacal.fi',
-    email_verified: true
+    email,
+    email_verified: emailVerified
   }
 
   return JWT.sign(idToken, key.toPEM(true), {

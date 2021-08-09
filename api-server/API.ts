@@ -1,3 +1,4 @@
+import Debug from 'debug'
 import express, {
   NextFunction,
   Request,
@@ -5,9 +6,12 @@ import express, {
   Response
 } from 'express'
 import { auth } from 'express-openid-connect'
+import Joi from 'joi'
 import path from 'path'
 import { ExpressAppCustomizer } from './APIServerMain'
 import { IConfig } from './Config'
+import stash from './db/StashDB'
+import { validate } from './domain/validation'
 import setupMMLTilesAPIRoutes from './MMLTilesAPI'
 import setupMqttCredentialsAPIRoutes, {
   insertLatestDeltaReaderAccountFromConfig
@@ -16,6 +20,7 @@ import setupTrackAPIRoutes from './TrackAPI'
 import setupVesselAPIRoutes from './VesselAPI'
 
 const publicPath = path.join(__dirname, '../../api-server/public')
+const debug = Debug('stash:API')
 
 class API {
   constructor(
@@ -31,6 +36,7 @@ class API {
         idpLogout: true
       })
     )
+    this.app.use(this.checkVesselOwnership)
     app.get('/user-info', this.getUserInfo)
     setupTrackAPIRoutes(this.app)
     setupVesselAPIRoutes(this.app)
@@ -54,6 +60,38 @@ class API {
 
   private async getUserInfo(req: Request, res: Response) {
     return res.json(req.oidc.user)
+  }
+
+  private checkVesselOwnership(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    validate(
+      req.oidc.user?.email,
+      Joi.string()
+        .email()
+        .required()
+    )
+
+    validate(
+      req.oidc.user?.email_verified,
+      Joi.boolean()
+        .required()
+        .valid(true)
+    )
+
+    const ownerEmail = req.oidc.user?.email
+    debug(`Authorizing vessel for owner email ${ownerEmail}`)
+    stash
+      .getVesselByOwnerEmail(ownerEmail)
+      .then(() => next()) // We only check that user is associated to _some_ vessel
+      .catch(e => {
+        debug(`Failed vessel authorization for owner email ${ownerEmail}.`, e)
+        res
+          .status(401)
+          .json({ error: `No vessel found for owner email ${ownerEmail}` })
+      })
   }
 
   private validationErrorHandler(
