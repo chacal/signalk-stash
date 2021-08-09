@@ -7,6 +7,7 @@ import Vessel from '../api-server/domain/Vessel'
 import {
   createTestSessionCookie,
   testVesselUuids,
+  vesselOwnerEmail,
   writeDeltasFromJSONArray
 } from './test-util'
 import TestDB from './TestDB'
@@ -39,12 +40,7 @@ function insertLargePositionsFixture(
   writeDeltasFromJSONArray(rows)
     .then(() =>
       DB.upsertVessel(
-        new Vessel(
-          testVesselUuids[1],
-          'Test Vessel',
-          'baz',
-          'unittest@signalk-stash-dev.chacal.fi'
-        )
+        new Vessel(testVesselUuids[1], 'Test Vessel', 'baz', vesselOwnerEmail)
       )
     )
     .then(() =>
@@ -61,13 +57,9 @@ function loginWithTestSession(
   res: Response,
   next: NextFunction
 ): void {
-  res.cookie(
-    'appSession',
-    createTestSessionCookie('unittest@signalk-stash-dev.chacal.fi', true),
-    {
-      httpOnly: true,
-      sameSite: 'lax'
-    }
-  )
+  res.cookie('appSession', createTestSessionCookie(vesselOwnerEmail, true), {
+    httpOnly: true,
+    sameSite: 'lax'
+  })
   res.json()
 }

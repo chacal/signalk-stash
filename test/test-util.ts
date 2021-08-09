@@ -24,11 +24,13 @@ export { measurementFixtures, positionFixtures }
 export const vesselMqttPassword = 'vesselpassword'
 export const vesselUuid =
   'urn:mrn:signalk:uuid:2204ae24-c944-4ffe-8d1d-4d411c9cea2e'
+export const vesselOwnerEmail = 'unittest@signalk-stash-dev.chacal.fi'
+
 export const testVessel = new Vessel(
   vesselUuid,
   'S/Y TestVessel',
   vesselMqttPassword,
-  'unittest@signalk-stash-dev.chacal.fi'
+  vesselOwnerEmail
 )
 
 export const testVesselUuids = [
@@ -79,7 +81,7 @@ export function getAuthorizedJson(
 
 export function addAuthCookie(
   req: request.Test,
-  email: string = 'unittest@signalk-stash-dev.chacal.fi',
+  email: string = vesselOwnerEmail,
   emailVerified: boolean = true
 ): request.Test {
   return req.set('Cookie', [

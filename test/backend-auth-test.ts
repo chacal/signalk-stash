@@ -6,7 +6,8 @@ import {
   getAuthorizedJson,
   getJson,
   startTestApp,
-  testVessel
+  testVessel,
+  vesselOwnerEmail
 } from './test-util'
 import TestDB from './TestDB'
 
@@ -37,7 +38,7 @@ describe('Backend API', () => {
 
   it('returns user info for authorized requests', () => {
     return getAuthorizedJson(app, '/user-info').expect(res => {
-      expect(res.body.email).to.eq('unittest@signalk-stash-dev.chacal.fi')
+      expect(res.body.email).to.eq(vesselOwnerEmail)
     })
   })
 
@@ -64,6 +65,6 @@ describe('Backend API', () => {
 
   it('requires verified email', async () => {
     const req = getJson(app, '/contexts', 400)
-    await addAuthCookie(req, 'unittest@signalk-stash-dev.chacal.fi', false)
+    await addAuthCookie(req, vesselOwnerEmail, false)
   })
 })
