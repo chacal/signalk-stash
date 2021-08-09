@@ -6,6 +6,7 @@ describe(
   () => {
     before(() => {
       cy.request('POST', '/test/reset-tables')
+      cy.request('POST', '/test/insert-vessels')
       cy.request('POST', '/test/insert-positions')
       cy.request('POST', '/test/login')
       cy.visit('/')

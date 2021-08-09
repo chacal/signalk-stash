@@ -51,6 +51,8 @@ describe('Stash Map', () => {
 
   it('zoom is recalled from localstorage', () => {
     cy.viewport(1440, 900)
+    cy.request('POST', '/test/reset-tables')
+    cy.request('POST', '/test/insert-vessels')
     cy.request('POST', '/test/login')
     cy.visit('/')
     cy.get('.leaflet-control-zoom-in').click()
