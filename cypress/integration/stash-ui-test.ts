@@ -28,7 +28,7 @@ describe(
         )
       )
 
-      vesselItem(0).contains('bar')
+      vesselItem(0).contains('Test Vessel')
       vesselItem(1).contains('foo')
       checkbox(0).should('not.be.checked')
       checkbox(1).should('not.be.checked')
