@@ -9,10 +9,17 @@ export default class Vessel implements VesselData {
   vesselId: VesselId
   name: string
   mqttAccount: MqttAccount
-  constructor(vesselId: string, name: string, mqttPassword: string) {
+  ownerEmail: string
+  constructor(
+    vesselId: string,
+    name: string,
+    mqttPassword: string,
+    ownerEmail: string
+  ) {
     this.vesselId = asVesselId(vesselId)
     this.name = name
     this.mqttAccount = new MqttAccount(vesselId, mqttPassword)
+    this.ownerEmail = ownerEmail
   }
 }
 

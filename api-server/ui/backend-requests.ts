@@ -1,6 +1,5 @@
 import { ChronoUnit, LocalTime, Year } from '@js-joda/core'
 import Debug from 'debug'
-import _ from 'lodash'
 
 import { toQueryString } from '../domain/Geo'
 import { VesselData, VesselId } from '../domain/Vessel'
@@ -24,7 +23,7 @@ const toTimeQueryString = (y: Year) => {
 
 export function loadVessels(): Promise<VesselData[]> {
   debug('Loading vessels..')
-  return fetch(`/contexts`).then(res => res.json())
+  return getJson(`/contexts`)
 }
 
 export async function loadTrack(
@@ -35,10 +34,9 @@ export async function loadTrack(
   debug('Loading track', vesselId)
   const bStr = toQueryString(viewport.bounds)
   const timespan = toTimeQueryString(year)
-  const res = await fetch(
+  const track = await getJson(
     `/tracks?context=${vesselId}&${bStr}&zoomLevel=${viewport.zoom}&${timespan}`
   )
-  const track = await res.json()
   return {
     vesselId,
     year,
@@ -61,7 +59,20 @@ export function fetchTrackLengths(
     firstDay: `${year.toString()}-04-01`,
     lastDay: `${year.toString()}-11-01`
   })
-  return fetch(`/tracks/daily/stats?${params.toString()}`).then(res =>
-    res.json()
-  )
+  return getJson(`/tracks/daily/stats?${params.toString()}`)
+}
+
+export function fetchUser() {
+  return getJson('/user-info')
+}
+
+function getJson(url: string) {
+  return fetch(url).then(res => {
+    if (res.status === 401) {
+      location.href = '/login'
+      return Promise.resolve({})
+    } else {
+      return res.json()
+    }
+  })
 }

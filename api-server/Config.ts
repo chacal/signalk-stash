@@ -43,6 +43,12 @@ export interface IConfig extends StringIndexable {
   deltaWriteStreamBufferSize: number
   deltaWriteStreamFlushPeriod: Duration
   deltaWriteStreamFlushRetryPeriod: Duration
+  auth: {
+    baseURL: string
+    clientID: string
+    issuerBaseURL: string
+    secret: string
+  }
 }
 
 type DeepPartial<T> = { [P in keyof T]?: DeepPartial<T[P]> }
@@ -83,7 +89,13 @@ const baseConfig = {
   },
   deltaWriteStreamBufferSize: 100,
   deltaWriteStreamFlushPeriod: Duration.ofMillis(10000),
-  deltaWriteStreamFlushRetryPeriod: Duration.ofMillis(1000)
+  deltaWriteStreamFlushRetryPeriod: Duration.ofMillis(1000),
+  auth: {
+    baseURL: 'http://localhost:3000',
+    clientID: 'mKdpwEK9Mxg7mU6EuOUSg03wSKbKz1pI',
+    issuerBaseURL: 'https://signalk-stash-dev.eu.auth0.com',
+    secret: 'dev-auth-secret-string'
+  }
 }
 
 const testConfig = {
@@ -126,6 +138,11 @@ const environments: IEnvironments = {
     },
     mqtt: {
       broker: 'mqtt://mqtt'
+    },
+    auth: {
+      baseURL: 'https://signalk-stash.chacal.fi',
+      clientID: 'BPqbNlJWgvMR2ZxuvVj1dGm0pVKYxb2a',
+      issuerBaseURL: 'https://signalk-stash.eu.auth0.com'
     }
   },
   'unit-test': testConfig,

@@ -14,6 +14,7 @@ import Trackpoint from '../api-server/domain/Trackpoint'
 import Vessel from '../api-server/domain/Vessel'
 import untypedMeasurementFixtures from './data/measurement-fixtures.json'
 import untypedPositionFixtures from './data/position-fixtures.json'
+import { encryptSessionCookie, makeTestIdToken } from './test-auth-util'
 
 const debug = Debug('stash:test-util')
 const measurementFixtures: SKDeltaJSON[] = untypedMeasurementFixtures as SKDeltaJSON[]
@@ -23,10 +24,13 @@ export { measurementFixtures, positionFixtures }
 export const vesselMqttPassword = 'vesselpassword'
 export const vesselUuid =
   'urn:mrn:signalk:uuid:2204ae24-c944-4ffe-8d1d-4d411c9cea2e'
+export const vesselOwnerEmail = 'unittest@signalk-stash-dev.chacal.fi'
+
 export const testVessel = new Vessel(
   vesselUuid,
   'S/Y TestVessel',
-  vesselMqttPassword
+  vesselMqttPassword,
+  vesselOwnerEmail
 )
 
 export const testVesselUuids = [
@@ -65,6 +69,29 @@ export function getJson(
     .set('Accept', 'application/json')
     .expect('Content-Type', /json/)
     .expect(statusCode)
+}
+
+export function getAuthorizedJson(
+  app: express.Express,
+  path: string,
+  statusCode: number = 200
+): request.Test {
+  return addAuthCookie(getJson(app, path, statusCode))
+}
+
+export function addAuthCookie(
+  req: request.Test,
+  email: string = vesselOwnerEmail,
+  emailVerified: boolean = true
+): request.Test {
+  return req.set('Cookie', [
+    'appSession=' + createTestSessionCookie(email, emailVerified)
+  ])
+}
+
+export function createTestSessionCookie(email: string, emailVerified: boolean) {
+  const sessionData = { id_token: makeTestIdToken(email, emailVerified) }
+  return encryptSessionCookie(sessionData, config.auth.secret)
 }
 
 export function startTestApp(): express.Express {

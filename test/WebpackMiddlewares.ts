@@ -13,6 +13,13 @@ export default function bindWebpackMiddlewares(app: Express) {
   webpackConfig.devtool = 'inline-source-map'
 
   const compiler = webpack(webpackConfig)
-  app.use(webpackMiddleware(compiler))
+  app.use(
+    webpackMiddleware(compiler, {
+      publicPath: '/',
+      watchOptions: {
+        ignored: /node_modules/
+      }
+    })
+  )
   app.use(webpackHotMiddleware(compiler))
 }

@@ -1,45 +1,12 @@
-import { AppBar, Tab, Tabs } from '@material-ui/core'
 import * as React from 'react'
 import { useEffect } from 'react'
-import {
-  HashRouter as Router,
-  Redirect,
-  Route,
-  Switch,
-  withRouter
-} from 'react-router-dom'
+import { HashRouter as Router, Redirect, Route, Switch } from 'react-router-dom'
 import ErrorBoundary from './ErrorBoundary'
 import MapPanel from './MapPanel'
+import { NavBar } from './NavBar'
 import TimeSelectionState from './timeselection-state'
 import TrackLengthsPanel from './tracklengths/TrackLengthsPanel'
 import { VesselSelectionState } from './vesselselection-state'
-
-const navigation = [
-  { label: 'Map', path: '/map' },
-  { label: 'Track lengths', path: '/tracklengths' }
-]
-
-const Navi = withRouter(({ location, history }) => {
-  const [tabIndex, setTabIndex] = React.useState(
-    navigation.findIndex(e => e.path === location.pathname)
-  )
-  useEffect(() => {
-    setTabIndex(navigation.findIndex(e => e.path === location.pathname))
-  })
-  const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-    history.push(navigation[newValue].path)
-    setTabIndex(newValue)
-  }
-  return (
-    <AppBar position="static">
-      <Tabs value={tabIndex} onChange={handleChange}>
-        {navigation.map(({ label }) => (
-          <Tab key={label} label={label} />
-        ))}
-      </Tabs>
-    </AppBar>
-  )
-})
 
 const vesselSelectionState = new VesselSelectionState()
 const timeSelectionState = TimeSelectionState.fromLocalStorage()
@@ -51,7 +18,7 @@ const App = () => {
 
   return (
     <Router>
-      <Navi />
+      <NavBar />
       <Switch>
         <Route path="/map">
           <ErrorBoundary>

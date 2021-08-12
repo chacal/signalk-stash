@@ -1,12 +1,16 @@
 import { expect } from 'chai'
 import config from '../api-server/Config'
-import { getJson, startTestApp } from './test-util'
+import { getAuthorizedJson, getJson, startTestApp } from './test-util'
 
 describe('Mqtt Credentials API', () => {
   const app = startTestApp()
 
+  it('requires authentication', () => {
+    return getJson(app, '/mqtt-credentials', 401)
+  })
+
   it('returns "latest reader" MQTT credentials from Config', () => {
-    return getJson(app, '/mqtt-credentials').expect(res => {
+    return getAuthorizedJson(app, '/mqtt-credentials').expect(res => {
       expect(res.body.latestReader.username).to.eq(
         config.mqtt.latestReader.username
       )

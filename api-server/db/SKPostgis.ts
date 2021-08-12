@@ -24,10 +24,10 @@ export default class SKPostgis {
   upsertVessel(vessel: Vessel): Promise<void> {
     return this.db.query(
       `
-      INSERT INTO vessel(vesselId, name)
-      VALUES ($[vesselId], $[name])
+      INSERT INTO vessel(vesselId, name, owner_email)
+      VALUES ($[vesselId], $[name], $[ownerEmail])
       ON CONFLICT (vesselId)
-      DO UPDATE SET name = $[name]`,
+      DO UPDATE SET name = $[name], owner_email = $[ownerEmail]`,
       vessel
     )
   }
@@ -40,6 +40,18 @@ export default class SKPostgis {
       FROM vessel`
       )
       .then(res => res as VesselData[])
+  }
+
+  getVesselByOwnerEmail(ownerEmail: string): Promise<VesselData> {
+    return this.db
+      .one(
+        `
+      SELECT vesselId as "vesselId", name
+      FROM vessel
+      WHERE owner_email = $1`,
+        ownerEmail
+      )
+      .then(res => res as VesselData)
   }
 
   upsertAccount(account: MqttAccount): Promise<void> {

@@ -4,14 +4,21 @@ import fs from 'fs'
 import path from 'path'
 import DB from '../api-server/db/StashDB'
 import Vessel from '../api-server/domain/Vessel'
-import { testVesselUuids, writeDeltasFromJSONArray } from './test-util'
+import {
+  createTestSessionCookie,
+  testVesselUuids,
+  vesselOwnerEmail,
+  writeDeltasFromJSONArray
+} from './test-util'
 import TestDB from './TestDB'
 const debug = Debug('stash:test-api')
 
 export default function setupTestAPIRoutes(app: Express) {
   console.log('********* Setting up test routes *********')
   app.post('/test/reset-tables', resetTables)
+  app.post('/test/insert-vessels', insertTestVessels)
   app.post('/test/insert-positions', insertLargePositionsFixture)
+  app.post('/test/login', loginWithTestSession)
 }
 
 function resetTables(req: Request, res: Response, next: NextFunction): void {
@@ -19,6 +26,17 @@ function resetTables(req: Request, res: Response, next: NextFunction): void {
   TestDB.resetTables()
     .then(() => res.status(204).end())
     .catch(next)
+}
+
+async function insertTestVessels(req: Request, res: Response) {
+  debug('Inserting test vessels')
+  await DB.upsertVessel(
+    new Vessel(testVesselUuids[1], 'Test Vessel', 'baz', vesselOwnerEmail)
+  )
+  await DB.upsertVessel(
+    new Vessel(testVesselUuids[2], 'foo', 'BAZ', 'foo@baz.com')
+  )
+  res.status(204).end()
 }
 
 function insertLargePositionsFixture(
@@ -32,8 +50,18 @@ function insertLargePositionsFixture(
   )
   const rows = JSON.parse(content.toString())
   writeDeltasFromJSONArray(rows)
-    .then(() => DB.upsertVessel(new Vessel(testVesselUuids[1], 'bar', 'baz')))
-    .then(() => DB.upsertVessel(new Vessel(testVesselUuids[2], 'foo', 'BAZ')))
     .then(() => res.status(204).end())
     .catch(next)
+}
+
+function loginWithTestSession(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  res.cookie('appSession', createTestSessionCookie(vesselOwnerEmail, true), {
+    httpOnly: true,
+    sameSite: 'lax'
+  })
+  res.json()
 }
