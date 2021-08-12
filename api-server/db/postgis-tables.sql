@@ -18,5 +18,5 @@ CREATE TABLE IF NOT EXISTS mqtt_acl (
 CREATE TABLE IF NOT EXISTS vessel (
   vesselId    TEXT PRIMARY KEY REFERENCES account(username) ON DELETE RESTRICT,
   name        TEXT,
-  owner_email TEXT UNIQUE NOT NULL
+  owner_email TEXT UNIQUE
 );
