@@ -89,21 +89,6 @@
       creates: /etc/ssl/certs/dhparam.pem
     notify: restart-nginx
 
-  - name: Fail if Nginx basic auth credentials are missing
-    fail:
-      msg: "Nginx basic auth credentials are missing. Set SIGNALK_STASH_PROD_NGINX_AUTH_USERNAME and SIGNALK_STASH_PROD_NGINX_AUTH_PASSWORD variables."
-    when: nginx.username == "" or nginx.password == ""
-
-  - name: Set credentials for basic auth access
-    htpasswd:
-      path: /etc/nginx/passwdfile
-      name: "{{ nginx.username }}"
-      password: "{{ nginx.password }}"
-      owner: root
-      group: www-data
-      mode: 0640
-    notify: restart-nginx
-
   - name: Add custom Nginx configuration
     template: src=./prod_nginx.conf.j2 dest=/etc/nginx/conf.d/signalk_stash_nginx.conf
     notify: restart-nginx
