@@ -5,4 +5,7 @@
         <level>notice</level>
         <console>1</console>
     </logger>
+    <metric_log remove="1"/>
+    <query_log remove="1"/>
+    <query_thread_log remove="1"/>
 </yandex>
