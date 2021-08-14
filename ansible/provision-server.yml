@@ -61,6 +61,18 @@
   - name: Install Docker
     apt: pkg=docker-ce state=latest update_cache=yes
 
+  - name: Configure Docker to use local rotating logs
+    copy:
+      dest: /etc/docker/daemon.json
+      content: |
+        {
+          "log-driver": "local",
+          "log-opts": {
+            "max-size": "100m",
+            "max-file": "10"
+          }
+        }
+
   - name: Enable and start Docker
     service:
       name: docker
