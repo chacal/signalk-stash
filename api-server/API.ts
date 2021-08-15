@@ -127,7 +127,12 @@ function authErrorHandler(
   }
 }
 
-function defaultErrorHandler(err: any, req: Request, res: Response) {
+function defaultErrorHandler(
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   console.error(err)
   res.status(500).json({
     error: typeof err === 'object' ? err.toString() : JSON.stringify(err)
