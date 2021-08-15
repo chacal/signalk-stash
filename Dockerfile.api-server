@@ -23,7 +23,6 @@ COPY package.json package-lock.json ./
 RUN npm install
 COPY --from=builder /opt/app/built ./built
 COPY --from=builder /opt/app/api-server/public ./api-server/public
-COPY --from=builder /opt/app/api-server/db/postgis-tables.sql ./api-server/db/
 
 CMD ["node", "./built/api-server/index.js"]
 
