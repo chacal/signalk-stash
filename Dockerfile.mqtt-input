@@ -1,5 +1,4 @@
-FROM node:16-alpine
-ENV NODE_ENV=production
+FROM node:16-alpine as builder
 WORKDIR /opt/app
 
 RUN apk add git
@@ -14,6 +13,16 @@ COPY ./delta-inputs ./delta-inputs
 COPY ./types ./types
 RUN ./node_modules/.bin/tsc --sourceMap false
 
-CMD ["node", "./built/delta-inputs/mqtt-runner.js"]
+
+
+FROM node:16-alpine
+ENV NODE_ENV=production
+WORKDIR /opt/app
+
+COPY package.json package-lock.json ./
+RUN npm install
+COPY --from=builder /opt/app/built .
+
+CMD ["node", "./delta-inputs/mqtt-runner.js"]
 
 USER node
