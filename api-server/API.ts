@@ -37,7 +37,7 @@ class API {
       })
     )
     this.app.use(requireVesselOwnership)
-    app.get('/user-info', getUserInfo)
+    this.app.get('/user-info', getUserInfo)
     setupTrackAPIRoutes(this.app)
     setupVesselAPIRoutes(this.app)
     setupMqttCredentialsAPIRoutes(this.app)
