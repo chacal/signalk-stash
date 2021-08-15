@@ -41,7 +41,7 @@ module.exports = function(env, argv) {
     },
     output: {
       filename: 'bundle.js',
-      path: path.resolve(__dirname, 'api-server/public'),
+      path: path.resolve(__dirname, 'built/api-server/public'),
       publicPath: '/'
     },
     plugins: [new webpack.HotModuleReplacementPlugin()]
