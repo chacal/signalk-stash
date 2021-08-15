@@ -19,7 +19,7 @@ import setupMqttCredentialsAPIRoutes, {
 import setupTrackAPIRoutes from './TrackAPI'
 import setupVesselAPIRoutes from './VesselAPI'
 
-const publicPath = path.join(__dirname, '../../api-server/public')
+const publicPath = path.join(__dirname, './public')
 const debug = Debug('stash:API')
 
 class API {
@@ -37,7 +37,7 @@ class API {
       })
     )
     this.app.use(requireVesselOwnership)
-    app.get('/user-info', getUserInfo)
+    this.app.get('/user-info', getUserInfo)
     setupTrackAPIRoutes(this.app)
     setupVesselAPIRoutes(this.app)
     setupMqttCredentialsAPIRoutes(this.app)

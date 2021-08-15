@@ -29,11 +29,18 @@ clean:
 	@rm -rf built
 	@rm -rf test_reports
 
-compile: clean
+copy-static-files:
+	@mkdir -p built/api-server
+	@cp -r api-server/public built/api-server/public
+
+compile: clean copy-static-files
 	@$(TSC)
 
-compile-watch:
+compile-watch: copy-static-files
 	@$(TSC) --watch
+
+build-prod: compile
+	@$(WEBPACK) -p --env=production
 
 start: compile
 	@node $(API_SERVER_DEV_MAIN)
