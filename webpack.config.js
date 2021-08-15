@@ -13,9 +13,6 @@ module.exports = function(env, argv) {
   console.log('Using Webpack env:', env)
   return {
     entry: entriesFor(env),
-    devServer: {
-      contentBase: './ui/public'
-    },
     module: {
       rules: [
         {
