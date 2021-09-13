@@ -97,10 +97,10 @@ async function getValues(
   req: Request
 ) {
   const timeResolutionSeconds = req.query.resolution
-    ? Number.parseFloat(req.query.resolution)
+    ? Number.parseFloat(req.query.resolution as string)
     : (to.toEpochSecond() - from.toEpochSecond()) / 500
   const context = req.query.context || ''
-  const pathSpecs = toPathSpecs(req.query.paths)
+  const pathSpecs = toPathSpecs(req.query.paths as string)
   const valueInPaths = pathSpecs.filter(isValuePathSpec)
   const valuesRequested = valueInPaths.length > 0
   const positionRequested =
