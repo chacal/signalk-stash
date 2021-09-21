@@ -1,3 +1,4 @@
+import cors from 'cors'
 import Debug from 'debug'
 import express, {
   NextFunction,
@@ -12,6 +13,7 @@ import { ExpressAppCustomizer } from './APIServerMain'
 import { IConfig } from './Config'
 import stash from './db/StashDB'
 import { validate } from './domain/validation'
+import setupHistoryAPIRoutes from './HistoryAPI'
 import setupMMLTilesAPIRoutes from './MMLTilesAPI'
 import setupMqttCredentialsAPIRoutes, {
   insertLatestDeltaReaderAccountFromConfig
@@ -29,6 +31,10 @@ class API {
     private readonly app = express()
   ) {
     this.customizer(this.app)
+    this.app.use(cors({
+      credentials: true,
+      origin: (origin, callback) => callback(null, origin)
+    }))
     this.app.use(
       auth({
         ...config.auth,
@@ -39,6 +45,7 @@ class API {
     this.app.use(requireVesselOwnership)
     this.app.get('/user-info', getUserInfo)
     setupTrackAPIRoutes(this.app)
+    setupHistoryAPIRoutes(this.app)
     setupVesselAPIRoutes(this.app)
     setupMqttCredentialsAPIRoutes(this.app)
     setupMMLTilesAPIRoutes(this.app)

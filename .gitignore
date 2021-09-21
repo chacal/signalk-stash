@@ -10,3 +10,5 @@ ansible/id_rsa_stash*
 ansible/inventory
 *.retry
 env
+grafana-signalk-plugins
+e2e/dotsignalk/baseDeltas.json

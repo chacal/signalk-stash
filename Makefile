@@ -6,6 +6,9 @@ TSLINT=$(NODE_BIN)/tslint
 WEBPACK=$(NODE_BIN)/webpack
 CYPRESS=$(NODE_BIN)/cypress
 
+SIGNALK_DATASOURCE_VERSION=0.0.4
+SIGNALK_TRACKMAP_VERSION=0.0.1
+
 API_SERVER_DEV_MAIN=built/test/test-api-server.js
 
 ifneq ($(CI)$(TF_BUILD),)
@@ -114,6 +117,14 @@ e2e-api: compile
 
 e2e-sub:
 	mosquitto_sub -h localhost -p 21883 -u runner -P runnerpasswort -t signalk/delta/+
+
+download-grafana-plugins:
+	-mkdir grafana-signalk-plugins
+	curl  -L -s https://github.com/tkurki/signalk-grafana/releases/download/trackmap_v${SIGNALK_TRACKMAP_VERSION}/signalk-trackmap-trackmap_v${SIGNALK_TRACKMAP_VERSION}.zip -o grafana-signalk-plugins/trackmap.zip 
+	unzip -o -d grafana-signalk-plugins/ grafana-signalk-plugins/trackmap.zip
+	curl  -L -s https://github.com/tkurki/signalk-grafana/releases/download/datasource_v${SIGNALK_DATASOURCE_VERSION}/signalk-datasource-datasource_v${SIGNALK_DATASOURCE_VERSION}.zip -o grafana-signalk-plugins/sk-datasource.zip 
+	unzip -o -d grafana-signalk-plugins/ grafana-signalk-plugins/sk-datasource.zip
+
 
 dev: docker-dev-up watch
 
