@@ -96,9 +96,9 @@ async function getValues(
   debug: (s: string) => void,
   req: Request
 ) {
-  const timeResolutionSeconds = req.query.resolution
+  const timeResolutionSeconds = Math.max(req.query.resolution
     ? Number.parseFloat(req.query.resolution as string)
-    : (to.toEpochSecond() - from.toEpochSecond()) / 500
+    : (to.toEpochSecond() - from.toEpochSecond()) / 500, 1)
   const context = req.query.context || ''
   const pathSpecs = toPathSpecs(req.query.paths as string)
   const valueInPaths = pathSpecs.filter(isValuePathSpec)
@@ -226,17 +226,26 @@ function fromToHandler(
   debug: (d: string) => void
 ) {
   return async (req: Request, res: Response) => {
-    try {
-      debug(req.query.toString())
-      const from = dateTimeFromQuery(req, 'from')
-      const to = dateTimeFromQuery(req, 'to')
-      debug(`${from.toString()}-${to.toString()}`)
-      res.json(await wrappedHandler(ch, from, to, debug, req))
-    } catch (e) {
+    const fromTo = getFromTo(req, debug)
+    if (!fromTo) {
       res.status(400).send({
         message: `date parsing failed`
       })
+      return  
     }
+    const {from, to} = fromTo
+    res.json(await wrappedHandler(ch, from, to, debug, req))
+  }
+}
+
+function getFromTo(req: Request, debug: (d: string) => void): {from: ZonedDateTime, to: ZonedDateTime} | void {
+  try {
+    const from = dateTimeFromQuery(req, 'from')
+    const to = dateTimeFromQuery(req, 'to')
+    debug(`${from.toString()}-${to.toString()}`)
+    return {from, to}
+  } catch (e) {
+    return undefined
   }
 }
 
