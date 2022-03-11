@@ -15,8 +15,8 @@ describe('VesselSelectionPanel', () => {
     const timeSelectionState = new TimeSelectionState()
     const ysp = mount(<TimeSelectionPanel timeselection= {timeSelectionState}/>)
   
-    //toggle plug 3 years
-    expect(ysp.find(ListItem)).to.have.lengthOf(4)
+    //number of years plus toggle
+    expect(ysp.find(ListItem)).to.have.lengthOf(YEARS.toArray().length + 1)
 
     const checkBoxes = ysp.find(Checkbox)
 
@@ -36,6 +36,6 @@ describe('VesselSelectionPanel', () => {
       checked => checked === false
     )
     const selectedYears = await timeSelectionState.selectedYears.pipe(take(1)).toPromise()
-    expect(selectedYears.toArray()).to.have.length(1)
+    expect(selectedYears.toArray()).to.have.length(YEARS.toArray().length - 2)
   })
 })

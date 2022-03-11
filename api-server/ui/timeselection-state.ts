@@ -23,7 +23,13 @@ export class SelectedYears {
   }
 }
 
-export const YEARS = new SelectedYears([2019, 2020, 2021].map(Year.of))
+const CURRENT_YEAR = new Date().getFullYear()
+const FIRST_YEAR = 2019
+export const YEARS = new SelectedYears(
+  [...Array(CURRENT_YEAR - FIRST_YEAR + 1).keys()]
+    .map(y => y + FIRST_YEAR)
+    .map(Year.of)
+)
 export const SELECTABLE_YEARS = YEARS.toArray()
 
 export default class TimeSelectionState {
