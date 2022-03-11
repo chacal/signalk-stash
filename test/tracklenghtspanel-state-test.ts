@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import Color = require('color')
 import sinon from 'sinon'
 import { asVesselId } from '../api-server/domain/Vessel'
-import TimeSelectionState from '../api-server/ui/timeselection-state'
+import TimeSelectionState, { YEARS } from '../api-server/ui/timeselection-state'
 import {
   TrackLength,
   TrackLengthsPanelState,
@@ -52,10 +52,11 @@ describe('TrackLengthsPanelState', () => {
       trackFetcher
     )
     return new Promise<void>((resolve, reject) => {
+      const expectedYears = YEARS.toArray().length
       tlpState.tracks.subscribe((trackLengths: TrackLengthWithName[][]) => {
         try {
-          expect(trackFetcher.callCount).to.equal(3)
-          expect(trackLengths).to.have.lengthOf(3)
+          expect(trackFetcher.callCount).to.equal(expectedYears)
+          expect(trackLengths).to.have.lengthOf(expectedYears)
           expect(trackLengths[0]).to.have.lengthOf(2)
           expect(trackLengths[0][0]).to.deep.equal({
             name: 'vessel2',
@@ -67,7 +68,7 @@ describe('TrackLengthsPanelState', () => {
       })
       setTimeout(() => {
         try {
-          expect(trackFetcher.callCount).to.equal(3)
+          expect(trackFetcher.callCount).to.equal(expectedYears)
         } catch (e) {
           reject(e)
         }
