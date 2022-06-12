@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { Express, Request, Response } from 'express'
+import Config from './Config'
 
 export default function setupMMLTilesAPIRoutes(app: Express) {
   app.get('/ortokuva/:z/:x/:y.jpg', async (req, res) => {
@@ -9,7 +10,8 @@ export default function setupMMLTilesAPIRoutes(app: Express) {
   })
   app.get('/maastokartta/:z/:x/:y.jpg', async (req, res) => {
     const { z, x, y } = req.params
-    const url = `https://karttamoottori.maanmittauslaitos.fi/maasto/wmts/1.0.0/maastokartta/default/WGS84_Pseudo-Mercator/${z}/${y}/${x}.jpg`
+    const nlsApiKey = Config.nlsApiKey
+    const url = `https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/maastokartta/default/WGS84_Pseudo-Mercator/${z}/${y}/${x}.jpg?api-key=${nlsApiKey}`
     await proxyRequest(url, req, res)
   })
 }

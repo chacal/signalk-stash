@@ -49,6 +49,7 @@ export interface IConfig extends StringIndexable {
     issuerBaseURL: string
     secret: string
   }
+  nlsApiKey: string
 }
 
 type DeepPartial<T> = { [P in keyof T]?: DeepPartial<T[P]> }
@@ -95,7 +96,8 @@ const baseConfig = {
     clientID: 'mKdpwEK9Mxg7mU6EuOUSg03wSKbKz1pI',
     issuerBaseURL: 'https://signalk-stash-dev.eu.auth0.com',
     secret: 'dev-auth-secret-string'
-  }
+  },
+  nlsApiKey: 'replaced-from-env'
 }
 
 const testConfig = {
