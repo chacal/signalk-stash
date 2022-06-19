@@ -2,7 +2,7 @@ version: '3'
 
 services:
   clickhouse:
-    image: yandex/clickhouse-server:21-alpine
+    image: clickhouse/clickhouse-server:22.3.3-alpine
     ports:
      - 48123:8123
      - 49000:9000
