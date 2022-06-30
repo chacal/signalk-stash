@@ -14,6 +14,7 @@
       password: "{{ lookup('env','SIGNALK_STASH_PROD_GRAFANA_PASSWORD') }}"
     auth:
       secret: "{{ lookup('env','SIGNALK_STASH_PROD_AUTH_SECRET') }}"
+    nls_api_key: "{{ lookup('env','SIGNALK_STASH_PROD_NLSAPIKEY') }}"
 
   tasks:
     - name: Copy Docker compose file to remote
@@ -36,6 +37,11 @@
         msg: "Auth secret is missing. Set SIGNALK_STASH_PROD_AUTH_SECRET variable."
       when: auth.secret == ""
 
+    - name: Fail if NLS API key is missing
+      fail:
+        msg: "NLS API key is missing. Set SIGNALK_STASH_PROD_NLSAPIKEY variable."
+      when: nls_api_key == ""
+
     - name: Generate Docker environment file
       copy:
         dest: docker-prod.env
@@ -45,6 +51,7 @@
           SIGNALK_STASH_PROD_MQTT_LATESTREADER_USERNAME={{mqtt_latestreader.username}}
           SIGNALK_STASH_PROD_MQTT_LATESTREADER_PASSWORD={{mqtt_latestreader.password}}
           SIGNALK_STASH_PROD_AUTH_SECRET={{auth.secret}}
+          SIGNALK_STASH_PROD_NLSAPIKEY={{nls_api_key}}
 
     - name: Copy Mosquitto TLS configuration file
       template:
