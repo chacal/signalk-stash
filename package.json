@@ -22,7 +22,7 @@
     "byline": "^5.0.0",
     "commander": "^8.1.0",
     "debug": "^4.3.2",
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "express-openid-connect": "^2.5.0",
     "geolib": "^3.3.1",
     "joi": "^17.4.1",
